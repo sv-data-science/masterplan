@@ -75,6 +75,9 @@ export default function Navbar() {
                     <Link href={`/profile/${user.username}`} className="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10">
                       <User size={14} /> Profile
                     </Link>
+                    <Link href="/achievements" className="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10">
+                      <Trophy size={14} /> Achievements
+                    </Link>
                     <Link href="/settings" className="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10">
                       Settings
                     </Link>

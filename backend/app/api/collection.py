@@ -10,6 +10,7 @@ from app.models.moc import MOC
 from app.schemas.collection import CollectionItemCreate, CollectionItemUpdate, CollectionItemOut, CollectionStats
 from app.auth import get_current_user
 from app.models.user import User
+from app.services.gamification import award_xp, check_achievements, recompute_archetype
 
 router = APIRouter(prefix="/collection", tags=["collection"])
 
@@ -111,6 +112,12 @@ async def add_to_collection(
     db.add(item)
     await db.flush()
     await db.refresh(item)
+
+    # Gamification side-effects
+    await award_xp(db, current_user, 10)
+    await check_achievements(db, current_user)
+    await recompute_archetype(db, current_user)
+
     return item
 
 @router.put("/{item_id}", response_model=CollectionItemOut)

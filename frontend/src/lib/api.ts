@@ -79,6 +79,7 @@ export const leaderboardApi = {
 export const usersApi = {
   profile: (username: string) => api.get(`/users/${username}`),
   achievements: (username: string) => api.get(`/users/${username}/achievements`),
+  myAchievements: () => api.get('/users/me/achievements'),
   updateProfile: (data: Partial<{ display_name: string; bio: string; is_public: boolean }>) =>
     api.put('/users/me', data),
 };

@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models.moc import MOC, MOCLike
 from app.auth import get_current_user, get_optional_user
 from app.models.user import User
+from app.services.gamification import award_xp, check_achievements
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/mocs", tags=["mocs"])
@@ -81,6 +82,8 @@ async def create_moc(body: MOCCreate, current_user: User = Depends(get_current_u
     db.add(moc)
     await db.flush()
     await db.refresh(moc)
+    await award_xp(db, current_user, 25)
+    await check_achievements(db, current_user)
     return serialize_moc(moc, current_user.id)
 
 @router.post("/{moc_id}/like", status_code=201)

@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.collection import CollectionItem
 from app.models.moc import MOC
+from app.models.achievement import Achievement, UserAchievement
 from app.schemas.user import UserPublic, UserUpdate, UserStats
 from app.auth import get_current_user
 
@@ -51,3 +52,36 @@ async def get_user(username: str, db: AsyncSession = Depends(get_db)):
     user_dict = {c.name: getattr(user, c.name) for c in user.__table__.columns}
     user_dict["stats"] = stats
     return UserPublic(**user_dict)
+
+
+@router.get("/me/achievements")
+async def my_achievements(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    # All achievements
+    all_q = await db.execute(select(Achievement).order_by(Achievement.rarity, Achievement.name))
+    all_ach = all_q.scalars().all()
+
+    # User's unlocks
+    unlocked_q = await db.execute(
+        select(UserAchievement).where(UserAchievement.user_id == current_user.id)
+    )
+    unlocks = {u.achievement_id: u for u in unlocked_q.scalars().all()}
+
+    return [
+        {
+            "id": a.id,
+            "key": a.key,
+            "name": a.name,
+            "description": a.description,
+            "icon": a.icon,
+            "rarity": a.rarity,
+            "xp_reward": a.xp_reward,
+            "target": a.target,
+            "unlocked": a.id in unlocks,
+            "unlocked_at": unlocks[a.id].unlocked_at.isoformat() if a.id in unlocks and unlocks[a.id].unlocked_at else None,
+            "progress": unlocks[a.id].progress if a.id in unlocks else 0,
+        }
+        for a in all_ach
+    ]
