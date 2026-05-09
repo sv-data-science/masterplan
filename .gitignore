@@ -1,0 +1,28 @@
+# LAN config (contains local IPs)
+.env.lan
+
+# Frontend
+frontend/.next/
+frontend/node_modules/
+frontend/.env.local
+
+# Backend
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.egg-info/
+backend/.env
+backend/uploads/
+backend/venv/
+backend/.venv/
+
+# Python
+*.pyc
+*.pyo
+__pycache__/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log

@@ -26,6 +26,26 @@ docker compose up
 - Backend API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
+### LAN / Phone testing (same WiFi)
+
+```bash
+# Mac / Linux
+chmod +x lan-start.sh
+./lan-start.sh
+
+# Windows
+lan-start.bat
+```
+
+The script auto-detects your LAN IP, configures the stack, and prints the URL (+ QR code if `qrcode` is installed).
+
+Open `http://<your-ip>:3000` on your phone — both devices must be on the same WiFi network.
+
+Optional: install `qrcode` to get a scannable QR code in the terminal:
+```bash
+pip install qrcode
+```
+
 ### Manual Setup
 
 **Backend:**
