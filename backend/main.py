@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import settings
-from app.database import engine, Base
+from app.database import engine, Base, AsyncSessionLocal
 from app.models import user, set, collection, achievement, moc  # noqa: register models
 from app.api import auth, sets, collection as collection_router, users, mocs, leaderboard
 
@@ -10,12 +10,24 @@ from app.api import auth, sets, collection as collection_router, users, mocs, le
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    # Auto-seed with static data if DB is empty
+
+    # Auto-seed on first run if the catalog is empty.
+    # For ongoing updates (new sets, retirement changes), run:
+    #   python -m scripts.import_csv
+    # or use the weekly GitHub Action.
     try:
-        from scripts.seed_static import seed as static_seed
-        await static_seed()
+        from sqlalchemy import select, func
+        from app.models.set import LegoSet
+        async with AsyncSessionLocal() as s:
+            count = (await s.execute(select(func.count()).select_from(LegoSet))).scalar() or 0
+        if count < 50:
+            from scripts.seed_static import seed as static_seed
+            await static_seed()
+            print("ℹ️  Static seed loaded. For full catalog (~20K sets) run:")
+            print("   python -m scripts.import_csv")
     except Exception as e:
-        print(f"Seed skipped: {e}")
+        print(f"Seed check skipped: {e}")
+
     yield
 
 app = FastAPI(

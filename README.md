@@ -45,6 +45,24 @@ cp .env.local.example .env.local  # set NEXT_PUBLIC_API_URL
 npm run dev
 ```
 
+## Catalog Data
+
+The app auto-seeds with **150 hand-picked sets** on first launch so you can use it immediately without any setup.
+
+For the **full LEGO catalog (~20,000 sets)**, run the Rebrickable CSV importer:
+
+```bash
+cd backend
+python -m scripts.import_csv             # imports sets + minifigs from 1980+
+python -m scripts.import_csv --since 2010  # only modern sets
+```
+
+This downloads daily-refreshed CSVs from Rebrickable's public CDN — no API key required. The import is idempotent and uses upserts, so re-running it picks up new releases and retirement status changes without creating duplicates.
+
+### Automatic weekly refresh
+
+A GitHub Actions workflow (`.github/workflows/refresh-catalog.yml`) runs every Monday at 06:00 UTC to keep the catalog current. It needs a `DATABASE_URL` repo secret pointing at your production database.
+
 ## Features
 
 - **Collection Tracker** – Mark sets as Owned / Wishlist / Previously Owned

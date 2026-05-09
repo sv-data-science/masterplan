@@ -1,0 +1,32 @@
+name: Refresh LEGO Catalog
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC — Rebrickable refreshes CSVs daily
+    - cron: '0 6 * * 1'
+  workflow_dispatch:  # also allow manual trigger
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: pip install -r requirements.txt
+
+      - name: Import catalog
+        working-directory: ./backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m scripts.import_csv --since 2000
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Catalog refresh failed — check the logs"
