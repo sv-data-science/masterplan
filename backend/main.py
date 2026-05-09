@@ -8,9 +8,14 @@ from app.api import auth, sets, collection as collection_router, users, mocs, le
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables on startup (use Alembic in production)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    # Auto-seed with static data if DB is empty
+    try:
+        from scripts.seed_static import seed as static_seed
+        await static_seed()
+    except Exception as e:
+        print(f"Seed skipped: {e}")
     yield
 
 app = FastAPI(
