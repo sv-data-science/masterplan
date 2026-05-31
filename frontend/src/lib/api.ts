@@ -46,7 +46,7 @@ export const setsApi = {
 export const collectionApi = {
   list: (params?: { status?: string; page?: number }) =>
     api.get('/collection', { params }),
-  add: (data: { set_id?: string; minifig_id?: string; status: string; quantity?: number; condition?: string; is_sealed?: boolean }) =>
+  add: (data: { set_id?: string; minifig_id?: string; status: string; quantity?: number; condition?: string; is_sealed?: boolean; is_complete?: boolean }) =>
     api.post('/collection', data),
   update: (id: string, data: Partial<{ status: string; quantity: number; condition: string; notes: string; is_sealed: boolean; is_complete: boolean }>) =>
     api.put(`/collection/${id}`, data),
