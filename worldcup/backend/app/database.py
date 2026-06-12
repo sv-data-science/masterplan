@@ -4,7 +4,7 @@ from app.config import settings
 
 
 def _build_engine():
-    url = settings.DATABASE_URL
+    url = settings.async_database_url
     if "sslmode=require" in url:
         url = url.replace("?sslmode=require", "").replace("&sslmode=require", "")
         return create_async_engine(url, echo=False, pool_size=10, max_overflow=20,
