@@ -6,6 +6,10 @@ frontend/.next/
 frontend/node_modules/
 frontend/.env.local
 
+# Root-level artifacts (accidental builds outside project dirs)
+.next/
+node_modules/
+
 # Backend
 backend/__pycache__/
 backend/**/__pycache__/
