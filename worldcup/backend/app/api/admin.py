@@ -1,6 +1,11 @@
+import uuid
 from fastapi import APIRouter, Depends, HTTPException
-from app.auth import get_current_user
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.auth import get_current_user, hash_password
+from app.database import get_db
 from app.models.user import User
+from app.schemas.user import UserCreate, UserPublic
 from app.services.sync import sync_scores, last_sync_result
 from app.config import settings
 
@@ -25,3 +30,38 @@ async def sync_status(admin: User = Depends(require_admin)):
         "api_key_configured": bool(settings.FOOTBALL_DATA_API_KEY),
         "auto_sync_interval_minutes": settings.SYNC_INTERVAL_MINUTES,
     }
+
+
+@router.post("/users", response_model=UserPublic, status_code=201)
+async def create_user(
+    body: UserCreate,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    existing = (await db.execute(
+        select(User).where((User.email == body.email) | (User.username == body.username))
+    )).scalar_one_or_none()
+    if existing:
+        detail = "Email already registered" if existing.email == body.email else "Username already taken"
+        raise HTTPException(status_code=400, detail=detail)
+
+    user = User(
+        id=str(uuid.uuid4()),
+        username=body.username,
+        email=body.email,
+        display_name=body.display_name,
+        hashed_password=hash_password(body.password),
+        is_admin=False,
+    )
+    db.add(user)
+    await db.flush()
+    return user
+
+
+@router.get("/users", response_model=list[UserPublic])
+async def list_users(
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    users = (await db.execute(select(User).order_by(User.created_at))).scalars().all()
+    return users

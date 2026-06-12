@@ -113,6 +113,93 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function CreateUserPanel({ onCreated }: { onCreated: () => void }) {
+  const [form, setForm] = useState({ display_name: '', username: '', email: '', password: '' });
+  const [saving, setSaving] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.display_name || !form.username || !form.email || !form.password) {
+      toast.error('All fields required'); return;
+    }
+    setSaving(true);
+    try {
+      await api.post('/admin/users', form);
+      toast.success(`Account created for ${form.display_name}`);
+      setForm({ display_name: '', username: '', email: '', password: '' });
+      onCreated();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Failed to create user');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="card p-4 border-green-800/40 bg-green-900/10">
+      <h3 className="font-semibold text-white mb-3">👤 Create account for a friend</h3>
+      <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <input
+          className="input text-sm py-1.5"
+          placeholder="Display name (e.g. João)"
+          value={form.display_name}
+          onChange={set('display_name')}
+        />
+        <input
+          className="input text-sm py-1.5"
+          placeholder="Username (letters, numbers)"
+          value={form.username}
+          onChange={set('username')}
+        />
+        <input
+          className="input text-sm py-1.5"
+          placeholder="Email"
+          type="email"
+          value={form.email}
+          onChange={set('email')}
+        />
+        <input
+          className="input text-sm py-1.5"
+          placeholder="Password"
+          type="text"
+          value={form.password}
+          onChange={set('password')}
+        />
+        <div className="sm:col-span-2 flex justify-end">
+          <button type="submit" disabled={saving} className="btn-primary py-1.5 text-sm">
+            {saving ? 'Creating…' : 'Create account'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function UsersPanel() {
+  const { data: users = [], refetch } = useQuery<any[]>({
+    queryKey: ['admin-users'],
+    queryFn: () => api.get('/admin/users').then(r => r.data),
+    staleTime: 30_000,
+  });
+
+  return (
+    <div className="card p-4">
+      <h3 className="font-semibold text-white mb-3">👥 Participants ({users.length})</h3>
+      <div className="space-y-1">
+        {users.map(u => (
+          <div key={u.id} className="flex items-center justify-between text-sm py-1 border-b border-[#30363d] last:border-0">
+            <span className="text-white">{u.display_name} <span className="text-gray-500">@{u.username}</span></span>
+            {u.is_admin && <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">admin</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { user } = useAuthStore();
   const router = useRouter();
@@ -134,6 +221,7 @@ export default function AdminPage() {
   );
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['matches'] });
+  const invalidateUsers = () => qc.invalidateQueries({ queryKey: ['admin-users'] });
 
   const GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
@@ -149,8 +237,12 @@ export default function AdminPage() {
 
       <SyncPanel onSynced={invalidate} />
 
+      <CreateUserPanel onCreated={invalidateUsers} />
+
+      <UsersPanel />
+
       <p className="text-sm text-gray-400">
-        Or update scores manually below. Points auto-recalculate when status is set to <strong>Completed</strong>.
+        Update scores manually below. Points auto-recalculate when status is set to <strong>Completed</strong>.
       </p>
 
       <div className="flex flex-wrap gap-3">
