@@ -1,0 +1,10 @@
+# Railway config for the World Cup backend.
+# In the Railway dashboard, set Root Directory to: worldcup/backend
+# Railway will auto-detect the Dockerfile and use this file for deploy config.
+
+[deploy]
+startCommand = "sh -c 'uvicorn main:app --host 0.0.0.0 --port $PORT'"
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

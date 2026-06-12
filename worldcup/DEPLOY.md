@@ -10,8 +10,8 @@ Two services: **backend** (Railway) + **frontend** (Vercel). ~5 min setup.
 2. Select this repo (`sv-data-science/masterplan`)
 3. **Add a PostgreSQL** database service (click `+ New` → Database → PostgreSQL)
 4. **Add a backend** service (click `+ New` → GitHub Repo → same repo)
-   - In service settings → **Root Directory** → set to `worldcup`
-   - Railway will pick up `worldcup/railway.toml` automatically
+   - In service settings → **Root Directory** → set to `worldcup/backend`
+   - Railway will auto-detect the `Dockerfile` and pick up `railway.toml` automatically
 5. Set environment variables on the backend service:
    ```
    DATABASE_URL        = <copy from the PostgreSQL service's DATABASE_URL variable>
