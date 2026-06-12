@@ -1,9 +1,10 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// Calls go to /api/v1/... on the same origin — Next.js rewrites proxy them to the backend
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+
 export const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: `${API_BASE}/api/v1`,
   headers: { 'Content-Type': 'application/json' },
 });
 
