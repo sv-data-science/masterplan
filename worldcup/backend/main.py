@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -8,6 +9,11 @@ from app.database import engine, Base, AsyncSessionLocal
 from app.models import user, worldcup  # noqa: register models
 from app.api import auth, matches, predictions, leaderboard, admin
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    stream=sys.stdout,
+)
 log = logging.getLogger(__name__)
 
 
@@ -26,8 +32,15 @@ async def _auto_sync_loop():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    log.info("Starting up — DB URL scheme: %s", settings.async_database_url.split("@")[0].split("://")[0])
+
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        log.info("Database tables ready")
+    except Exception as e:
+        log.error("DB init failed: %s", e)
+        log.error("DATABASE_URL configured: %s", bool(settings.DATABASE_URL))
 
     try:
         from sqlalchemy import select, func
@@ -37,11 +50,10 @@ async def lifespan(app: FastAPI):
         if count == 0:
             from scripts.seed_worldcup import seed
             await seed()
-            print("✅ World Cup 2026 data seeded")
+            log.info("World Cup 2026 data seeded")
     except Exception as e:
-        print(f"Seed skipped: {e}")
+        log.warning("Seed skipped: %s", e)
 
-    # Start background auto-sync if API key and interval are configured
     task = None
     if settings.FOOTBALL_DATA_API_KEY and settings.SYNC_INTERVAL_MINUTES > 0:
         task = asyncio.create_task(_auto_sync_loop())
