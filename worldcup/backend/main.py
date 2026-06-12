@@ -1,10 +1,27 @@
+import asyncio
+import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
 from app.models import user, worldcup  # noqa: register models
-from app.api import auth, matches, predictions, leaderboard
+from app.api import auth, matches, predictions, leaderboard, admin
+
+log = logging.getLogger(__name__)
+
+
+async def _auto_sync_loop():
+    interval = settings.SYNC_INTERVAL_MINUTES * 60
+    while True:
+        await asyncio.sleep(interval)
+        try:
+            from app.services.sync import sync_scores
+            result = await sync_scores()
+            if result.get("updated"):
+                log.info("Auto-sync: %d matches updated", result["updated"])
+        except Exception as e:
+            log.error("Auto-sync error: %s", e)
 
 
 @asynccontextmanager
@@ -24,7 +41,16 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print(f"Seed skipped: {e}")
 
+    # Start background auto-sync if API key and interval are configured
+    task = None
+    if settings.FOOTBALL_DATA_API_KEY and settings.SYNC_INTERVAL_MINUTES > 0:
+        task = asyncio.create_task(_auto_sync_loop())
+        log.info("Auto-sync started (every %d min)", settings.SYNC_INTERVAL_MINUTES)
+
     yield
+
+    if task:
+        task.cancel()
 
 
 app = FastAPI(
@@ -46,6 +72,7 @@ app.include_router(auth.router, prefix="/api/v1")
 app.include_router(matches.router, prefix="/api/v1")
 app.include_router(predictions.router, prefix="/api/v1")
 app.include_router(leaderboard.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
 
 
 @app.get("/health")

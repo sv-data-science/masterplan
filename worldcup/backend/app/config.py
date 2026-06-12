@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
     CORS_ORIGINS: List[str] = ["http://localhost:3001", "http://localhost:3000"]
     ADMIN_SECRET: str = "change-this-admin-secret"
+    FOOTBALL_DATA_API_KEY: str = ""  # football-data.org free key
+    SYNC_INTERVAL_MINUTES: int = 5   # 0 = disable auto-sync
 
     class Config:
         env_file = ".env"
