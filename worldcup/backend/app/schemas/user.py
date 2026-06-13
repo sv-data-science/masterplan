@@ -1,5 +1,8 @@
-from pydantic import BaseModel, EmailStr, field_validator
+import re
+from pydantic import BaseModel, field_validator
 from datetime import datetime
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class UserPublic(BaseModel):
@@ -13,9 +16,17 @@ class UserPublic(BaseModel):
 
 class UserCreate(BaseModel):
     username: str
-    email: EmailStr
+    email: str
     display_name: str
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def email_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not _EMAIL_RE.match(v):
+            raise ValueError("Invalid email address")
+        return v
 
     @field_validator("username")
     @classmethod
@@ -34,5 +45,10 @@ class Token(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
+
+    @field_validator("email")
+    @classmethod
+    def email_normalise(cls, v: str) -> str:
+        return v.strip().lower()
