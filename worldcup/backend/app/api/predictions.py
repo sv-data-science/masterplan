@@ -22,8 +22,6 @@ async def upsert_prediction(
     match = match_result.scalar_one_or_none()
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
-    if match.status != "scheduled":
-        raise HTTPException(status_code=400, detail="Predictions are locked for this match")
 
     existing = await db.execute(
         select(Prediction).where(

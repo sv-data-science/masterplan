@@ -96,7 +96,7 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
   const [away, setAway] = useState<string | number>(match.my_prediction?.pred_away ?? '');
   const [saving, setSaving] = useState(false);
   const countdown = useCountdown(match.kickoff_utc);
-  const canPredict = !!user && match.status === 'scheduled';
+  const canPredict = !!user;
 
   const save = async () => {
     const h = Number(home), a = Number(away);
@@ -159,14 +159,6 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
             <input type="number" min={0} max={20} value={away} onChange={e => setAway(e.target.value)} className="input text-center w-14 py-1 text-sm" placeholder="0" />
             <button onClick={save} disabled={saving} className="btn-primary py-1 text-sm flex-1">{saving ? '…' : match.my_prediction ? 'Update' : 'Save'}</button>
           </div>
-        ) : match.status === 'live' ? (
-          match.my_prediction ? (
-            <div className="text-sm text-center text-gray-500">
-              Your pick: <span className="text-white font-mono">{match.my_prediction.pred_home}–{match.my_prediction.pred_away}</span>
-            </div>
-          ) : (
-            <p className="text-xs text-red-400/70 text-center">🔒 Predictions locked</p>
-          )
         ) : (
           <p className="text-xs text-gray-600 text-center"><a href="/login" className="underline hover:text-green-400">Log in</a> to predict</p>
         )}
