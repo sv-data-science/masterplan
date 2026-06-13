@@ -1,11 +1,11 @@
 'use client';
-import { useQuery } from '@tanstack/react-query';
-import { matchesApi } from '@/lib/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { matchesApi, predictionsApi } from '@/lib/api';
 import { Match } from '@/types';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
 
 function formatKickoff(iso: string | null) {
   if (!iso) return '–';
@@ -20,9 +20,50 @@ function pts(p: number | null) {
   return <span className="text-gray-600 text-xs">pending</span>;
 }
 
+function PredictRow({ match, onSaved }: { match: Match; onSaved: () => void }) {
+  const [home, setHome] = useState<string>(match.my_prediction?.pred_home?.toString() ?? '');
+  const [away, setAway] = useState<string>(match.my_prediction?.pred_away?.toString() ?? '');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    const h = Number(home), a = Number(away);
+    if (isNaN(h) || isNaN(a) || home === '' || away === '') { toast.error('Enter both scores'); return; }
+    setSaving(true);
+    try {
+      await predictionsApi.upsert(match.id, h, a);
+      toast.success('Saved!');
+      onSaved();
+    } catch { toast.error('Failed to save'); }
+    finally { setSaving(false); }
+  };
+
+  const hasPred = match.my_prediction !== null;
+
+  return (
+    <div className="flex items-center gap-2 px-4 py-3 text-sm flex-wrap">
+      <span className="text-gray-500 text-xs w-14 shrink-0">{formatKickoff(match.kickoff_utc)}</span>
+      <span className="flex-1 min-w-0 text-white truncate">
+        {match.home_team.flag} {match.home_team.code} <span className="text-gray-600">vs</span> {match.away_team.code} {match.away_team.flag}
+        {match.status === 'completed' && <span className="ml-2 text-gray-500 text-xs font-mono">({match.home_score}–{match.away_score})</span>}
+        {match.status === 'live' && <span className="ml-2 text-xs text-red-400">🔴</span>}
+      </span>
+      <input type="number" min={0} max={20} value={home} onChange={e => setHome(e.target.value)}
+        className="input text-center w-12 py-1 text-sm" placeholder="0" />
+      <span className="text-gray-600">–</span>
+      <input type="number" min={0} max={20} value={away} onChange={e => setAway(e.target.value)}
+        className="input text-center w-12 py-1 text-sm" placeholder="0" />
+      <button onClick={save} disabled={saving} className="btn-primary py-1 text-sm px-3">
+        {saving ? '…' : hasPred ? 'Update' : 'Save'}
+      </button>
+      {hasPred && match.status === 'completed' && <div className="shrink-0">{pts(match.my_prediction!.points_earned)}</div>}
+    </div>
+  );
+}
+
 export default function MyPredictionsPage() {
   const { user } = useAuthStore();
   const router = useRouter();
+  const qc = useQueryClient();
   useEffect(() => { if (user === null) router.push('/login'); }, [user]);
 
   const { data: matches = [], isLoading } = useQuery<Match[]>({
@@ -32,22 +73,21 @@ export default function MyPredictionsPage() {
     enabled: !!user,
   });
 
+  const refresh = () => qc.invalidateQueries({ queryKey: ['matches', 'my-preds'] });
+
   const predicted = matches.filter(m => m.my_prediction);
   const completed = predicted.filter(m => m.status === 'completed');
   const totalPts = completed.reduce((s, m) => s + (m.my_prediction?.points_earned ?? 0), 0);
   const exact = completed.filter(m => m.my_prediction?.points_earned === 3).length;
-  const correct = completed.filter(m => m.my_prediction?.points_earned === 1).length;
-  const pending = predicted.filter(m => m.status !== 'completed');
-  const unpredicted = matches.filter(m => !m.my_prediction && m.status === 'scheduled');
+  const correct = completed.filter(m => m.my_prediction?.points_earned === 2 || m.my_prediction?.points_earned === 1).length;
+  const unpredicted = matches.filter(m => !m.my_prediction);
+  const scheduled = matches.filter(m => m.status === 'scheduled' && m.my_prediction);
 
   if (!user) return null;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">My Predictions</h1>
-        <Link href="/matches" className="btn-secondary text-sm py-1.5">+ Predict matches</Link>
-      </div>
+      <h1 className="text-2xl font-bold text-white">My Predictions</h1>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -63,18 +103,24 @@ export default function MyPredictionsPage() {
         ))}
       </div>
 
-      {pending.length > 0 && (
+      {unpredicted.length > 0 && (
         <section>
-          <h2 className="font-semibold text-gray-300 mb-3">Upcoming ({pending.length})</h2>
+          <h2 className="font-semibold text-orange-400 mb-3">Missing predictions ({unpredicted.length})</h2>
           <div className="card divide-y divide-[#30363d]">
-            {pending.sort((a, b) => new Date(a.kickoff_utc ?? 0).getTime() - new Date(b.kickoff_utc ?? 0).getTime()).map(m => (
-              <div key={m.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 text-xs w-14 shrink-0">{formatKickoff(m.kickoff_utc)}</span>
-                <span className="flex-1 text-white">{m.home_team.flag} {m.home_team.code} <span className="text-gray-600">vs</span> {m.away_team.code} {m.away_team.flag}</span>
-                <span className="font-mono text-green-400 font-semibold">{m.my_prediction!.pred_home}–{m.my_prediction!.pred_away}</span>
-                {m.status === 'live' && <span className="text-xs text-red-400">🔴 Live</span>}
-              </div>
-            ))}
+            {unpredicted
+              .sort((a, b) => new Date(a.kickoff_utc ?? 0).getTime() - new Date(b.kickoff_utc ?? 0).getTime())
+              .map(m => <PredictRow key={m.id} match={m} onSaved={refresh} />)}
+          </div>
+        </section>
+      )}
+
+      {scheduled.length > 0 && (
+        <section>
+          <h2 className="font-semibold text-gray-300 mb-3">Upcoming ({scheduled.length})</h2>
+          <div className="card divide-y divide-[#30363d]">
+            {scheduled
+              .sort((a, b) => new Date(a.kickoff_utc ?? 0).getTime() - new Date(b.kickoff_utc ?? 0).getTime())
+              .map(m => <PredictRow key={m.id} match={m} onSaved={refresh} />)}
           </div>
         </section>
       )}
@@ -83,42 +129,17 @@ export default function MyPredictionsPage() {
         <section>
           <h2 className="font-semibold text-gray-300 mb-3">Completed ({completed.length})</h2>
           <div className="card divide-y divide-[#30363d]">
-            {completed.sort((a, b) => new Date(b.kickoff_utc ?? 0).getTime() - new Date(a.kickoff_utc ?? 0).getTime()).map(m => (
-              <div key={m.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 text-xs w-14 shrink-0">{formatKickoff(m.kickoff_utc)}</span>
-                <span className="flex-1 text-white">{m.home_team.flag} {m.home_team.code} <span className="text-gray-600">vs</span> {m.away_team.code} {m.away_team.flag}</span>
-                <span className="text-gray-400 font-mono text-xs">{m.home_score}–{m.away_score}</span>
-                <span className="font-mono text-xs text-gray-500">({m.my_prediction!.pred_home}–{m.my_prediction!.pred_away})</span>
-                <div>{pts(m.my_prediction!.points_earned)}</div>
-              </div>
-            ))}
+            {completed
+              .sort((a, b) => new Date(b.kickoff_utc ?? 0).getTime() - new Date(a.kickoff_utc ?? 0).getTime())
+              .map(m => <PredictRow key={m.id} match={m} onSaved={refresh} />)}
           </div>
         </section>
       )}
 
-      {unpredicted.length > 0 && (
-        <section>
-          <h2 className="font-semibold text-gray-500 mb-3">Not yet predicted ({unpredicted.length})</h2>
-          <div className="card divide-y divide-[#30363d]">
-            {unpredicted.slice(0, 8).map(m => (
-              <div key={m.id} className="flex items-center gap-3 px-4 py-3 text-sm">
-                <span className="text-gray-500 text-xs w-14 shrink-0">{formatKickoff(m.kickoff_utc)}</span>
-                <span className="flex-1 text-gray-500">{m.home_team.flag} {m.home_team.code} vs {m.away_team.code} {m.away_team.flag}</span>
-                <Link href="/matches" className="text-xs text-green-400 hover:underline">Predict →</Link>
-              </div>
-            ))}
-            {unpredicted.length > 8 && (
-              <div className="px-4 py-3 text-center"><Link href="/matches" className="text-sm text-green-400 hover:underline">See all {unpredicted.length} remaining →</Link></div>
-            )}
-          </div>
-        </section>
-      )}
-
-      {predicted.length === 0 && !isLoading && (
+      {matches.length === 0 && !isLoading && (
         <div className="card p-12 text-center">
           <div className="text-4xl mb-3">⚽</div>
-          <p className="text-gray-400">No predictions yet</p>
-          <Link href="/matches" className="btn-primary mt-4 inline-block">Start predicting</Link>
+          <p className="text-gray-400">No matches found</p>
         </div>
       )}
     </div>
