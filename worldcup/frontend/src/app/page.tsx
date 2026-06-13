@@ -19,7 +19,7 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <div className="card p-6 bg-gradient-to-br from-green-900/30 to-[#161b22] border-green-800/50 text-center">
-        <div className="text-5xl mb-2">⛹️⚽🏆</div>
+        <div className="text-5xl mb-2">⚽🏆</div>
         <h1 className="text-3xl font-bold text-white">FIFA World Cup 2026</h1>
         <p className="text-gray-400 mt-1">🇲🇽 Mexico · 🇺🇸 USA · 🇨🇦 Canada · Jun 11 – Jul 19</p>
         {myRank ? (
