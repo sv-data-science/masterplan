@@ -22,7 +22,15 @@ export function Nav() {
     { href: '/groups', label: 'Groups' },
     { href: '/leaderboard', label: 'Leaderboard' },
   ];
-  const links = user ? [...baseLinks, { href: '/my-predictions', label: 'My Picks' }] : baseLinks;
+  const links = user
+    ? [
+        { href: '/', label: 'Dashboard' },
+        { href: '/my-predictions', label: 'My Picks' },
+        { href: '/matches', label: 'Matches' },
+        { href: '/groups', label: 'Groups' },
+        { href: '/leaderboard', label: 'Leaderboard' },
+      ]
+    : baseLinks;
 
   return (
     <header className="border-b border-[#30363d] bg-[#161b22] sticky top-0 z-50">

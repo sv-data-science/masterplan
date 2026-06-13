@@ -11,20 +11,23 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
   const [home, setHome] = useState(match.home_score?.toString() ?? '');
   const [away, setAway] = useState(match.away_score?.toString() ?? '');
   const [status, setStatus] = useState(match.status);
+  const [kickoff, setKickoff] = useState(
+    match.kickoff_utc ? new Date(match.kickoff_utc).toISOString().slice(0, 16) : ''
+  );
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
     const h = parseInt(home), a = parseInt(away);
     if (isNaN(h) || isNaN(a)) { toast.error('Enter valid scores'); return; }
     setSaving(true);
-    try { await matchesApi.updateScore(match.id, h, a, status); toast.success('Saved!'); onUpdated(); }
+    try {
+      await matchesApi.updateScore(match.id, h, a, status, kickoff || undefined);
+      toast.success('Saved!');
+      onUpdated();
+    }
     catch { toast.error('Save failed'); }
     finally { setSaving(false); }
   };
-
-  const kickoff = match.kickoff_utc
-    ? new Date(match.kickoff_utc).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-    : '?';
 
   return (
     <tr className="border-b border-[#30363d] hover:bg-[#1c2128]">
@@ -34,7 +37,10 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
       <td className="px-3 py-2 text-sm whitespace-nowrap">
         {match.home_team.flag} {match.home_team.code} <span className="text-gray-600">vs</span> {match.away_team.code} {match.away_team.flag}
       </td>
-      <td className="px-3 py-2 text-xs text-gray-500">{kickoff}</td>
+      <td className="px-3 py-2">
+        <input type="datetime-local" value={kickoff} onChange={e => setKickoff(e.target.value)}
+          className="input py-1 text-xs w-40" />
+      </td>
       <td className="px-3 py-2">
         <div className="flex items-center gap-1">
           <input type="number" min={0} max={20} value={home} onChange={e => setHome(e.target.value)} className="input w-12 py-1 text-sm text-center" placeholder="-" />

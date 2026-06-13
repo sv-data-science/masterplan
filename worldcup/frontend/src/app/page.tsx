@@ -21,7 +21,7 @@ export default function HomePage() {
       <div className="card p-6 bg-gradient-to-br from-green-900/30 to-[#161b22] border-green-800/50 text-center">
         <div className="text-5xl mb-2">⚽🏆</div>
         <h1 className="text-3xl font-bold text-white">FIFA World Cup 2026</h1>
-        <p className="text-gray-400 mt-1">🇺🇸 USA · 🇨🇦 Canada · 🇲🇽 Mexico · Jun 11 – Jul 19</p>
+        <p className="text-gray-400 mt-1">🇲🇽 Mexico · 🇺🇸 USA · 🇨🇦 Canada · Jun 11 – Jul 19</p>
         {myRank ? (
           <div className="mt-4 inline-flex items-center gap-3 bg-[#0d1117] rounded-lg px-4 py-2">
             <span className="text-gray-400 text-sm">Your rank</span>
