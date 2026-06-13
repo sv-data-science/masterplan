@@ -8,7 +8,7 @@ import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 function formatKickoff(iso: string | null) {
   if (!iso) return null;
-  return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York', timeZoneName: 'short' });
 }
 
 function useCountdown(kickoffIso: string | null) {

@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 
 function formatKickoff(iso: string | null) {
   if (!iso) return '–';
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
 }
 
 function pts(p: number | null) {
