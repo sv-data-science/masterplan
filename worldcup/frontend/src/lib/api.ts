@@ -37,6 +37,7 @@ export const matchesApi = {
   list: (params?: { group?: string; matchday?: number }) =>
     api.get('/matches', { params }),
   get: (id: string) => api.get(`/matches/${id}`),
+  predictions: (id: string) => api.get(`/matches/${id}/predictions`),
   updateScore: (id: string, home_score: number, away_score: number, status = 'completed') =>
     api.put(`/matches/${id}/score`, { home_score, away_score, status }),
 };

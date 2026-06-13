@@ -41,6 +41,15 @@ export interface Match {
   my_prediction: Prediction | null;
 }
 
+export interface MatchPredictionEntry {
+  user_id: string;
+  username: string;
+  display_name: string;
+  pred_home: number;
+  pred_away: number;
+  points_earned: number | null;
+}
+
 export interface LeaderboardEntry {
   rank: number;
   user_id: string;

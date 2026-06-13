@@ -16,12 +16,13 @@ export function Nav() {
     }
   }, [token]);
 
-  const links = [
+  const baseLinks = [
     { href: '/', label: 'Dashboard' },
     { href: '/matches', label: 'Matches' },
     { href: '/groups', label: 'Groups' },
     { href: '/leaderboard', label: 'Leaderboard' },
   ];
+  const links = user ? [...baseLinks, { href: '/my-predictions', label: 'My Picks' }] : baseLinks;
 
   return (
     <header className="border-b border-[#30363d] bg-[#161b22] sticky top-0 z-50">

@@ -51,6 +51,15 @@ class ScoreUpdate(BaseModel):
     status: str = "completed"
 
 
+class MatchPredictionEntry(BaseModel):
+    user_id: str
+    username: str
+    display_name: str
+    pred_home: int
+    pred_away: int
+    points_earned: Optional[int] = None
+
+
 class LeaderboardEntry(BaseModel):
     rank: int
     user_id: str

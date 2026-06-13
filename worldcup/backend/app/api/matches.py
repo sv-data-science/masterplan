@@ -5,7 +5,7 @@ from typing import Optional, List
 from app.database import get_db
 from app.models.worldcup import Match, Prediction
 from app.models.user import User
-from app.schemas.worldcup import MatchOut, PredictionOut, ScoreUpdate
+from app.schemas.worldcup import MatchOut, PredictionOut, ScoreUpdate, MatchPredictionEntry
 from app.auth import get_current_user, get_optional_user
 from app.services.scoring import calculate_points, recalculate_match_points
 
@@ -73,6 +73,40 @@ async def get_match(
     item = MatchOut.model_validate(match)
     item.my_prediction = pred
     return item
+
+
+@router.get("/{match_id}/predictions", response_model=List[MatchPredictionEntry])
+async def match_predictions(
+    match_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return all predictions for a match — only visible once the match has started."""
+    result = await db.execute(select(Match).where(Match.id == match_id))
+    match = result.scalar_one_or_none()
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    if match.status == "scheduled":
+        raise HTTPException(status_code=403, detail="Predictions hidden until match starts")
+
+    preds = (await db.execute(
+        select(Prediction, User)
+        .join(User, Prediction.user_id == User.id)
+        .where(Prediction.match_id == match_id)
+        .order_by(Prediction.points_earned.desc().nulls_last(), User.display_name)
+    )).all()
+
+    return [
+        MatchPredictionEntry(
+            user_id=pred.user_id,
+            username=user.username,
+            display_name=user.display_name,
+            pred_home=pred.pred_home,
+            pred_away=pred.pred_away,
+            points_earned=pred.points_earned,
+        )
+        for pred, user in preds
+    ]
 
 
 @router.put("/{match_id}/score", response_model=MatchOut)
