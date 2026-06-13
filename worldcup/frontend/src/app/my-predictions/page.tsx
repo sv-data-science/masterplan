@@ -14,6 +14,7 @@ function formatKickoff(iso: string | null) {
 
 function pts(p: number | null) {
   if (p === 3) return <span className="badge-exact">⭐ +3</span>;
+  if (p === 2) return <span className="badge-correct">◎ +2</span>;
   if (p === 1) return <span className="badge-correct">✓ +1</span>;
   if (p === 0) return <span className="badge-wrong">✗ 0</span>;
   return <span className="text-gray-600 text-xs">pending</span>;

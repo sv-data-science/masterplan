@@ -64,8 +64,9 @@ export default function HomePage() {
             <h3 className="font-semibold text-sm mb-3">Scoring Rules</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-yellow-400">⭐ Exact score</span><span className="font-bold">3 pts</span></div>
-              <div className="flex justify-between"><span className="text-blue-400">✓ Correct outcome</span><span className="font-bold">1 pt</span></div>
-              <div className="flex justify-between"><span className="text-red-400">✗ Wrong</span><span className="font-bold">0 pts</span></div>
+              <div className="flex justify-between"><span className="text-blue-400">◎ Right result + goal diff</span><span className="font-bold">2 pts</span></div>
+              <div className="flex justify-between"><span className="text-cyan-400">✓ Right result</span><span className="font-bold">1 pt</span></div>
+              <div className="flex justify-between"><span className="text-red-400">✗ Wrong result</span><span className="font-bold">0 pts</span></div>
             </div>
           </div>
         </div>

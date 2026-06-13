@@ -10,9 +10,12 @@ def calculate_points(
         return 3  # exact score
     pred_outcome = (pred_home > pred_away) - (pred_home < pred_away)
     actual_outcome = (actual_home > actual_away) - (actual_home < actual_away)
-    if pred_outcome == actual_outcome:
-        return 1  # correct outcome (win/draw/loss)
-    return 0
+    if pred_outcome != actual_outcome:
+        return 0  # wrong outcome
+    # correct outcome — check goal difference
+    if (pred_home - pred_away) == (actual_home - actual_away):
+        return 2  # correct outcome + same goal difference
+    return 1  # correct outcome only
 
 
 async def recalculate_match_points(match: Match, db: AsyncSession) -> None:

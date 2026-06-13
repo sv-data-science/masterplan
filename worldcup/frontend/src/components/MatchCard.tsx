@@ -37,7 +37,8 @@ function isKickoffPassed(kickoffIso: string | null) {
 function outcomeLabel(points: number | null) {
   if (points === null) return null;
   if (points === 3) return <span className="badge-exact">⭐ Exact!</span>;
-  if (points === 1) return <span className="badge-correct">✓ Correct</span>;
+  if (points === 2) return <span className="badge-correct">◎ +GD</span>;
+  if (points === 1) return <span className="badge-correct">✓ Result</span>;
   return <span className="badge-wrong">✗ Wrong</span>;
 }
 
