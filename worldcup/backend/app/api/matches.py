@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from typing import Optional, List
 from app.database import get_db
 from app.models.worldcup import Match, Prediction
@@ -11,6 +12,8 @@ from app.services.scoring import calculate_points, recalculate_match_points
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
+_MATCH_OPTIONS = [selectinload(Match.home_team), selectinload(Match.away_team)]
+
 
 @router.get("", response_model=List[MatchOut])
 async def list_matches(
@@ -19,7 +22,7 @@ async def list_matches(
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
-    q = select(Match).order_by(Match.kickoff_utc, Match.match_number)
+    q = select(Match).options(*_MATCH_OPTIONS).order_by(Match.kickoff_utc, Match.match_number)
     if group:
         q = q.where(Match.group_letter == group.upper())
     if matchday:
@@ -53,7 +56,7 @@ async def get_match(
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
-    result = await db.execute(select(Match).where(Match.id == match_id))
+    result = await db.execute(select(Match).options(*_MATCH_OPTIONS).where(Match.id == match_id))
     match = result.scalar_one_or_none()
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
@@ -119,7 +122,7 @@ async def update_score(
     if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
 
-    result = await db.execute(select(Match).where(Match.id == match_id))
+    result = await db.execute(select(Match).options(*_MATCH_OPTIONS).where(Match.id == match_id))
     match = result.scalar_one_or_none()
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
