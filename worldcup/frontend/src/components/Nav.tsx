@@ -36,7 +36,7 @@ export function Nav() {
     <header className="border-b border-[#30363d] bg-[#161b22] sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-14 flex items-center gap-6">
         <Link href="/" className="flex items-center gap-2 font-bold text-white shrink-0">
-          <span className="text-2xl">⚽</span>
+          <span className="text-2xl">⛹️⚽</span>
           <span className="hidden sm:inline text-green-400">WC 2026</span>
         </Link>
         <nav className="flex items-center gap-1 flex-1">
