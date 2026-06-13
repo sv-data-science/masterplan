@@ -56,6 +56,43 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
   );
 }
 
+function SeedPanel({ onSeeded }: { onSeeded: () => void }) {
+  const [seeding, setSeeding] = useState(false);
+  const { data: matchCount } = useQuery({
+    queryKey: ['match-count'],
+    queryFn: () => matchesApi.list().then(r => r.data.length),
+    staleTime: 30_000,
+  });
+
+  const seed = async () => {
+    setSeeding(true);
+    try {
+      const r = await api.post('/admin/seed');
+      if (r.data.status === 'already_seeded') toast('Already seeded — matches are present');
+      else toast.success(`Seeded ${r.data.teams} teams and 72 matches!`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Seed failed');
+    } finally { setSeeding(false); }
+  };
+
+  if (matchCount && matchCount > 0) return null;
+
+  return (
+    <div className="card p-4 border-orange-800/40 bg-orange-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">⚠️ No match data found</h3>
+          <p className="text-xs text-gray-400 mt-0.5">The database is empty. Seed it with all 72 WC 2026 group stage matches.</p>
+        </div>
+        <button onClick={seed} disabled={seeding} className="btn-primary py-1.5 text-sm">
+          {seeding ? '⏳ Seeding…' : '🌱 Seed matches'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SyncPanel({ onSynced }: { onSynced: () => void }) {
   const [syncing, setSyncing] = useState(false);
   const { data: status, refetch: refetchStatus } = useQuery({
@@ -234,6 +271,8 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
         <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-0.5 rounded-full border border-yellow-500/30">Admin</span>
       </div>
+
+      <SeedPanel onSeeded={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
 

@@ -18,6 +18,20 @@ def require_admin(current_user: User = Depends(get_current_user)) -> User:
     return current_user
 
 
+@router.post("/seed")
+async def trigger_seed(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Seed teams and matches if not already present."""
+    from sqlalchemy import select, func
+    from app.models.worldcup import Team
+    count = (await db.execute(select(func.count()).select_from(Team))).scalar() or 0
+    if count > 0:
+        return {"status": "already_seeded", "teams": count}
+    from scripts.seed_worldcup import seed
+    await seed()
+    count_after = (await db.execute(select(func.count()).select_from(Team))).scalar() or 0
+    return {"status": "seeded", "teams": count_after}
+
+
 @router.post("/sync")
 async def trigger_sync(admin: User = Depends(require_admin)):
     return await sync_scores()
