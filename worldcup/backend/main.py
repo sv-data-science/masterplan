@@ -1,8 +1,9 @@
 import asyncio
 import logging
 import sys
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
@@ -88,6 +89,34 @@ app.include_router(leaderboard.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 
 
+@app.exception_handler(Exception)
+async def _cors_safe_500(request: Request, exc: Exception):
+    """Ensure CORS headers are present on 500s so the browser can read the error."""
+    log.error("Unhandled exception on %s %s: %s", request.method, request.url.path, exc, exc_info=True)
+    origin = request.headers.get("origin", "")
+    headers = {}
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Internal server error: {type(exc).__name__}: {exc}"},
+        headers=headers,
+    )
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "app": "World Cup 2026 Predictor"}
+
+
+@app.get("/health/db")
+async def health_db():
+    """Check database connectivity — useful for diagnosing Railway DB issues."""
+    try:
+        from sqlalchemy import text
+        async with AsyncSessionLocal() as s:
+            await s.execute(text("SELECT 1"))
+        return {"status": "ok", "db": "connected"}
+    except Exception as e:
+        return JSONResponse(status_code=503, content={"status": "error", "db": str(e)})
