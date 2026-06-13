@@ -37,6 +37,15 @@ class UserCreate(BaseModel):
             raise ValueError("Username must be between 3 and 30 characters")
         return v.lower()
 
+    @field_validator("password")
+    @classmethod
+    def password_length(cls, v: str) -> str:
+        if len(v) < 6:
+            raise ValueError("Password must be at least 6 characters")
+        if len(v.encode()) > 72:
+            raise ValueError("Password is too long (max 72 characters)")
+        return v
+
 
 class Token(BaseModel):
     access_token: str
