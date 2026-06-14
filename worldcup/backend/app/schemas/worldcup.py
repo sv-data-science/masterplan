@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -22,6 +22,25 @@ class PredictionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class GoalEventOut(BaseModel):
+    id: str
+    match_id: str
+    team_id: str
+    player_name: str
+    minute: Optional[int] = None
+    is_own_goal: bool = False
+    is_penalty: bool = False
+    model_config = {"from_attributes": True}
+
+
+class GoalEventCreate(BaseModel):
+    team_id: str
+    player_name: str
+    minute: Optional[int] = None
+    is_own_goal: bool = False
+    is_penalty: bool = False
+
+
 class MatchOut(BaseModel):
     id: str
     match_number: int
@@ -36,6 +55,7 @@ class MatchOut(BaseModel):
     away_score: Optional[int] = None
     status: str
     my_prediction: Optional[PredictionOut] = None
+    goals: List[GoalEventOut] = []
     model_config = {"from_attributes": True}
 
 

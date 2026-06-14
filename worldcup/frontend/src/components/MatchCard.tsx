@@ -163,6 +163,28 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
           )}
         </div>
       )}
+      {match.status !== 'scheduled' && match.goals?.length > 0 && (() => {
+        const homeGoals = match.goals.filter(g =>
+          (g.team_id === match.home_team.id && !g.is_own_goal) ||
+          (g.team_id === match.away_team.id && g.is_own_goal)
+        );
+        const awayGoals = match.goals.filter(g =>
+          (g.team_id === match.away_team.id && !g.is_own_goal) ||
+          (g.team_id === match.home_team.id && g.is_own_goal)
+        );
+        const fmt = (g: typeof match.goals[0]) =>
+          `${g.player_name}${g.minute ? ` ${g.minute}'` : ''}${g.is_penalty ? ' (p)' : ''}${g.is_own_goal ? ' (og)' : ''}`;
+        return (
+          <div className="flex justify-between gap-3 mt-1.5 px-1">
+            <div className="flex-1 space-y-0.5">
+              {homeGoals.map(g => <p key={g.id} className="text-xs text-gray-400">⚽ {fmt(g)}</p>)}
+            </div>
+            <div className="flex-1 text-right space-y-0.5">
+              {awayGoals.map(g => <p key={g.id} className="text-xs text-gray-400">{fmt(g)} ⚽</p>)}
+            </div>
+          </div>
+        );
+      })()}
       <div className="mt-3 pt-3 border-t border-[#30363d]">
         {match.status === 'completed' && match.my_prediction ? (
           <div className="flex items-center justify-between text-sm">

@@ -38,6 +38,7 @@ class Match(Base):
     home_team = relationship("Team", foreign_keys=[home_team_id], back_populates="home_matches")
     away_team = relationship("Team", foreign_keys=[away_team_id], back_populates="away_matches")
     predictions = relationship("Prediction", back_populates="match", cascade="all, delete-orphan")
+    goals = relationship("GoalEvent", back_populates="match", cascade="all, delete-orphan")
 
 
 class Prediction(Base):
@@ -54,3 +55,19 @@ class Prediction(Base):
 
     user = relationship("User", back_populates="predictions")
     match = relationship("Match", back_populates="predictions")
+
+
+class GoalEvent(Base):
+    __tablename__ = "goal_events"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    match_id = Column(String, ForeignKey("matches.id", ondelete="CASCADE"), nullable=False, index=True)
+    # team_id = the player's own team (for OG, it's the team that conceded, not the beneficiary)
+    team_id = Column(String, ForeignKey("teams.id"), nullable=False)
+    player_name = Column(String(100), nullable=False)
+    minute = Column(Integer, nullable=True)
+    is_own_goal = Column(Boolean, nullable=False, default=False)
+    is_penalty = Column(Boolean, nullable=False, default=False)
+
+    match = relationship("Match", back_populates="goals")
+    team = relationship("Team")

@@ -51,3 +51,11 @@ export const predictionsApi = {
 export const leaderboardApi = {
   get: () => api.get('/leaderboard'),
 };
+
+export const goalsApi = {
+  list: (matchId: string) => api.get(`/matches/${matchId}/goals`),
+  add: (matchId: string, data: { team_id: string; player_name: string; minute?: number; is_own_goal?: boolean; is_penalty?: boolean }) =>
+    api.post(`/matches/${matchId}/goals`, data),
+  delete: (goalId: string) => api.delete(`/goals/${goalId}`),
+  topScorers: () => api.get('/stats/top-scorers'),
+};

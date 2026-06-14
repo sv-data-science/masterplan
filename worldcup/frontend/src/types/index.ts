@@ -39,6 +39,27 @@ export interface Match {
   away_score: number | null;
   status: MatchStatus;
   my_prediction: Prediction | null;
+  goals: GoalEvent[];
+}
+
+export interface GoalEvent {
+  id: string;
+  match_id: string;
+  team_id: string;
+  player_name: string;
+  minute: number | null;
+  is_own_goal: boolean;
+  is_penalty: boolean;
+}
+
+export interface TopScorerEntry {
+  player_name: string;
+  team_id: string;
+  team_code: string;
+  team_flag: string;
+  team_name: string;
+  group_letter: string;
+  goals: number;
 }
 
 export interface MatchPredictionEntry {

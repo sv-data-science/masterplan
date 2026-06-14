@@ -1,11 +1,134 @@
 'use client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { matchesApi, api } from '@/lib/api';
-import { Match } from '@/types';
+import { matchesApi, api, goalsApi } from '@/lib/api';
+import { Match, GoalEvent } from '@/types';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import toast from 'react-hot-toast';
+
+function GoalModal({ match, onClose }: { match: Match; onClose: () => void }) {
+  const [goals, setGoals] = useState<GoalEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ player_name: '', minute: '', team_side: 'home' as 'home' | 'away', is_own_goal: false, is_penalty: false });
+  const [saving, setSaving] = useState(false);
+
+  const fetchGoals = async () => {
+    try {
+      const r = await goalsApi.list(match.id);
+      setGoals(r.data);
+    } finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchGoals(); }, [match.id]);
+
+  const addGoal = async () => {
+    if (!form.player_name.trim()) { toast.error('Player name required'); return; }
+    setSaving(true);
+    try {
+      const team_id = form.team_side === 'home' ? match.home_team.id : match.away_team.id;
+      await goalsApi.add(match.id, {
+        team_id,
+        player_name: form.player_name.trim(),
+        minute: form.minute ? parseInt(form.minute) : undefined,
+        is_own_goal: form.is_own_goal,
+        is_penalty: form.is_penalty,
+      });
+      setForm({ player_name: '', minute: '', team_side: 'home', is_own_goal: false, is_penalty: false });
+      await fetchGoals();
+    } catch { toast.error('Failed to add goal'); }
+    finally { setSaving(false); }
+  };
+
+  const removeGoal = async (goalId: string) => {
+    try {
+      await goalsApi.delete(goalId);
+      await fetchGoals();
+    } catch { toast.error('Failed to remove goal'); }
+  };
+
+  const homeGoals = goals.filter(g =>
+    (g.team_id === match.home_team.id && !g.is_own_goal) ||
+    (g.team_id === match.away_team.id && g.is_own_goal)
+  );
+  const awayGoals = goals.filter(g =>
+    (g.team_id === match.away_team.id && !g.is_own_goal) ||
+    (g.team_id === match.home_team.id && g.is_own_goal)
+  );
+  const fmt = (g: GoalEvent) =>
+    `${g.minute ? `${g.minute}' ` : ''}${g.player_name}${g.is_own_goal ? ' (og)' : ''}${g.is_penalty ? ' (p)' : ''}`;
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="card w-full max-w-lg p-5" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-white">
+            ⚽ {match.home_team.flag} {match.home_team.code} {match.home_score ?? '?'} – {match.away_score ?? '?'} {match.away_team.code} {match.away_team.flag}
+          </h3>
+          <button onClick={onClose} className="text-gray-500 hover:text-white text-2xl leading-none">×</button>
+        </div>
+
+        {loading ? <div className="text-center py-4 text-gray-500 text-sm">Loading…</div> : (
+          <div className="grid grid-cols-2 gap-4 mb-4 min-h-[60px]">
+            <div>
+              <p className="text-xs text-gray-500 mb-1 font-medium">{match.home_team.flag} {match.home_team.name}</p>
+              {homeGoals.length === 0
+                ? <p className="text-xs text-gray-700">—</p>
+                : homeGoals.map(g => (
+                  <div key={g.id} className="flex items-center justify-between text-xs py-0.5 gap-2">
+                    <span className="text-white">{fmt(g)}</span>
+                    <button onClick={() => removeGoal(g.id)} className="text-red-500 hover:text-red-400 shrink-0">×</button>
+                  </div>
+                ))}
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 mb-1 font-medium">{match.away_team.flag} {match.away_team.name}</p>
+              {awayGoals.length === 0
+                ? <p className="text-xs text-gray-700">—</p>
+                : awayGoals.map(g => (
+                  <div key={g.id} className="flex items-center justify-between text-xs py-0.5 gap-2">
+                    <span className="text-white">{fmt(g)}</span>
+                    <button onClick={() => removeGoal(g.id)} className="text-red-500 hover:text-red-400 shrink-0">×</button>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        <div className="border-t border-[#30363d] pt-4">
+          <p className="text-xs text-gray-500 mb-2">Add goal</p>
+          <div className="flex flex-wrap gap-2 items-center">
+            <select value={form.team_side} onChange={e => setForm(f => ({ ...f, team_side: e.target.value as 'home' | 'away' }))} className="input py-1 text-xs w-20">
+              <option value="home">{match.home_team.code}</option>
+              <option value="away">{match.away_team.code}</option>
+            </select>
+            <input type="text" placeholder="Player name" value={form.player_name}
+              onChange={e => setForm(f => ({ ...f, player_name: e.target.value }))}
+              onKeyDown={e => e.key === 'Enter' && addGoal()}
+              className="input py-1 text-xs flex-1 min-w-[120px]" />
+            <input type="number" placeholder="Min" min={1} max={120} value={form.minute}
+              onChange={e => setForm(f => ({ ...f, minute: e.target.value }))}
+              className="input py-1 text-xs w-16" />
+            <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer whitespace-nowrap">
+              <input type="checkbox" checked={form.is_own_goal} onChange={e => setForm(f => ({ ...f, is_own_goal: e.target.checked }))} />
+              OG
+            </label>
+            <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer whitespace-nowrap">
+              <input type="checkbox" checked={form.is_penalty} onChange={e => setForm(f => ({ ...f, is_penalty: e.target.checked }))} />
+              Pen
+            </label>
+            <button onClick={addGoal} disabled={saving} className="btn-primary py-1 text-xs">
+              {saving ? '…' : 'Add'}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void }) {
   const [home, setHome] = useState(match.home_score?.toString() ?? '');
@@ -17,6 +140,7 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
   const [city, setCity] = useState(match.city ?? '');
   const [venue, setVenue] = useState(match.venue ?? '');
   const [saving, setSaving] = useState(false);
+  const [goalsOpen, setGoalsOpen] = useState(false);
 
   const save = async () => {
     const h = parseInt(home), a = parseInt(away);
@@ -32,41 +156,47 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
   };
 
   return (
-    <tr className="border-b border-[#30363d] hover:bg-[#1c2128]">
-      <td className="px-3 py-2 text-xs text-gray-500">
-        #{match.match_number}<br /><span className="text-gray-600">G{match.group_letter} MD{match.matchday}</span>
-      </td>
-      <td className="px-3 py-2 text-sm whitespace-nowrap">
-        {match.home_team.flag} {match.home_team.code} <span className="text-gray-600">vs</span> {match.away_team.code} {match.away_team.flag}
-      </td>
-      <td className="px-3 py-2">
-        <input type="datetime-local" value={kickoff} onChange={e => setKickoff(e.target.value)}
-          className="input py-1 text-xs w-40" />
-      </td>
-      <td className="px-3 py-2">
-        <div className="flex flex-col gap-1">
-          <input type="text" value={city} onChange={e => setCity(e.target.value)} className="input py-1 text-xs w-28" placeholder="City" />
-          <input type="text" value={venue} onChange={e => setVenue(e.target.value)} className="input py-1 text-xs w-28" placeholder="Stadium" />
-        </div>
-      </td>
-      <td className="px-3 py-2">
-        <div className="flex items-center gap-1">
-          <input type="number" min={0} max={20} value={home} onChange={e => setHome(e.target.value)} className="input w-12 py-1 text-sm text-center" placeholder="-" />
-          <span className="text-gray-600">–</span>
-          <input type="number" min={0} max={20} value={away} onChange={e => setAway(e.target.value)} className="input w-12 py-1 text-sm text-center" placeholder="-" />
-        </div>
-      </td>
-      <td className="px-3 py-2">
-        <select value={status} onChange={e => setStatus(e.target.value as Match['status'])} className="input py-1 text-sm">
-          <option value="scheduled">Scheduled</option>
-          <option value="live">Live</option>
-          <option value="completed">Completed</option>
-        </select>
-      </td>
-      <td className="px-3 py-2">
-        <button onClick={save} disabled={saving} className="btn-primary py-1 text-sm">{saving ? '…' : 'Save'}</button>
-      </td>
-    </tr>
+    <>
+      <tr className="border-b border-[#30363d] hover:bg-[#1c2128]">
+        <td className="px-3 py-2 text-xs text-gray-500">
+          #{match.match_number}<br /><span className="text-gray-600">G{match.group_letter} MD{match.matchday}</span>
+        </td>
+        <td className="px-3 py-2 text-sm whitespace-nowrap">
+          {match.home_team.flag} {match.home_team.code} <span className="text-gray-600">vs</span> {match.away_team.code} {match.away_team.flag}
+        </td>
+        <td className="px-3 py-2">
+          <input type="datetime-local" value={kickoff} onChange={e => setKickoff(e.target.value)}
+            className="input py-1 text-xs w-40" />
+        </td>
+        <td className="px-3 py-2">
+          <div className="flex flex-col gap-1">
+            <input type="text" value={city} onChange={e => setCity(e.target.value)} className="input py-1 text-xs w-28" placeholder="City" />
+            <input type="text" value={venue} onChange={e => setVenue(e.target.value)} className="input py-1 text-xs w-28" placeholder="Stadium" />
+          </div>
+        </td>
+        <td className="px-3 py-2">
+          <div className="flex items-center gap-1">
+            <input type="number" min={0} max={20} value={home} onChange={e => setHome(e.target.value)} className="input w-12 py-1 text-sm text-center" placeholder="-" />
+            <span className="text-gray-600">–</span>
+            <input type="number" min={0} max={20} value={away} onChange={e => setAway(e.target.value)} className="input w-12 py-1 text-sm text-center" placeholder="-" />
+          </div>
+        </td>
+        <td className="px-3 py-2">
+          <select value={status} onChange={e => setStatus(e.target.value as Match['status'])} className="input py-1 text-sm">
+            <option value="scheduled">Scheduled</option>
+            <option value="live">Live</option>
+            <option value="completed">Completed</option>
+          </select>
+        </td>
+        <td className="px-3 py-2">
+          <div className="flex gap-1">
+            <button onClick={save} disabled={saving} className="btn-primary py-1 text-sm">{saving ? '…' : 'Save'}</button>
+            <button onClick={() => setGoalsOpen(true)} className="btn-secondary py-1 text-sm" title="Edit goals">⚽</button>
+          </div>
+        </td>
+      </tr>
+      {goalsOpen && <GoalModal match={match} onClose={() => setGoalsOpen(false)} />}
+    </>
   );
 }
 

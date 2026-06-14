@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from typing import Optional, List
 from app.database import get_db
-from app.models.worldcup import Match, Prediction
+from app.models.worldcup import Match, Prediction, GoalEvent
 from app.models.user import User
 from app.schemas.worldcup import MatchOut, PredictionOut, ScoreUpdate, MatchPredictionEntry
 from app.auth import get_current_user, get_optional_user
@@ -12,7 +12,11 @@ from app.services.scoring import calculate_points, recalculate_match_points
 
 router = APIRouter(prefix="/matches", tags=["matches"])
 
-_MATCH_OPTIONS = [selectinload(Match.home_team), selectinload(Match.away_team)]
+_MATCH_OPTIONS = [
+    selectinload(Match.home_team),
+    selectinload(Match.away_team),
+    selectinload(Match.goals),
+]
 
 
 @router.get("", response_model=List[MatchOut])
