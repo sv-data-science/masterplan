@@ -32,6 +32,17 @@ async def trigger_seed(admin: User = Depends(require_admin), db: AsyncSession = 
     return {"status": "seeded", "teams": count_after}
 
 
+@router.post("/reseed")
+async def trigger_reseed(admin: User = Depends(require_admin)):
+    """Keep teams, wipe matches + predictions, recreate with correct official schedule."""
+    try:
+        from scripts.seed_worldcup import reseed
+        result = await reseed()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/sync")
 async def trigger_sync(admin: User = Depends(require_admin)):
     return await sync_scores()

@@ -164,6 +164,42 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function ReseedPanel({ onReseeded }: { onReseeded: () => void }) {
+  const [reseeding, setReseeding] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
+
+  const reseed = async () => {
+    if (!confirmed) { setConfirmed(true); return; }
+    setReseeding(true);
+    try {
+      const r = await api.post('/admin/reseed');
+      toast.success(`Schedule fixed — ${r.data.matches} matches recreated`);
+      setConfirmed(false);
+      onReseeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Reseed failed');
+    } finally {
+      setReseeding(false); }
+  };
+
+  return (
+    <div className="card p-4 border-red-800/40 bg-red-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">🔁 Fix schedule (reseed matches)</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Wipes all matches & predictions, recreates 72 matches with correct official dates, times, and venues.
+            Teams stay. Use this to fix wrong pairings or kickoff times.
+          </p>
+        </div>
+        <button onClick={reseed} disabled={reseeding} className={`py-1.5 text-sm ${confirmed ? 'btn-primary bg-red-600 hover:bg-red-700' : 'btn-secondary'}`}>
+          {reseeding ? '⏳ Reseeding…' : confirmed ? '⚠️ Confirm — wipe & reseed' : '🔁 Fix schedule'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function CreateUserPanel({ onCreated }: { onCreated: () => void }) {
   const [form, setForm] = useState({ display_name: '', username: '', email: '', password: '' });
   const [saving, setSaving] = useState(false);
@@ -287,6 +323,8 @@ export default function AdminPage() {
       </div>
 
       <SeedPanel onSeeded={invalidate} />
+
+      <ReseedPanel onReseeded={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
 
