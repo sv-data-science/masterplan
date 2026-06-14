@@ -20,6 +20,7 @@ export function Nav() {
     { href: '/', label: 'Dashboard' },
     { href: '/matches', label: 'Matches' },
     { href: '/groups', label: 'Groups' },
+    { href: '/top-scorers', label: 'Top Scorers' },
     { href: '/leaderboard', label: 'Leaderboard' },
   ];
   const links = user
@@ -28,6 +29,7 @@ export function Nav() {
         { href: '/my-predictions', label: 'My Picks' },
         { href: '/matches', label: 'Matches' },
         { href: '/groups', label: 'Groups' },
+        { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/leaderboard', label: 'Leaderboard' },
       ]
     : baseLinks;

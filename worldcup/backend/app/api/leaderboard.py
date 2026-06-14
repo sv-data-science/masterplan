@@ -34,14 +34,21 @@ async def leaderboard(
         )
     ).all()
 
-    return [
-        {
-            "rank": i + 1,
+    result = []
+    for i, r in enumerate(rows):
+        pts = int(r.total_points or 0)
+        if i == 0:
+            rank = 1
+        elif pts == result[-1]["total_points"]:
+            rank = result[-1]["rank"]  # tied: same rank
+        else:
+            rank = i + 1  # skip ranks equal to count of higher-ranked entries
+        result.append({
+            "rank": rank,
             "user_id": r.id,
             "display_name": r.display_name,
             "username": r.username,
-            "total_points": int(r.total_points or 0),
+            "total_points": pts,
             "predictions": int(r.predictions or 0),
-        }
-        for i, r in enumerate(rows)
-    ]
+        })
+    return result
