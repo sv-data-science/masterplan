@@ -32,6 +32,17 @@ async def trigger_seed(admin: User = Depends(require_admin), db: AsyncSession = 
     return {"status": "seeded", "teams": count_after}
 
 
+@router.post("/patch-schedule")
+async def trigger_patch_schedule(admin: User = Depends(require_admin)):
+    """Non-destructive: fix kickoff times/venues/matchdays while keeping scores and predictions."""
+    try:
+        from scripts.seed_worldcup import patch_schedule
+        result = await patch_schedule()
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/reseed")
 async def trigger_reseed(admin: User = Depends(require_admin)):
     """Keep teams, wipe matches + predictions, recreate with correct official schedule."""

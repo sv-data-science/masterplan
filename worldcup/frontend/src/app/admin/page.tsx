@@ -164,6 +164,39 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function PatchSchedulePanel({ onPatched }: { onPatched: () => void }) {
+  const [patching, setPatching] = useState(false);
+
+  const patch = async () => {
+    setPatching(true);
+    try {
+      const r = await api.post('/admin/patch-schedule');
+      const { updated, swapped, created } = r.data;
+      toast.success(`Schedule updated — ${updated} matches fixed (${swapped} swapped), ${created} new`);
+      onPatched();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Patch failed');
+    } finally { setPatching(false); }
+  };
+
+  return (
+    <div className="card p-4 border-blue-800/40 bg-blue-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">📅 Fix schedule (safe)</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Updates kickoff times, venues, matchday numbers, and group from the official FIFA calendar.
+            <strong className="text-white"> Existing scores and predictions are preserved.</strong>
+          </p>
+        </div>
+        <button onClick={patch} disabled={patching} className="btn-primary py-1.5 text-sm">
+          {patching ? '⏳ Patching…' : '📅 Fix schedule'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ReseedPanel({ onReseeded }: { onReseeded: () => void }) {
   const [reseeding, setReseeding] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
@@ -186,14 +219,14 @@ function ReseedPanel({ onReseeded }: { onReseeded: () => void }) {
     <div className="card p-4 border-red-800/40 bg-red-900/10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h3 className="font-semibold text-white flex items-center gap-2">🔁 Fix schedule (reseed matches)</h3>
+          <h3 className="font-semibold text-white flex items-center gap-2">💣 Nuclear reseed (last resort)</h3>
           <p className="text-xs text-gray-400 mt-0.5">
-            Wipes all matches & predictions, recreates 72 matches with correct official dates, times, and venues.
-            Teams stay. Use this to fix wrong pairings or kickoff times.
+            Wipes <strong className="text-red-400">ALL matches and predictions</strong>, recreates 72 matches from scratch.
+            Use only if the safe patch above fails. Teams stay.
           </p>
         </div>
         <button onClick={reseed} disabled={reseeding} className={`py-1.5 text-sm ${confirmed ? 'btn-primary bg-red-600 hover:bg-red-700' : 'btn-secondary'}`}>
-          {reseeding ? '⏳ Reseeding…' : confirmed ? '⚠️ Confirm — wipe & reseed' : '🔁 Fix schedule'}
+          {reseeding ? '⏳ Reseeding…' : confirmed ? '⚠️ Confirm — wipe & reseed' : '💣 Nuclear reseed'}
         </button>
       </div>
     </div>
@@ -323,6 +356,8 @@ export default function AdminPage() {
       </div>
 
       <SeedPanel onSeeded={invalidate} />
+
+      <PatchSchedulePanel onPatched={invalidate} />
 
       <ReseedPanel onReseeded={invalidate} />
 

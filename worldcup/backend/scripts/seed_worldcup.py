@@ -269,6 +269,86 @@ async def reseed():
         return {"status": "reseeded", "matches": created, "missing": missing}
 
 
+async def patch_schedule():
+    """
+    Non-destructive schedule fix: updates match_number, matchday, kickoff_utc, venue, city
+    by matching existing matches on their team pair (frozenset). Preserves scores, status,
+    and all predictions. If home/away order changed, swaps pred_home/pred_away too.
+    Only creates new records for team pairs not yet in the DB.
+    """
+    async with AsyncSessionLocal() as db:
+        teams = (await db.execute(select(Team))).scalars().all()
+        if not teams:
+            return await seed()
+
+        team_map: dict[str, str] = {t.name: t.id for t in teams}
+
+        existing_matches = (await db.execute(select(Match))).scalars().all()
+        pair_to_match: dict[frozenset, Match] = {
+            frozenset({m.home_team_id, m.away_team_id}): m for m in existing_matches
+        }
+
+        updated = 0
+        swapped = 0
+        created = 0
+        missing: list[str] = []
+
+        for match_num, group, matchday, home_name, away_name, kickoff_utc, venue, city in FIXTURES:
+            home_id = team_map.get(home_name)
+            away_id = team_map.get(away_name)
+            if not home_id or not away_id:
+                missing.append(f"#{match_num} {home_name} vs {away_name}")
+                continue
+
+            pair = frozenset({home_id, away_id})
+            existing = pair_to_match.get(pair)
+
+            if existing is None:
+                db.add(Match(
+                    id=str(uuid.uuid4()),
+                    match_number=match_num,
+                    group_letter=group,
+                    matchday=matchday,
+                    home_team_id=home_id,
+                    away_team_id=away_id,
+                    kickoff_utc=kickoff_utc,
+                    venue=venue,
+                    city=city,
+                    status="scheduled",
+                ))
+                created += 1
+            else:
+                if existing.home_team_id != home_id:
+                    existing.home_team_id = home_id
+                    existing.away_team_id = away_id
+                    preds = (await db.execute(
+                        select(Prediction).where(Prediction.match_id == existing.id)
+                    )).scalars().all()
+                    for p in preds:
+                        p.pred_home, p.pred_away = p.pred_away, p.pred_home
+                    swapped += 1
+
+                existing.match_number = match_num
+                existing.group_letter = group
+                existing.matchday = matchday
+                existing.kickoff_utc = kickoff_utc
+                existing.venue = venue
+                existing.city = city
+                updated += 1
+
+        await db.commit()
+        if missing:
+            print(f"WARNING — teams not found: {missing}")
+        print(f"Patched {updated} matches ({swapped} home/away swapped), created {created} new")
+        return {
+            "status": "patched",
+            "updated": updated,
+            "swapped": swapped,
+            "created": created,
+            "missing": missing,
+        }
+
+
 if __name__ == "__main__":
     import asyncio
     asyncio.run(seed())
