@@ -132,6 +132,10 @@ async def update_score(
     match.status = body.status
     if body.kickoff_utc is not None:
         match.kickoff_utc = body.kickoff_utc
+    if body.venue is not None:
+        match.venue = body.venue
+    if body.city is not None:
+        match.city = body.city
 
     if body.status == "completed":
         await recalculate_match_points(match, db)

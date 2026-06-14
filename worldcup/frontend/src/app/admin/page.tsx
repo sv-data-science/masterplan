@@ -14,6 +14,8 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
   const [kickoff, setKickoff] = useState(
     match.kickoff_utc ? new Date(match.kickoff_utc).toISOString().slice(0, 16) : ''
   );
+  const [city, setCity] = useState(match.city ?? '');
+  const [venue, setVenue] = useState(match.venue ?? '');
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
@@ -21,7 +23,7 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
     if (isNaN(h) || isNaN(a)) { toast.error('Enter valid scores'); return; }
     setSaving(true);
     try {
-      await matchesApi.updateScore(match.id, h, a, status, kickoff || undefined);
+      await matchesApi.updateScore(match.id, h, a, status, kickoff || undefined, venue || undefined, city || undefined);
       toast.success('Saved!');
       onUpdated();
     }
@@ -40,6 +42,12 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
       <td className="px-3 py-2">
         <input type="datetime-local" value={kickoff} onChange={e => setKickoff(e.target.value)}
           className="input py-1 text-xs w-40" />
+      </td>
+      <td className="px-3 py-2">
+        <div className="flex flex-col gap-1">
+          <input type="text" value={city} onChange={e => setCity(e.target.value)} className="input py-1 text-xs w-28" placeholder="City" />
+          <input type="text" value={venue} onChange={e => setVenue(e.target.value)} className="input py-1 text-xs w-28" placeholder="Stadium" />
+        </div>
       </td>
       <td className="px-3 py-2">
         <div className="flex items-center gap-1">
@@ -314,6 +322,7 @@ export default function AdminPage() {
                 <th className="text-left px-3 py-2">Match</th>
                 <th className="text-left px-3 py-2">Teams</th>
                 <th className="text-left px-3 py-2">Date</th>
+                <th className="text-left px-3 py-2">Location</th>
                 <th className="text-left px-3 py-2">Score</th>
                 <th className="text-left px-3 py-2">Status</th>
                 <th className="text-left px-3 py-2">Action</th>

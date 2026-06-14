@@ -6,9 +6,19 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/auth';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 
-function formatKickoff(iso: string | null) {
+function formatMatchDate(iso: string | null) {
   if (!iso) return null;
-  return new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York', timeZoneName: 'short' });
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
+}
+
+function formatEST(iso: string | null) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York', timeZoneName: 'short' });
+}
+
+function formatMexicoCity(iso: string | null) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City', timeZoneName: 'short' });
 }
 
 function useCountdown(kickoffIso: string | null) {
@@ -120,9 +130,7 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
           <span className="text-xs text-gray-500">FT</span>
         ) : countdown ? (
           <span className="text-xs text-green-600">{countdown}</span>
-        ) : (
-          <span className="text-xs text-gray-500">{formatKickoff(match.kickoff_utc)}</span>
-        )}
+        ) : null}
       </div>
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 text-right">
@@ -143,7 +151,19 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
           <p className="text-xs text-gray-500">{match.away_team.code}</p>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-[#30363d]">
+      {match.kickoff_utc && (
+        <div className="text-center mt-2 space-y-0.5">
+          <p className="text-xs text-gray-400">
+            {formatMatchDate(match.kickoff_utc)} · {formatEST(match.kickoff_utc)} / {formatMexicoCity(match.kickoff_utc)}
+          </p>
+          {(match.city || match.venue) && (
+            <p className="text-xs text-gray-500">
+              📍 {[match.city, match.venue].filter(Boolean).join(' · ')}
+            </p>
+          )}
+        </div>
+      )}
+      <div className="mt-3 pt-3 border-t border-[#30363d]">
         {match.status === 'completed' && match.my_prediction ? (
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-400">Your pick: <span className="text-white font-mono">{match.my_prediction.pred_home}–{match.my_prediction.pred_away}</span></span>

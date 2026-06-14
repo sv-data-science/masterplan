@@ -38,8 +38,8 @@ export const matchesApi = {
     api.get('/matches', { params }),
   get: (id: string) => api.get(`/matches/${id}`),
   predictions: (id: string) => api.get(`/matches/${id}/predictions`),
-  updateScore: (id: string, home_score: number, away_score: number, status = 'completed', kickoff_utc?: string) =>
-    api.put(`/matches/${id}/score`, { home_score, away_score, status, kickoff_utc }),
+  updateScore: (id: string, home_score: number, away_score: number, status = 'completed', kickoff_utc?: string, venue?: string, city?: string) =>
+    api.put(`/matches/${id}/score`, { home_score, away_score, status, kickoff_utc, venue, city }),
 };
 
 export const predictionsApi = {

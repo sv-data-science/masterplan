@@ -50,6 +50,8 @@ class ScoreUpdate(BaseModel):
     away_score: int
     status: str = "completed"
     kickoff_utc: Optional[datetime] = None
+    venue: Optional[str] = None
+    city: Optional[str] = None
 
 
 class MatchPredictionEntry(BaseModel):
