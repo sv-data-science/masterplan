@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
+from datetime import datetime, timezone
 import uuid
 from app.database import get_db
 from app.models.worldcup import Prediction, Match
@@ -23,6 +24,11 @@ async def upsert_prediction(
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
 
+    if match.status != "scheduled":
+        raise HTTPException(status_code=400, detail="Predictions are locked once the match starts")
+    if match.kickoff_utc and match.kickoff_utc <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Predictions are locked — kickoff has passed")
+
     existing = await db.execute(
         select(Prediction).where(
             Prediction.match_id == body.match_id,
@@ -30,6 +36,22 @@ async def upsert_prediction(
         )
     )
     pred = existing.scalar_one_or_none()
+
+    if pred:
+        pred.pred_home = body.pred_home
+        pred.pred_away = body.pred_away
+    else:
+        pred = Prediction(
+            id=str(uuid.uuid4()),
+            user_id=current_user.id,
+            match_id=body.match_id,
+            pred_home=body.pred_home,
+            pred_away=body.pred_away,
+        )
+        db.add(pred)
+
+    await db.flush()
+    return PredictionOut.model_validate(pred)
 
     if pred:
         pred.pred_home = body.pred_home

@@ -106,7 +106,8 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
   const [away, setAway] = useState<string | number>(match.my_prediction?.pred_away ?? '');
   const [saving, setSaving] = useState(false);
   const countdown = useCountdown(match.kickoff_utc);
-  const canPredict = !!user;
+  const locked = match.status !== 'scheduled' || isKickoffPassed(match.kickoff_utc);
+  const canPredict = !!user && !locked;
 
   const save = async () => {
     const h = Number(home), a = Number(away);
@@ -193,6 +194,13 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
           </div>
         ) : match.status === 'completed' ? (
           <p className="text-xs text-gray-600 text-center">No prediction made</p>
+        ) : locked && match.my_prediction ? (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-400">Your pick: <span className="text-white font-mono">{match.my_prediction.pred_home}–{match.my_prediction.pred_away}</span></span>
+            <span className="text-xs text-gray-500">🔒 Locked</span>
+          </div>
+        ) : locked ? (
+          <p className="text-xs text-gray-600 text-center">🔒 Predictions closed</p>
         ) : canPredict ? (
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400 shrink-0">Your pick:</span>
