@@ -4,25 +4,24 @@ import { goalsApi } from '@/lib/api';
 import { TopScorerEntry } from '@/types';
 
 function computeRanks(scorers: TopScorerEntry[]): number[] {
-  return scorers.map((s, i, arr) => {
+  const first = scorers.map((s, i, arr) => {
     if (i === 0) return 1;
-    return s.goals === arr[i - 1].goals
-      ? -1  // sentinel: same as previous
-      : i + 1;
-  }).map((r, i, ranks) => {
+    return s.goals === arr[i - 1].goals ? -1 : i + 1;
+  });
+  return first.map((r, i) => {
     if (r !== -1) return r;
-    // walk back to find the first non-sentinel rank
-    for (let j = i - 1; j >= 0; j--) if (ranks[j] !== -1) return ranks[j];
+    for (let j = i - 1; j >= 0; j--) if (first[j] !== -1) return first[j];
     return 1;
   });
 }
 
 export default function TopScorersPage() {
-  const { data: scorers = [], isLoading } = useQuery<TopScorerEntry[]>({
+  const { data: scorers = [], isLoading, isError } = useQuery<TopScorerEntry[]>({
     queryKey: ['top-scorers'],
     queryFn: () => goalsApi.topScorers().then(r => r.data),
     staleTime: 30_000,
     refetchInterval: 60_000,
+    retry: 1,
   });
 
   const ranks = computeRanks(scorers);
@@ -32,15 +31,26 @@ export default function TopScorersPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Top Scorers</h1>
-        <div className="text-sm text-gray-500">{scorers.length} players</div>
+        {scorers.length > 0 && <div className="text-sm text-gray-500">{scorers.length} players</div>}
       </div>
+
       {isLoading && <div className="text-center py-12 text-gray-500">Loading…</div>}
-      {!isLoading && scorers.length === 0 && (
+
+      {isError && (
+        <div className="card p-8 text-center text-gray-500">
+          <p className="text-sm">Could not load top scorers — the backend may need to be redeployed.</p>
+          <p className="text-xs text-gray-600 mt-1">Make sure the latest backend is deployed on Railway.</p>
+        </div>
+      )}
+
+      {!isLoading && !isError && scorers.length === 0 && (
         <div className="card p-8 text-center text-gray-500">
           <div className="text-4xl mb-2">⚽</div>
           <p>No goals scored yet.</p>
+          <p className="text-xs text-gray-600 mt-1">Add goals via the ⚽ button in the Admin panel after updating match scores.</p>
         </div>
       )}
+
       {scorers.length > 0 && (
         <div className="card divide-y divide-[#30363d]">
           <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs text-gray-500 font-medium uppercase">
