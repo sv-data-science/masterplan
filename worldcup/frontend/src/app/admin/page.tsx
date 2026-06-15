@@ -249,9 +249,14 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
     setSyncing(true);
     try {
       const r = await api.post('/admin/sync');
-      const { updated, error, total_api_matches } = r.data;
+      const { updated, error, total_api_matches, goals_synced, matches_with_goals_in_api } = r.data;
       if (error) toast.error(`Sync error: ${error}`);
-      else toast.success(`Sync complete — ${updated} match${updated !== 1 ? 'es' : ''} updated (${total_api_matches} from API)`);
+      else {
+        const goalMsg = matches_with_goals_in_api > 0
+          ? ` · ${goals_synced} goal${goals_synced !== 1 ? 's' : ''} synced`
+          : ' · no scorer data from API yet';
+        toast.success(`Sync complete — ${updated} match${updated !== 1 ? 'es' : ''} updated (${total_api_matches} from API)${goalMsg}`);
+      }
       refetchStatus();
       onSynced();
     } catch (e: any) {

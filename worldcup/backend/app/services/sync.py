@@ -58,9 +58,10 @@ def _canonical(name: str) -> str:
     return TEAM_NAME_MAP.get(name, name)
 
 
-async def _sync_goals(db: AsyncSession, match: Match, api_goals: list, team_by_name: dict) -> None:
-    """Replace goal_events for a completed match with the latest API data."""
+async def _sync_goals(db: AsyncSession, match: Match, api_goals: list, team_by_name: dict) -> int:
+    """Replace goal_events for a completed match with the latest API data. Returns goals inserted."""
     await db.execute(delete(GoalEvent).where(GoalEvent.match_id == match.id))
+    inserted = 0
     for g in api_goals:
         scorer = (g.get("scorer") or {}).get("name", "").strip()
         team_name = _canonical((g.get("team") or {}).get("name", "").strip())
@@ -84,6 +85,8 @@ async def _sync_goals(db: AsyncSession, match: Match, api_goals: list, team_by_n
             is_own_goal=(goal_type == "OWN"),
             is_penalty=(goal_type == "PENALTY"),
         ))
+        inserted += 1
+    return inserted
 
 
 async def sync_scores() -> dict:
@@ -112,6 +115,8 @@ async def sync_scores() -> dict:
         return last_sync_result
 
     updated = 0
+    goals_synced = 0
+    matches_with_goals_in_api = 0
     async with AsyncSessionLocal() as db:
         # Build team name → id lookup
         teams_result = await db.execute(select(Team))
@@ -171,7 +176,10 @@ async def sync_scores() -> dict:
                 # Sync goal scorers — always refresh so corrections propagate
                 api_goals = api_m.get("goals")
                 if api_goals is not None:
-                    await _sync_goals(db, match, api_goals, team_by_name)
+                    matches_with_goals_in_api += 1
+                    n = await _sync_goals(db, match, api_goals, team_by_name)
+                    goals_synced += n
+                    log.info("Goals sync: match %s — API returned %d goals, inserted %d", match.id, len(api_goals), n)
 
             if changed:
                 updated += 1
@@ -182,6 +190,8 @@ async def sync_scores() -> dict:
         "synced_at": datetime.now(timezone.utc).isoformat(),
         "updated": updated,
         "total_api_matches": len(api_matches),
+        "goals_synced": goals_synced,
+        "matches_with_goals_in_api": matches_with_goals_in_api,
         "error": None,
     }
     last_sync_result = result_data
