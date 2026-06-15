@@ -26,14 +26,24 @@ TEAM_NAME_MAP: dict[str, str] = {
     "Bosnia and Herzegovina": "Bosnia-Herzegovina",
     "Côte d'Ivoire": "Ivory Coast",
     "Cote d'Ivoire": "Ivory Coast",
+    "Ivory Coast": "Ivory Coast",
     "Turkey": "Türkiye",
     "DR Congo": "Congo DR",
     "Republic of Congo": "Congo DR",
+    "Congo": "Congo DR",
     "Korea Republic": "South Korea",
+    "Republic of Korea": "South Korea",
     "USA": "United States",
     "United States": "United States",
     "Czechia": "Czechia",
     "Czech Republic": "Czechia",
+    "Cabo Verde": "Cape Verde",          # football-data.org uses Cabo Verde
+    "Cape Verde Islands": "Cape Verde",
+    "Curacao": "Curaçao",               # without accent
+    "IR Iran": "Iran",
+    "Islamic Republic of Iran": "Iran",
+    "Saudi Arabia": "Saudi Arabia",
+    "Uzbekistan": "Uzbekistan",
 }
 
 STATUS_MAP = {
