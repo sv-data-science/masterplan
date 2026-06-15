@@ -1,17 +1,18 @@
 """
-Sync match scores from football-data.org free API.
+Sync match scores and goal scorers from football-data.org free API.
 
 Endpoint: GET https://api.football-data.org/v4/competitions/WC/matches
 Auth:     X-Auth-Token header
 Rate:     10 req/min on free tier (one call fetches all group-stage matches)
 """
 import logging
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.models.worldcup import Match, Team
+from sqlalchemy import select, delete
+from app.models.worldcup import Match, Team, GoalEvent
 from app.services.scoring import recalculate_match_points
 from app.database import AsyncSessionLocal
 from app.config import settings
@@ -55,6 +56,34 @@ last_sync_result: dict = {"synced_at": None, "updated": 0, "error": None}
 
 def _canonical(name: str) -> str:
     return TEAM_NAME_MAP.get(name, name)
+
+
+async def _sync_goals(db: AsyncSession, match: Match, api_goals: list, team_by_name: dict) -> None:
+    """Replace goal_events for a completed match with the latest API data."""
+    await db.execute(delete(GoalEvent).where(GoalEvent.match_id == match.id))
+    for g in api_goals:
+        scorer = (g.get("scorer") or {}).get("name", "").strip()
+        team_name = _canonical((g.get("team") or {}).get("name", "").strip())
+        goal_type = g.get("type", "REGULAR")  # REGULAR | OWN | PENALTY
+        minute = g.get("minute")
+        injury = g.get("injuryTime") or 0
+
+        if not scorer or not team_name:
+            continue
+        team_id = team_by_name.get(team_name)
+        if not team_id:
+            log.warning("Goal sync — team not found: %s", team_name)
+            continue
+
+        db.add(GoalEvent(
+            id=str(uuid.uuid4()),
+            match_id=match.id,
+            team_id=team_id,
+            player_name=scorer,
+            minute=(minute + injury) if minute is not None else None,
+            is_own_goal=(goal_type == "OWN"),
+            is_penalty=(goal_type == "PENALTY"),
+        ))
 
 
 async def sync_scores() -> dict:
@@ -138,6 +167,11 @@ async def sync_scores() -> dict:
                     match.away_score = as_
                     await recalculate_match_points(match, db)
                     changed = True
+
+                # Sync goal scorers — always refresh so corrections propagate
+                api_goals = api_m.get("goals")
+                if api_goals is not None:
+                    await _sync_goals(db, match, api_goals, team_by_name)
 
             if changed:
                 updated += 1
