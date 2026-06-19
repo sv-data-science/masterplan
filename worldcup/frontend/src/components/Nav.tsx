@@ -22,7 +22,7 @@ export function Nav() {
     { href: '/groups', label: 'Groups' },
     { href: '/top-scorers', label: 'Top Scorers' },
     { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/trivia', label: '🧠 Trivia' },
+    { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
   ];
   const links = user
     ? [
@@ -32,7 +32,7 @@ export function Nav() {
         { href: '/groups', label: 'Groups' },
         { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/leaderboard', label: 'Leaderboard' },
-        { href: '/trivia', label: '🧠 Trivia' },
+        { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
       ]
     : baseLinks;
 
@@ -45,8 +45,13 @@ export function Nav() {
         </Link>
         <nav className="flex items-center gap-1 flex-1">
           {links.map(l => (
-            <Link key={l.href} href={l.href} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${pathname === l.href ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-[#21262d]'}`}>
+            <Link key={l.href} href={l.href} className={`relative px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${pathname === l.href ? 'bg-green-600/20 text-green-400' : 'text-gray-400 hover:text-white hover:bg-[#21262d]'}`}>
               {l.label}
+              {'badge' in l && l.badge && (
+                <span className="absolute -top-1 -right-1 bg-green-500 text-black text-[9px] font-bold px-1 py-px rounded leading-none">
+                  {l.badge}
+                </span>
+              )}
             </Link>
           ))}
           {user?.is_admin && (
