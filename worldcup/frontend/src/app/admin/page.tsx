@@ -372,39 +372,102 @@ function PatchSchedulePanel({ onPatched }: { onPatched: () => void }) {
   );
 }
 
+const RESEED_PASSPHRASE = 'delete all';
+
+function ReseedModal({ onConfirm, onCancel, reseeding }: { onConfirm: () => void; onCancel: () => void; reseeding: boolean }) {
+  const [input, setInput] = useState('');
+  const matches = input.trim().toLowerCase() === RESEED_PASSPHRASE;
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" onClick={onCancel}>
+      <div className="card w-full max-w-md p-6 border-red-800/60 bg-[#1a0f0f]" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-3xl">💣</span>
+          <div>
+            <h3 className="font-bold text-white text-lg">Nuclear Reseed</h3>
+            <p className="text-xs text-red-400">This action cannot be undone</p>
+          </div>
+        </div>
+
+        <div className="bg-red-900/20 border border-red-800/40 rounded-lg p-3 mb-5 space-y-1 text-sm text-red-300">
+          <p>⚠️ <strong>ALL match predictions</strong> will be permanently deleted</p>
+          <p>⚠️ <strong>ALL match scores and goals</strong> will be wiped</p>
+          <p>⚠️ 72 matches will be recreated from scratch</p>
+          <p className="text-gray-400 text-xs mt-2">Teams and user accounts are preserved.</p>
+        </div>
+
+        <p className="text-sm text-gray-400 mb-2">
+          Type <span className="font-mono text-white bg-[#30363d] px-1.5 py-0.5 rounded">delete all</span> to confirm:
+        </p>
+        <input
+          type="text"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="delete all"
+          autoFocus
+          className="input w-full py-2 text-sm mb-4"
+          onKeyDown={e => e.key === 'Enter' && matches && !reseeding && onConfirm()}
+        />
+
+        <div className="flex gap-3 justify-end">
+          <button onClick={onCancel} className="btn-secondary py-1.5 text-sm">Cancel</button>
+          <button
+            onClick={onConfirm}
+            disabled={!matches || reseeding}
+            className="py-1.5 text-sm px-4 rounded font-medium bg-red-600 hover:bg-red-700 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            {reseeding ? '⏳ Reseeding…' : '💣 Wipe & reseed'}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function ReseedPanel({ onReseeded }: { onReseeded: () => void }) {
+  const [showModal, setShowModal] = useState(false);
   const [reseeding, setReseeding] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
 
   const reseed = async () => {
-    if (!confirmed) { setConfirmed(true); return; }
     setReseeding(true);
     try {
       const r = await api.post('/admin/reseed');
       toast.success(`Schedule fixed — ${r.data.matches} matches recreated`);
-      setConfirmed(false);
+      setShowModal(false);
       onReseeded();
     } catch (e: any) {
       toast.error(e.response?.data?.detail ?? 'Reseed failed');
     } finally {
-      setReseeding(false); }
+      setReseeding(false);
+    }
   };
 
   return (
-    <div className="card p-4 border-red-800/40 bg-red-900/10">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h3 className="font-semibold text-white flex items-center gap-2">💣 Nuclear reseed (last resort)</h3>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Wipes <strong className="text-red-400">ALL matches and predictions</strong>, recreates 72 matches from scratch.
-            Use only if the safe patch above fails. Teams stay.
-          </p>
+    <>
+      <div className="card p-4 border-red-800/40 bg-red-900/10">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div>
+            <h3 className="font-semibold text-white flex items-center gap-2">💣 Nuclear reseed (last resort)</h3>
+            <p className="text-xs text-gray-400 mt-0.5">
+              Wipes <strong className="text-red-400">ALL matches and predictions</strong>, recreates 72 matches from scratch.
+              Use only if the safe patch above fails. Teams stay.
+            </p>
+          </div>
+          <button onClick={() => setShowModal(true)} className="btn-secondary py-1.5 text-sm">
+            💣 Nuclear reseed
+          </button>
         </div>
-        <button onClick={reseed} disabled={reseeding} className={`py-1.5 text-sm ${confirmed ? 'btn-primary bg-red-600 hover:bg-red-700' : 'btn-secondary'}`}>
-          {reseeding ? '⏳ Reseeding…' : confirmed ? '⚠️ Confirm — wipe & reseed' : '💣 Nuclear reseed'}
-        </button>
       </div>
-    </div>
+      {showModal && (
+        <ReseedModal
+          onConfirm={reseed}
+          onCancel={() => setShowModal(false)}
+          reseeding={reseeding}
+        />
+      )}
+    </>
   );
 }
 
