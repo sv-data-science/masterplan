@@ -1,6 +1,6 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { leaderboardApi, matchesApi, triviaApi } from '@/lib/api';
+import { leaderboardApi, matchesApi, triviaApi, api } from '@/lib/api';
 import { Match, LeaderboardEntry, DEFAULT_KIT, KitConfig } from '@/types';
 import Link from 'next/link';
 import { MatchCard } from '@/components/MatchCard';
@@ -12,6 +12,7 @@ export default function HomePage() {
   const { data: leaderboard } = useQuery<LeaderboardEntry[]>({ queryKey: ['leaderboard'], queryFn: () => leaderboardApi.get().then(r => r.data), staleTime: 30_000 });
   const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', 'home'], queryFn: () => matchesApi.list().then(r => r.data), staleTime: 60_000 });
   const { data: triviaStats } = useQuery({ queryKey: ['trivia-my-stats'], queryFn: () => triviaApi.myStats().then(r => r.data), enabled: !!user, staleTime: 60_000 });
+  const { data: triviaLeaderboard } = useQuery({ queryKey: ['trivia-leaderboard'], queryFn: () => api.get('/trivia/leaderboard').then(r => r.data), staleTime: 60_000 });
 
   const upcoming = matches?.filter(m => m.status === 'scheduled').sort((a,b) => new Date(a.kickoff_utc??0).getTime()-new Date(b.kickoff_utc??0).getTime()).slice(0,4)??[];
   const recent = matches?.filter(m => m.status !== 'scheduled').sort((a,b) => new Date(b.kickoff_utc??0).getTime()-new Date(a.kickoff_utc??0).getTime()).slice(0,4)??[];
@@ -104,6 +105,26 @@ export default function HomePage() {
                   )}
                 </div>
               )}
+            </div>
+          )}
+
+          {triviaLeaderboard && triviaLeaderboard.length > 0 && (
+            <div className="card mt-4">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[#30363d]">
+                <h3 className="font-semibold text-sm">🧠 Trivia Top 5</h3>
+                <Link href="/trivia" className="text-xs text-green-400 hover:underline">Play →</Link>
+              </div>
+              <div className="divide-y divide-[#30363d]">
+                {triviaLeaderboard.slice(0, 5).map((row: any) => (
+                  <div key={row.username} className="flex items-center gap-2 px-4 py-2 text-sm">
+                    <span className="w-5 text-center font-bold shrink-0 text-gray-500">
+                      {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`}
+                    </span>
+                    <span className="flex-1 truncate text-white">{row.display_name}</span>
+                    <span className="text-green-400 font-bold text-xs">{row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span></span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

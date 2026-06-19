@@ -1,14 +1,13 @@
 'use client';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { ALL_QUESTIONS, TriviaQuestion } from '@/lib/trivia';
+import { ALL_QUESTIONS_ES } from '@/lib/trivia_es';
 import { getLang, saveLang, getQuestionsForQuiz, markSeen, unseenCount, TriviaLang } from '@/lib/trivia_utils';
 import { useAuthStore } from '@/store/auth';
 import { api, triviaApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 
-// Lazy-load Spanish questions to avoid importing a huge file on every page
-let ALL_QUESTIONS_ES: TriviaQuestion[] = [];
-import('@/lib/trivia_es').then(m => { ALL_QUESTIONS_ES = m.ALL_QUESTIONS_ES; }).catch(() => {});
+const TIMER_SECONDS = 15;
 
 type Phase = 'start' | 'question' | 'result';
 
@@ -27,7 +26,7 @@ function scoreMessage(score: number, total: number, lang: TriviaLang) {
     if (pct === 1) return '¡Puntuación perfecta! ¡Eres un verdadero experto del Mundial!';
     if (pct >= 0.8) return '¡Excelente! Realmente conoces la historia del fútbol.';
     if (pct >= 0.6) return '¡Buen esfuerzo! Conoces los datos del Mundial.';
-    if (pct >= 0.4) return '¡No está mal! Repasa un poco la historia del Mundial.';
+    if (pct >= 0.4) return 'No está mal. Repasa la historia del Mundial.';
     return '¡Sigue estudiando! El Mundial tiene una historia rica por explorar.';
   }
   if (pct === 1) return "Perfect score! You're a true World Cup expert!";
@@ -81,14 +80,15 @@ export default function TriviaPage() {
   const [lang, setLangState] = useState<TriviaLang>('en');
   const [remainingEn, setRemainingEn] = useState(0);
   const [remainingEs, setRemainingEs] = useState(0);
+  const [timeLeft, setTimeLeft] = useState<number>(TIMER_SECONDS);
+  const [timedOut, setTimedOut] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load language preference from localStorage on mount
   useEffect(() => {
     setLangState(getLang());
     setRemainingEn(unseenCount(ALL_QUESTIONS));
+    setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
   }, []);
-
-  const pool = lang === 'es' ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
 
   const { data: myStats, refetch: refetchStats } = useQuery({
     queryKey: ['trivia-my-stats'],
@@ -97,19 +97,63 @@ export default function TriviaPage() {
     staleTime: 10_000,
   });
 
+  // Timer: starts fresh on each new question, stops when answered
+  useEffect(() => {
+    if (phase !== 'question' || selected !== null) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+    setTimeLeft(TIMER_SECONDS);
+    setTimedOut(false);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(timerRef.current!);
+          setTimedOut(true);
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [current, phase]);
+
+  // When timed out, record as skipped and auto-advance after 1.5s
+  useEffect(() => {
+    if (!timedOut) return;
+    setSelected(-1);
+    setAnswers(prev => {
+      const next = [...prev];
+      next[current] = -1;
+      return next;
+    });
+    const t = setTimeout(() => {
+      if (current + 1 >= questions.length) {
+        markSeen(questions.map(q => q.id));
+        setPhase('result');
+      } else {
+        setCurrent(c => c + 1);
+        setSelected(null);
+        setTimedOut(false);
+      }
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [timedOut]);
+
   const switchLang = (l: TriviaLang) => {
     setLangState(l);
     saveLang(l);
     setRemainingEn(unseenCount(ALL_QUESTIONS));
-    if (ALL_QUESTIONS_ES.length > 0) setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
+    setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
   };
 
   const startGame = useCallback(() => {
-    const currentPool = lang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
-    const qs = getQuestionsForQuiz(currentPool);
+    const pool = lang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
+    const qs = getQuestionsForQuiz(pool);
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
+    setTimedOut(false);
     setScore(0);
     setAnswers(new Array(qs.length).fill(null));
     setSubmitted(false);
@@ -121,9 +165,12 @@ export default function TriviaPage() {
     p >= 80 ? 'text-green-400' : p >= 60 ? 'text-yellow-400' : 'text-red-400';
   const accuracyBarColor = (p: number) =>
     p >= 80 ? 'bg-green-500' : p >= 60 ? 'bg-yellow-500' : 'bg-red-500';
+  const timerColor = timeLeft > 10 ? 'text-green-400' : timeLeft > 5 ? 'text-yellow-400' : 'text-red-400';
+  const timerBarColor = timeLeft > 10 ? 'bg-green-500' : timeLeft > 5 ? 'bg-yellow-500' : 'bg-red-500';
 
   const pick = (idx: number) => {
     if (selected !== null) return;
+    if (timerRef.current) clearInterval(timerRef.current);
     setSelected(idx);
     const correct = idx === questions[current].answer;
     const newScore = score + (correct ? 1 : 0);
@@ -144,6 +191,7 @@ export default function TriviaPage() {
     } else {
       setCurrent(c => c + 1);
       setSelected(null);
+      setTimedOut(false);
     }
   };
 
@@ -161,24 +209,20 @@ export default function TriviaPage() {
   };
 
   const goToStart = async () => {
+    if (timerRef.current) clearInterval(timerRef.current);
     if (phase === 'question' && questions.length > 0) {
-      // Count how many questions were actually answered
       const answeredCount = current + (selected !== null ? 1 : 0);
       if (answeredCount > 0) {
-        // Save partial score as a completed game entry
         if (user) triviaApi.submitScore(score, answeredCount).catch(() => {});
-        // Persist live score to reflect exit state
         if (user) triviaApi.saveLive(score, answeredCount).catch(() => {});
       }
       markSeen(questions.slice(0, answeredCount).map(q => q.id));
     }
     setRemainingEn(unseenCount(ALL_QUESTIONS));
-    if (ALL_QUESTIONS_ES.length > 0) setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
+    setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
     setPhase('start');
     if (user) refetchStats();
   };
-
-  const isEsReady = ALL_QUESTIONS_ES.length > 0;
 
   const q = questions[current];
 
@@ -186,7 +230,7 @@ export default function TriviaPage() {
     const bestPct = myStats?.best_score != null ? pct(myStats.best_score, myStats.best_total) : null;
     const livePct = myStats?.live_total > 0 ? pct(myStats.live_score, myStats.live_total) : null;
     const remaining = lang === 'es' ? remainingEs : remainingEn;
-    const totalPool = lang === 'es' ? (ALL_QUESTIONS_ES.length || '…') : ALL_QUESTIONS.length;
+    const totalPool = lang === 'es' ? ALL_QUESTIONS_ES.length : ALL_QUESTIONS.length;
 
     return (
       <div className="max-w-2xl mx-auto space-y-4">
@@ -198,8 +242,8 @@ export default function TriviaPage() {
             </h1>
             <p className="text-gray-400">
               {lang === 'es'
-                ? 'Pon a prueba tu conocimiento de la historia de la Copa del Mundo FIFA — campeones, récords, mascotas, jugadores legendarios y momentos épicos.'
-                : 'Test your knowledge of FIFA World Cup history — winners, records, mascots, legendary players and moments.'}
+                ? 'Pon a prueba tu conocimiento — campeones, récords, mascotas y momentos épicos.'
+                : 'Test your knowledge — winners, records, mascots, legendary moments.'}
             </p>
           </div>
 
@@ -219,14 +263,12 @@ export default function TriviaPage() {
             </button>
           </div>
 
-          {/* Seen progress */}
           <p className="text-xs text-gray-600">
             {lang === 'es'
-              ? `${remaining || '…'} preguntas nuevas de ${totalPool} en total`
-              : `${remaining} new questions of ${totalPool} total`}
+              ? `${remaining} preguntas nuevas de ${totalPool} en total · ⏱ 15 seg por pregunta`
+              : `${remaining} new questions of ${totalPool} total · ⏱ 15 sec per question`}
           </p>
 
-          {/* User's live stats — shown only when they have played before */}
           {user && myStats && myStats.games_played > 0 && (
             <div className="bg-[#0d1117] rounded-xl p-4 text-left space-y-3">
               <p className="text-xs text-gray-500 uppercase tracking-widest">
@@ -301,14 +343,10 @@ export default function TriviaPage() {
           <p className="text-gray-400 mb-6">{scoreMessage(score, questions.length, lang)}</p>
 
           {user && !submitted && (
-            <button
-              onClick={submitScore}
-              disabled={submitting}
-              className="btn-primary py-2.5 px-6 mb-3 w-full"
-            >
+            <button onClick={submitScore} disabled={submitting} className="btn-primary py-2.5 px-6 mb-3 w-full">
               {submitting
                 ? (lang === 'es' ? '⏳ Guardando…' : '⏳ Saving…')
-                : (lang === 'es' ? '📊 Guardar puntuación en el marcador' : '📊 Save my score to leaderboard')}
+                : (lang === 'es' ? '📊 Guardar puntuación' : '📊 Save my score to leaderboard')}
             </button>
           )}
           {submitted && (
@@ -327,7 +365,9 @@ export default function TriviaPage() {
             <button onClick={startGame} className="btn-primary flex-1 py-2.5">
               {lang === 'es' ? 'Jugar de nuevo' : 'Play Again'}
             </button>
-            <button onClick={goToStart} className="btn-secondary flex-1 py-2.5">← {lang === 'es' ? 'Volver' : 'Back'}</button>
+            <button onClick={goToStart} className="btn-secondary flex-1 py-2.5">
+              ← {lang === 'es' ? 'Volver' : 'Back'}
+            </button>
           </div>
         </div>
 
@@ -343,18 +383,20 @@ export default function TriviaPage() {
           {questions.map((q, i) => {
             const userAns = answers[i];
             const correct = userAns === q.answer;
+            const timedOutQ = userAns === -1;
             return (
               <div key={q.id} className="px-4 py-3 space-y-1">
                 <div className="flex items-start gap-2">
-                  <span className="text-sm shrink-0 mt-0.5">{correct ? '✅' : '❌'}</span>
+                  <span className="text-sm shrink-0 mt-0.5">{correct ? '✅' : timedOutQ ? '⏱' : '❌'}</span>
                   <p className="text-sm text-white">{q.question}</p>
                 </div>
-                {!correct && userAns !== null && (
+                {timedOutQ && (
+                  <p className="text-xs text-yellow-600 pl-6">{lang === 'es' ? 'Tiempo agotado' : 'Timed out'}</p>
+                )}
+                {!correct && !timedOutQ && userAns !== null && (
                   <p className="text-xs text-red-400 pl-6">{yourAnswer}: {q.options[userAns]}</p>
                 )}
-                <p className="text-xs text-green-400 pl-6">
-                  ✓ {q.options[q.answer]}
-                </p>
+                <p className="text-xs text-green-400 pl-6">✓ {q.options[q.answer]}</p>
                 <p className="text-xs text-gray-500 pl-6">{q.fact}</p>
               </div>
             );
@@ -369,10 +411,13 @@ export default function TriviaPage() {
   const progress = (current / questions.length) * 100;
   const answered = current + (isAnswered ? 1 : 0);
   const livePctNow = pct(score, answered);
-  const questionLabel = lang === 'es' ? `Pregunta ${current + 1} de ${questions.length}` : `Question ${current + 1} of ${questions.length}`;
+  const questionLabel = lang === 'es'
+    ? `Pregunta ${current + 1} de ${questions.length}`
+    : `Question ${current + 1} of ${questions.length}`;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      {/* Header row: question counter, live score, timer, exit */}
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="text-gray-500">{questionLabel}</span>
         <div className="flex items-center gap-3">
@@ -381,22 +426,39 @@ export default function TriviaPage() {
               {score}/{answered} · {livePctNow}%
             </span>
           )}
+          {/* Countdown */}
+          {!isAnswered && (
+            <span className={`font-bold text-base w-7 text-center ${timerColor}`}>
+              {timeLeft}
+            </span>
+          )}
           <button
             onClick={goToStart}
             className="text-xs text-gray-500 hover:text-gray-300 border border-[#30363d] rounded px-2 py-1 hover:border-gray-500 transition-colors"
-            title={lang === 'es' ? 'Salir — tu puntuación en curso está guardada' : 'Exit quiz — your running score is saved'}
+            title={lang === 'es' ? 'Salir — puntuación guardada' : 'Exit — running score saved'}
           >
             ✕ {lang === 'es' ? 'Salir' : 'Exit'}
           </button>
         </div>
       </div>
+
+      {/* Progress bar (question progress) */}
       <div className="h-1.5 bg-[#30363d] rounded-full overflow-hidden">
-        <div
-          className="h-full bg-green-500 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
+        <div className="h-full bg-green-500 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
       </div>
-      {answered > 0 && (
+
+      {/* Timer bar */}
+      {!isAnswered && (
+        <div className="h-1 bg-[#30363d] rounded-full overflow-hidden -mt-2">
+          <div
+            className={`h-full rounded-full transition-all duration-1000 ${timerBarColor}`}
+            style={{ width: `${(timeLeft / TIMER_SECONDS) * 100}%` }}
+          />
+        </div>
+      )}
+
+      {/* Accuracy bar (when answered) */}
+      {isAnswered && answered > 0 && (
         <div className="h-1 bg-[#30363d] rounded-full overflow-hidden -mt-2">
           <div
             className={`h-full rounded-full transition-all duration-300 ${accuracyBarColor(livePctNow)}`}
@@ -415,7 +477,7 @@ export default function TriviaPage() {
               cls += 'border-[#30363d] text-gray-300 hover:border-green-600 hover:text-white hover:bg-green-900/20 cursor-pointer';
             } else if (idx === q.answer) {
               cls += 'border-green-500 bg-green-900/30 text-green-300';
-            } else if (idx === selected) {
+            } else if (idx === selected && selected !== -1) {
               cls += 'border-red-500 bg-red-900/20 text-red-400';
             } else {
               cls += 'border-[#30363d] text-gray-600 opacity-60';
@@ -430,9 +492,17 @@ export default function TriviaPage() {
         </div>
 
         {isAnswered && (
-          <div className={`mt-4 rounded-lg px-4 py-3 text-sm ${selected === q.answer ? 'bg-green-900/20 border border-green-800/40 text-green-300' : 'bg-red-900/20 border border-red-800/40 text-red-300'}`}>
+          <div className={`mt-4 rounded-lg px-4 py-3 text-sm ${
+            timedOut || selected === -1
+              ? 'bg-yellow-900/20 border border-yellow-800/40 text-yellow-300'
+              : selected === q.answer
+              ? 'bg-green-900/20 border border-green-800/40 text-green-300'
+              : 'bg-red-900/20 border border-red-800/40 text-red-300'
+          }`}>
             <span className="font-medium">
-              {selected === q.answer
+              {timedOut || selected === -1
+                ? (lang === 'es' ? '⏱ ¡Tiempo! ' : '⏱ Time\'s up! ')
+                : selected === q.answer
                 ? (lang === 'es' ? '✓ ¡Correcto! ' : '✓ Correct! ')
                 : (lang === 'es' ? '✗ Incorrecto. ' : '✗ Wrong. ')}
             </span>
@@ -441,7 +511,7 @@ export default function TriviaPage() {
         )}
       </div>
 
-      {isAnswered && (
+      {isAnswered && !timedOut && selected !== -1 && (
         <button onClick={next} className="btn-primary w-full py-2.5">
           {current + 1 >= questions.length
             ? (lang === 'es' ? 'Ver resultados' : 'See Results')
