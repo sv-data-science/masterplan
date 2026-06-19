@@ -250,31 +250,83 @@ async def sync_scores() -> dict:
     return result_data
 
 
+_ESPN_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.espn.com/soccer/",
+    "Origin": "https://www.espn.com",
+}
+
+
 async def sync_goals_espn() -> dict:
     """Sync goal scorers from ESPN's public API (no key required).
 
-    Fetches the full WC scoreboard for the tournament window, then pulls
-    a scoring summary for each completed match and upserts GoalEvents.
+    Queries our DB for completed match dates, fetches the ESPN scoreboard
+    for each unique date, then pulls a scoring summary per match to get goals.
     """
-    try:
-        async with httpx.AsyncClient(timeout=20) as client:
-            resp = await client.get(
-                ESPN_SCOREBOARD_URL,
-                params={"dates": "20260611-20260719", "limit": 200},
-            )
-        if resp.status_code != 200:
-            return {"error": f"ESPN scoreboard returned HTTP {resp.status_code}", "goals_synced": 0}
-        events = resp.json().get("events", [])
-    except Exception as e:
-        err = f"ESPN request failed: {e}"
-        log.error(err)
-        return {"error": err, "goals_synced": 0}
+    # Collect unique kickoff dates for completed matches
+    async with AsyncSessionLocal() as db:
+        completed_matches = (await db.execute(
+            select(Match).where(Match.status == "completed")
+        )).scalars().all()
 
-    completed = [
+    if not completed_matches:
+        return {"error": None, "goals_synced": 0, "matches_updated": 0,
+                "message": "No completed matches in DB — sync scores first"}
+
+    unique_dates: set[str] = set()
+    for m in completed_matches:
+        if m.kickoff_utc:
+            # Add the kickoff date and the day after (UTC midnight edge cases)
+            d = m.kickoff_utc
+            unique_dates.add(d.strftime("%Y%m%d"))
+            from datetime import timedelta
+            unique_dates.add((d + timedelta(days=1)).strftime("%Y%m%d"))
+
+    log.info("ESPN sync: fetching scoreboard for %d dates", len(unique_dates))
+
+    # Fetch ESPN scoreboard for each date (single-date param is reliable)
+    all_events: list[dict] = []
+    failed_dates: list[str] = []
+    async with httpx.AsyncClient(timeout=20, headers=_ESPN_HEADERS) as client:
+        for date_str in sorted(unique_dates):
+            try:
+                resp = await client.get(ESPN_SCOREBOARD_URL, params={"dates": date_str})
+                if resp.status_code == 200:
+                    all_events.extend(resp.json().get("events", []))
+                else:
+                    failed_dates.append(f"{date_str}:{resp.status_code}")
+                    log.warning("ESPN scoreboard %s → HTTP %d", date_str, resp.status_code)
+            except Exception as exc:
+                failed_dates.append(f"{date_str}:err")
+                log.warning("ESPN scoreboard %s failed: %s", date_str, exc)
+
+    if not all_events and failed_dates:
+        return {
+            "error": f"ESPN blocked all requests ({', '.join(failed_dates[:3])}). "
+                     "ESPN may be rate-limiting Railway's IP — try again in a few minutes.",
+            "goals_synced": 0,
+        }
+
+    # De-duplicate events by id
+    seen: set[str] = set()
+    events: list[dict] = []
+    for ev in all_events:
+        eid = ev.get("id")
+        if eid and eid not in seen:
+            seen.add(eid)
+            events.append(ev)
+
+    completed_events = [
         ev for ev in events
         if (ev.get("status") or {}).get("type", {}).get("name") == "STATUS_FINAL"
     ]
-    log.info("ESPN: %d total events, %d completed", len(events), len(completed))
+    log.info("ESPN: %d unique events, %d completed", len(events), len(completed_events))
 
     goals_synced = 0
     matches_updated = 0
@@ -284,8 +336,8 @@ async def sync_goals_espn() -> dict:
         teams_result = await db.execute(select(Team))
         team_by_name = {t.name: t.id for t in teams_result.scalars().all()}
 
-        async with httpx.AsyncClient(timeout=20) as client:
-            for ev in completed:
+        async with httpx.AsyncClient(timeout=20, headers=_ESPN_HEADERS) as client:
+            for ev in completed_events:
                 event_id = ev.get("id")
                 competitors = (ev.get("competitions") or [{}])[0].get("competitors", [])
                 home_comp = next((c for c in competitors if c.get("homeAway") == "home"), None)
@@ -316,10 +368,10 @@ async def sync_goals_espn() -> dict:
                 if not match or match.status != "completed":
                     continue
 
-                # Fetch match summary for scoring events
                 try:
                     summary_resp = await client.get(ESPN_SUMMARY_URL, params={"event": event_id})
                     if summary_resp.status_code != 200:
+                        log.warning("ESPN summary %s → HTTP %d", event_id, summary_resp.status_code)
                         continue
                     scoring_summary = summary_resp.json().get("scoringSummary", [])
                 except Exception as exc:
@@ -327,6 +379,7 @@ async def sync_goals_espn() -> dict:
                     continue
 
                 if not scoring_summary:
+                    log.info("ESPN: no scoringSummary for %s vs %s (event %s)", home_name, away_name, event_id)
                     continue
 
                 await db.execute(delete(GoalEvent).where(GoalEvent.match_id == match.id))
@@ -369,9 +422,11 @@ async def sync_goals_espn() -> dict:
 
     return {
         "source": "ESPN",
-        "completed_matches_found": len(completed),
+        "dates_fetched": len(unique_dates),
+        "completed_matches_found": len(completed_events),
         "matches_updated": matches_updated,
         "goals_synced": goals_synced,
         "skipped_teams": skipped,
+        "failed_dates": failed_dates,
         "error": None,
     }

@@ -306,12 +306,15 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
     setSyncing(true);
     try {
       const r = await api.post('/admin/sync-goals');
-      const { goals_synced, matches_updated, skipped_teams, error } = r.data;
+      const { goals_synced, matches_updated, skipped_teams, failed_dates, error, message } = r.data;
       if (error) {
-        toast.error(`ESPN sync error: ${error}`);
+        toast.error(error, { duration: 8000 });
+      } else if (message) {
+        toast(message);
       } else {
         const skipMsg = skipped_teams?.length ? ` · ${skipped_teams.length} unmatched` : '';
-        toast.success(`ESPN sync — ${goals_synced} goal${goals_synced !== 1 ? 's' : ''} from ${matches_updated} match${matches_updated !== 1 ? 'es' : ''}${skipMsg}`);
+        const failMsg = failed_dates?.length ? ` · ${failed_dates.length} dates failed` : '';
+        toast.success(`ESPN sync — ${goals_synced} goal${goals_synced !== 1 ? 's' : ''} from ${matches_updated} match${matches_updated !== 1 ? 'es' : ''}${skipMsg}${failMsg}`);
         onSynced();
       }
     } catch (e: any) {
