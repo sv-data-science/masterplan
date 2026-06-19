@@ -1,6 +1,6 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
-import { leaderboardApi, matchesApi } from '@/lib/api';
+import { leaderboardApi, matchesApi, triviaApi } from '@/lib/api';
 import { Match, LeaderboardEntry, DEFAULT_KIT, KitConfig } from '@/types';
 import Link from 'next/link';
 import { MatchCard } from '@/components/MatchCard';
@@ -11,6 +11,7 @@ export default function HomePage() {
   const { user } = useAuthStore();
   const { data: leaderboard } = useQuery<LeaderboardEntry[]>({ queryKey: ['leaderboard'], queryFn: () => leaderboardApi.get().then(r => r.data), staleTime: 30_000 });
   const { data: matches } = useQuery<Match[]>({ queryKey: ['matches', 'home'], queryFn: () => matchesApi.list().then(r => r.data), staleTime: 60_000 });
+  const { data: triviaStats } = useQuery({ queryKey: ['trivia-my-stats'], queryFn: () => triviaApi.myStats().then(r => r.data), enabled: !!user, staleTime: 60_000 });
 
   const upcoming = matches?.filter(m => m.status === 'scheduled').sort((a,b) => new Date(a.kickoff_utc??0).getTime()-new Date(b.kickoff_utc??0).getTime()).slice(0,4)??[];
   const recent = matches?.filter(m => m.status !== 'scheduled').sort((a,b) => new Date(b.kickoff_utc??0).getTime()-new Date(a.kickoff_utc??0).getTime()).slice(0,4)??[];
@@ -64,6 +65,47 @@ export default function HomePage() {
               </div>
             ))}
           </div>
+          {user && triviaStats && (
+            <div className="card mt-4 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm">🧠 Trivia</h3>
+                <Link href="/trivia" className="text-xs text-green-400 hover:underline">Play →</Link>
+              </div>
+              {triviaStats.games_played === 0 ? (
+                <p className="text-xs text-gray-500 text-center py-1">No games yet — <Link href="/trivia" className="text-green-400 hover:underline">take the quiz!</Link></p>
+              ) : (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div>
+                      <div className={`text-lg font-bold ${triviaStats.best_score != null ? (Math.round(triviaStats.best_score/triviaStats.best_total*100) >= 80 ? 'text-green-400' : Math.round(triviaStats.best_score/triviaStats.best_total*100) >= 60 ? 'text-yellow-400' : 'text-red-400') : 'text-gray-500'}`}>
+                        {triviaStats.best_score != null ? `${Math.round(triviaStats.best_score/triviaStats.best_total*100)}%` : '—'}
+                      </div>
+                      <div className="text-xs text-gray-500">Best</div>
+                    </div>
+                    <div>
+                      <div className={`text-lg font-bold ${triviaStats.live_total > 0 ? (Math.round(triviaStats.live_score/triviaStats.live_total*100) >= 80 ? 'text-green-400' : Math.round(triviaStats.live_score/triviaStats.live_total*100) >= 60 ? 'text-yellow-400' : 'text-red-400') : 'text-gray-500'}`}>
+                        {triviaStats.live_total > 0 ? `${Math.round(triviaStats.live_score/triviaStats.live_total*100)}%` : '—'}
+                      </div>
+                      <div className="text-xs text-gray-500">Live</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-white">{triviaStats.games_played}</div>
+                      <div className="text-xs text-gray-500">Games</div>
+                    </div>
+                  </div>
+                  {triviaStats.live_total > 0 && (
+                    <div className="w-full bg-[#30363d] rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full transition-all ${Math.round(triviaStats.live_score/triviaStats.live_total*100) >= 80 ? 'bg-green-500' : Math.round(triviaStats.live_score/triviaStats.live_total*100) >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                        style={{ width: `${Math.round(triviaStats.live_score/triviaStats.live_total*100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="card mt-4 p-4">
             <h3 className="font-semibold text-sm mb-3">Scoring Rules</h3>
             <div className="space-y-2 text-sm">

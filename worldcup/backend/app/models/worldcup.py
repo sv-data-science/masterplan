@@ -73,6 +73,17 @@ class GoalEvent(Base):
     team = relationship("Team")
 
 
+class TriviaLiveScore(Base):
+    """One row per user — upserted after each answer so landing page shows live accuracy."""
+    __tablename__ = "trivia_live_scores"
+
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    score = Column(Integer, nullable=False, default=0)
+    total = Column(Integer, nullable=False, default=0)
+
+    user = relationship("User")
+
+
 class TriviaScore(Base):
     __tablename__ = "trivia_scores"
 

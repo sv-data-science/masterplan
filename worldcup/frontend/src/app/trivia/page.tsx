@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { getRandomQuestions, ALL_QUESTIONS, TriviaQuestion } from '@/lib/trivia';
 import { useAuthStore } from '@/store/auth';
-import { api } from '@/lib/api';
+import { api, triviaApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 
 type Phase = 'start' | 'question' | 'result';
@@ -69,6 +69,13 @@ export default function TriviaPage() {
 
   const totalQuestions = ALL_QUESTIONS.length;
 
+  const { data: myStats, refetch: refetchStats } = useQuery({
+    queryKey: ['trivia-my-stats'],
+    queryFn: () => triviaApi.myStats().then(r => r.data),
+    enabled: !!user && phase === 'start',
+    staleTime: 10_000,
+  });
+
   const startGame = useCallback(() => {
     const qs = getRandomQuestions();
     setQuestions(qs);
@@ -80,11 +87,21 @@ export default function TriviaPage() {
     setPhase('question');
   }, []);
 
+  const pct = (n: number, d: number) => d > 0 ? Math.round((n / d) * 100) : 0;
+  const accuracyColor = (p: number) =>
+    p >= 80 ? 'text-green-400' : p >= 60 ? 'text-yellow-400' : 'text-red-400';
+  const accuracyBarColor = (p: number) =>
+    p >= 80 ? 'bg-green-500' : p >= 60 ? 'bg-yellow-500' : 'bg-red-500';
+
   const pick = (idx: number) => {
     if (selected !== null) return;
     setSelected(idx);
     const correct = idx === questions[current].answer;
-    if (correct) setScore(s => s + 1);
+    const newScore = score + (correct ? 1 : 0);
+    const answered = current + 1;
+    if (correct) setScore(newScore);
+    // Auto-save running score after every answer (fire and forget)
+    if (user) triviaApi.saveLive(newScore, answered).catch(() => {});
     setAnswers(prev => {
       const next = [...prev];
       next[current] = idx;
@@ -114,9 +131,17 @@ export default function TriviaPage() {
     }
   };
 
+  const goToStart = () => {
+    setPhase('start');
+    if (user) refetchStats();
+  };
+
   const q = questions[current];
 
   if (phase === 'start') {
+    const bestPct = myStats?.best_score != null ? pct(myStats.best_score, myStats.best_total) : null;
+    const livePct = myStats?.live_total > 0 ? pct(myStats.live_score, myStats.live_total) : null;
+
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="card p-8 text-center space-y-6">
@@ -128,8 +153,50 @@ export default function TriviaPage() {
             </p>
           </div>
 
+          {/* User's live stats — shown only when they have played before */}
+          {user && myStats && myStats.games_played > 0 && (
+            <div className="bg-[#0d1117] rounded-xl p-4 text-left space-y-3">
+              <p className="text-xs text-gray-500 uppercase tracking-widest">Your Stats</p>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                <div>
+                  <div className={`text-2xl font-bold ${bestPct != null ? accuracyColor(bestPct) : 'text-gray-500'}`}>
+                    {bestPct != null ? `${bestPct}%` : '—'}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">Best accuracy</div>
+                  {myStats.best_score != null && (
+                    <div className="text-xs text-gray-600">{myStats.best_score}/{myStats.best_total}</div>
+                  )}
+                </div>
+                <div>
+                  <div className={`text-2xl font-bold ${livePct != null ? accuracyColor(livePct) : 'text-gray-500'}`}>
+                    {livePct != null ? `${livePct}%` : '—'}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">Live score</div>
+                  {myStats.live_total > 0 && (
+                    <div className="text-xs text-gray-600">{myStats.live_score}/{myStats.live_total} Q</div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white">{myStats.games_played}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Games played</div>
+                </div>
+              </div>
+              {livePct != null && (
+                <div>
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                    <span>Running accuracy</span>
+                    <span className={accuracyColor(livePct)}>{livePct}%</span>
+                  </div>
+                  <div className="w-full bg-[#30363d] rounded-full h-1.5">
+                    <div className={`h-1.5 rounded-full transition-all ${accuracyBarColor(livePct)}`} style={{ width: `${livePct}%` }} />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <button onClick={startGame} className="btn-primary py-3 px-8 text-lg w-full">
-            Start Quiz ⚽
+            {myStats?.games_played > 0 ? 'Play Again ⚽' : 'Start Quiz ⚽'}
           </button>
         </div>
 
@@ -171,9 +238,10 @@ export default function TriviaPage() {
             </p>
           )}
 
-          <button onClick={startGame} className="btn-secondary py-2.5 px-6 w-full">
-            Play Again
-          </button>
+          <div className="flex gap-2">
+            <button onClick={startGame} className="btn-primary flex-1 py-2.5">Play Again</button>
+            <button onClick={goToStart} className="btn-secondary flex-1 py-2.5">← Back</button>
+          </div>
         </div>
 
         <div className="card">
@@ -212,12 +280,19 @@ export default function TriviaPage() {
   // question phase
   const isAnswered = selected !== null;
   const progress = (current / questions.length) * 100;
+  const answered = current + (isAnswered ? 1 : 0);
+  const livePctNow = pct(score, answered);
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      {/* Progress through questions */}
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="text-gray-500">Question {current + 1} of {questions.length}</span>
-        <span className="text-green-400 font-medium">{score} correct</span>
+        {answered > 0 && (
+          <span className={`font-semibold ${accuracyColor(livePctNow)}`}>
+            {score}/{answered} · {livePctNow}%
+          </span>
+        )}
       </div>
       <div className="h-1.5 bg-[#30363d] rounded-full overflow-hidden">
         <div
@@ -225,6 +300,15 @@ export default function TriviaPage() {
           style={{ width: `${progress}%` }}
         />
       </div>
+      {/* Live accuracy bar */}
+      {answered > 0 && (
+        <div className="h-1 bg-[#30363d] rounded-full overflow-hidden -mt-2">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${accuracyBarColor(livePctNow)}`}
+            style={{ width: `${livePctNow}%` }}
+          />
+        </div>
+      )}
 
       <div className="card p-6">
         <p className="text-lg font-semibold text-white leading-snug mb-6">{q.question}</p>

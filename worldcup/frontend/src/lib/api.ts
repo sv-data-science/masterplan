@@ -64,4 +64,6 @@ export const goalsApi = {
 export const triviaApi = {
   submitScore: (score: number, total: number) => api.post('/trivia/score', { score, total }),
   leaderboard: () => api.get('/trivia/leaderboard'),
+  saveLive: (score: number, total: number) => api.put('/trivia/live', { score, total }),
+  myStats: () => api.get('/trivia/my-stats'),
 };
