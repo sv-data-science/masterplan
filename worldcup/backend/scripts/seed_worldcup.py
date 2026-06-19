@@ -130,8 +130,8 @@ FIXTURES: list[tuple] = [
     (25, "A", 2, "Czechia",             "South Africa",       _dt("2026-06-18", 16),      "Mercedes-Benz Stadium",    "Atlanta, USA"),
     (26, "B", 2, "Switzerland",         "Bosnia-Herzegovina", _dt("2026-06-18", 19),      "SoFi Stadium",             "Inglewood, USA"),
     (27, "B", 2, "Canada",              "Qatar",              _dt("2026-06-18", 22),      "BC Place",                 "Vancouver, Canada"),
+    (28, "A", 2, "Mexico",              "South Korea",        _dt("2026-06-19",  1),      "Estadio Akron",            "Guadalajara, Mexico"),
     # Fri Jun 19
-    (28, "A", 2, "Mexico",              "South Korea",        _dt("2026-06-20",  1),      "Estadio Akron",            "Guadalajara, Mexico"),
     (29, "D", 2, "United States",       "Australia",          _dt("2026-06-19", 19),      "Lumen Field",              "Seattle, USA"),
     (30, "C", 2, "Scotland",            "Morocco",            _dt("2026-06-19", 22),      "Gillette Stadium",         "Foxborough, USA"),
     (31, "C", 2, "Brazil",              "Haiti",              _dt("2026-06-20",  1),      "Lincoln Financial Field",  "Philadelphia, USA"),
