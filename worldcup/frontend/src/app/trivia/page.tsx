@@ -1,9 +1,14 @@
 'use client';
-import { useState, useCallback } from 'react';
-import { getRandomQuestions, ALL_QUESTIONS, TriviaQuestion } from '@/lib/trivia';
+import { useState, useCallback, useEffect } from 'react';
+import { ALL_QUESTIONS, TriviaQuestion } from '@/lib/trivia';
+import { getLang, saveLang, getQuestionsForQuiz, markSeen, unseenCount, TriviaLang } from '@/lib/trivia_utils';
 import { useAuthStore } from '@/store/auth';
 import { api, triviaApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+
+// Lazy-load Spanish questions to avoid importing a huge file on every page
+let ALL_QUESTIONS_ES: TriviaQuestion[] = [];
+import('@/lib/trivia_es').then(m => { ALL_QUESTIONS_ES = m.ALL_QUESTIONS_ES; }).catch(() => {});
 
 type Phase = 'start' | 'question' | 'result';
 
@@ -16,8 +21,15 @@ function scoreEmoji(score: number, total: number) {
   return '😬';
 }
 
-function scoreMessage(score: number, total: number) {
+function scoreMessage(score: number, total: number, lang: TriviaLang) {
   const pct = score / total;
+  if (lang === 'es') {
+    if (pct === 1) return '¡Puntuación perfecta! ¡Eres un verdadero experto del Mundial!';
+    if (pct >= 0.8) return '¡Excelente! Realmente conoces la historia del fútbol.';
+    if (pct >= 0.6) return '¡Buen esfuerzo! Conoces los datos del Mundial.';
+    if (pct >= 0.4) return '¡No está mal! Repasa un poco la historia del Mundial.';
+    return '¡Sigue estudiando! El Mundial tiene una historia rica por explorar.';
+  }
   if (pct === 1) return "Perfect score! You're a true World Cup expert!";
   if (pct >= 0.8) return 'Excellent! You really know your football history.';
   if (pct >= 0.6) return 'Solid effort! You know your World Cup facts.';
@@ -66,8 +78,17 @@ export default function TriviaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [lbRefreshKey, setLbRefreshKey] = useState(0);
+  const [lang, setLangState] = useState<TriviaLang>('en');
+  const [remainingEn, setRemainingEn] = useState(0);
+  const [remainingEs, setRemainingEs] = useState(0);
 
-  const totalQuestions = ALL_QUESTIONS.length;
+  // Load language preference from localStorage on mount
+  useEffect(() => {
+    setLangState(getLang());
+    setRemainingEn(unseenCount(ALL_QUESTIONS));
+  }, []);
+
+  const pool = lang === 'es' ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
 
   const { data: myStats, refetch: refetchStats } = useQuery({
     queryKey: ['trivia-my-stats'],
@@ -76,8 +97,16 @@ export default function TriviaPage() {
     staleTime: 10_000,
   });
 
+  const switchLang = (l: TriviaLang) => {
+    setLangState(l);
+    saveLang(l);
+    setRemainingEn(unseenCount(ALL_QUESTIONS));
+    if (ALL_QUESTIONS_ES.length > 0) setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
+  };
+
   const startGame = useCallback(() => {
-    const qs = getRandomQuestions();
+    const currentPool = lang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
+    const qs = getQuestionsForQuiz(currentPool);
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
@@ -85,7 +114,7 @@ export default function TriviaPage() {
     setAnswers(new Array(qs.length).fill(null));
     setSubmitted(false);
     setPhase('question');
-  }, []);
+  }, [lang]);
 
   const pct = (n: number, d: number) => d > 0 ? Math.round((n / d) * 100) : 0;
   const accuracyColor = (p: number) =>
@@ -100,7 +129,6 @@ export default function TriviaPage() {
     const newScore = score + (correct ? 1 : 0);
     const answered = current + 1;
     if (correct) setScore(newScore);
-    // Auto-save running score after every answer (fire and forget)
     if (user) triviaApi.saveLive(newScore, answered).catch(() => {});
     setAnswers(prev => {
       const next = [...prev];
@@ -111,6 +139,7 @@ export default function TriviaPage() {
 
   const next = () => {
     if (current + 1 >= questions.length) {
+      markSeen(questions.map(q => q.id));
       setPhase('result');
     } else {
       setCurrent(c => c + 1);
@@ -132,37 +161,76 @@ export default function TriviaPage() {
   };
 
   const goToStart = () => {
+    // Mark questions seen up to current position when exiting early
+    if (phase === 'question' && questions.length > 0) {
+      markSeen(questions.slice(0, current + 1).map(q => q.id));
+    }
+    setRemainingEn(unseenCount(ALL_QUESTIONS));
+    if (ALL_QUESTIONS_ES.length > 0) setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
     setPhase('start');
     if (user) refetchStats();
   };
+
+  const isEsReady = ALL_QUESTIONS_ES.length > 0;
 
   const q = questions[current];
 
   if (phase === 'start') {
     const bestPct = myStats?.best_score != null ? pct(myStats.best_score, myStats.best_total) : null;
     const livePct = myStats?.live_total > 0 ? pct(myStats.live_score, myStats.live_total) : null;
+    const remaining = lang === 'es' ? remainingEs : remainingEn;
+    const totalPool = lang === 'es' ? (ALL_QUESTIONS_ES.length || '…') : ALL_QUESTIONS.length;
 
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="card p-8 text-center space-y-6">
           <div>
             <div className="text-6xl mb-4">🏆</div>
-            <h1 className="text-3xl font-bold text-white mb-2">World Cup Trivia</h1>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {lang === 'es' ? 'Trivia del Mundial' : 'World Cup Trivia'}
+            </h1>
             <p className="text-gray-400">
-              Test your knowledge of FIFA World Cup history — winners, records, mascots, legendary players and moments.
+              {lang === 'es'
+                ? 'Pon a prueba tu conocimiento de la historia de la Copa del Mundo FIFA — campeones, récords, mascotas, jugadores legendarios y momentos épicos.'
+                : 'Test your knowledge of FIFA World Cup history — winners, records, mascots, legendary players and moments.'}
             </p>
           </div>
+
+          {/* Language selector */}
+          <div className="flex justify-center gap-2">
+            <button
+              onClick={() => switchLang('en')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${lang === 'en' ? 'border-green-500 bg-green-900/20 text-green-300' : 'border-[#30363d] text-gray-400 hover:border-gray-500'}`}
+            >
+              🇺🇸 English
+            </button>
+            <button
+              onClick={() => switchLang('es')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${lang === 'es' ? 'border-green-500 bg-green-900/20 text-green-300' : 'border-[#30363d] text-gray-400 hover:border-gray-500'}`}
+            >
+              🇪🇸 Español
+            </button>
+          </div>
+
+          {/* Seen progress */}
+          <p className="text-xs text-gray-600">
+            {lang === 'es'
+              ? `${remaining || '…'} preguntas nuevas de ${totalPool} en total`
+              : `${remaining} new questions of ${totalPool} total`}
+          </p>
 
           {/* User's live stats — shown only when they have played before */}
           {user && myStats && myStats.games_played > 0 && (
             <div className="bg-[#0d1117] rounded-xl p-4 text-left space-y-3">
-              <p className="text-xs text-gray-500 uppercase tracking-widest">Your Stats</p>
+              <p className="text-xs text-gray-500 uppercase tracking-widest">
+                {lang === 'es' ? 'Tus estadísticas' : 'Your Stats'}
+              </p>
               <div className="grid grid-cols-3 gap-3 text-center">
                 <div>
                   <div className={`text-2xl font-bold ${bestPct != null ? accuracyColor(bestPct) : 'text-gray-500'}`}>
                     {bestPct != null ? `${bestPct}%` : '—'}
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">Best accuracy</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Mejor precisión' : 'Best accuracy'}</div>
                   {myStats.best_score != null && (
                     <div className="text-xs text-gray-600">{myStats.best_score}/{myStats.best_total}</div>
                   )}
@@ -171,20 +239,20 @@ export default function TriviaPage() {
                   <div className={`text-2xl font-bold ${livePct != null ? accuracyColor(livePct) : 'text-gray-500'}`}>
                     {livePct != null ? `${livePct}%` : '—'}
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">Live score</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Puntuación en vivo' : 'Live score'}</div>
                   {myStats.live_total > 0 && (
                     <div className="text-xs text-gray-600">{myStats.live_score}/{myStats.live_total} Q</div>
                   )}
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-white">{myStats.games_played}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">Games played</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Partidas jugadas' : 'Games played'}</div>
                 </div>
               </div>
               {livePct != null && (
                 <div>
                   <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Running accuracy</span>
+                    <span>{lang === 'es' ? 'Precisión acumulada' : 'Running accuracy'}</span>
                     <span className={accuracyColor(livePct)}>{livePct}%</span>
                   </div>
                   <div className="w-full bg-[#30363d] rounded-full h-1.5">
@@ -196,7 +264,9 @@ export default function TriviaPage() {
           )}
 
           <button onClick={startGame} className="btn-primary py-3 px-8 text-lg w-full">
-            {myStats?.games_played > 0 ? 'Play Again ⚽' : 'Start Quiz ⚽'}
+            {myStats?.games_played > 0
+              ? (lang === 'es' ? 'Jugar de nuevo ⚽' : 'Play Again ⚽')
+              : (lang === 'es' ? 'Comenzar quiz ⚽' : 'Start Quiz ⚽')}
           </button>
         </div>
 
@@ -211,6 +281,9 @@ export default function TriviaPage() {
   }
 
   if (phase === 'result') {
+    const reviewLabel = lang === 'es' ? 'Repaso' : 'Review';
+    const yourAnswer = lang === 'es' ? 'Tu respuesta' : 'Your answer';
+
     return (
       <div className="max-w-2xl mx-auto space-y-4">
         <div className="card p-8 text-center">
@@ -218,7 +291,7 @@ export default function TriviaPage() {
           <h2 className="text-3xl font-bold text-white mb-1">
             {score} / {questions.length}
           </h2>
-          <p className="text-gray-400 mb-6">{scoreMessage(score, questions.length)}</p>
+          <p className="text-gray-400 mb-6">{scoreMessage(score, questions.length, lang)}</p>
 
           {user && !submitted && (
             <button
@@ -226,21 +299,28 @@ export default function TriviaPage() {
               disabled={submitting}
               className="btn-primary py-2.5 px-6 mb-3 w-full"
             >
-              {submitting ? '⏳ Saving…' : '📊 Save my score to leaderboard'}
+              {submitting
+                ? (lang === 'es' ? '⏳ Guardando…' : '⏳ Saving…')
+                : (lang === 'es' ? '📊 Guardar puntuación en el marcador' : '📊 Save my score to leaderboard')}
             </button>
           )}
           {submitted && (
-            <p className="text-green-400 text-sm mb-3">✓ Score saved to leaderboard!</p>
+            <p className="text-green-400 text-sm mb-3">
+              {lang === 'es' ? '✓ ¡Puntuación guardada!' : '✓ Score saved to leaderboard!'}
+            </p>
           )}
           {!user && (
             <p className="text-gray-500 text-xs mb-3">
-              <a href="/login" className="text-green-400 hover:underline">Log in</a> to save your score to the leaderboard.
+              <a href="/login" className="text-green-400 hover:underline">{lang === 'es' ? 'Inicia sesión' : 'Log in'}</a>
+              {lang === 'es' ? ' para guardar tu puntuación.' : ' to save your score to the leaderboard.'}
             </p>
           )}
 
           <div className="flex gap-2">
-            <button onClick={startGame} className="btn-primary flex-1 py-2.5">Play Again</button>
-            <button onClick={goToStart} className="btn-secondary flex-1 py-2.5">← Back</button>
+            <button onClick={startGame} className="btn-primary flex-1 py-2.5">
+              {lang === 'es' ? 'Jugar de nuevo' : 'Play Again'}
+            </button>
+            <button onClick={goToStart} className="btn-secondary flex-1 py-2.5">← {lang === 'es' ? 'Volver' : 'Back'}</button>
           </div>
         </div>
 
@@ -252,7 +332,7 @@ export default function TriviaPage() {
         </div>
 
         <div className="card divide-y divide-[#30363d]">
-          <div className="px-4 py-2 text-xs text-gray-500 uppercase font-medium">Review</div>
+          <div className="px-4 py-2 text-xs text-gray-500 uppercase font-medium">{reviewLabel}</div>
           {questions.map((q, i) => {
             const userAns = answers[i];
             const correct = userAns === q.answer;
@@ -263,7 +343,7 @@ export default function TriviaPage() {
                   <p className="text-sm text-white">{q.question}</p>
                 </div>
                 {!correct && userAns !== null && (
-                  <p className="text-xs text-red-400 pl-6">Your answer: {q.options[userAns]}</p>
+                  <p className="text-xs text-red-400 pl-6">{yourAnswer}: {q.options[userAns]}</p>
                 )}
                 <p className="text-xs text-green-400 pl-6">
                   ✓ {q.options[q.answer]}
@@ -282,12 +362,12 @@ export default function TriviaPage() {
   const progress = (current / questions.length) * 100;
   const answered = current + (isAnswered ? 1 : 0);
   const livePctNow = pct(score, answered);
+  const questionLabel = lang === 'es' ? `Pregunta ${current + 1} de ${questions.length}` : `Question ${current + 1} of ${questions.length}`;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      {/* Progress through questions */}
       <div className="flex items-center justify-between text-sm mb-1">
-        <span className="text-gray-500">Question {current + 1} of {questions.length}</span>
+        <span className="text-gray-500">{questionLabel}</span>
         <div className="flex items-center gap-3">
           {answered > 0 && (
             <span className={`font-semibold ${accuracyColor(livePctNow)}`}>
@@ -297,9 +377,9 @@ export default function TriviaPage() {
           <button
             onClick={goToStart}
             className="text-xs text-gray-500 hover:text-gray-300 border border-[#30363d] rounded px-2 py-1 hover:border-gray-500 transition-colors"
-            title="Exit quiz — your running score is saved"
+            title={lang === 'es' ? 'Salir — tu puntuación en curso está guardada' : 'Exit quiz — your running score is saved'}
           >
-            ✕ Exit
+            ✕ {lang === 'es' ? 'Salir' : 'Exit'}
           </button>
         </div>
       </div>
@@ -309,7 +389,6 @@ export default function TriviaPage() {
           style={{ width: `${progress}%` }}
         />
       </div>
-      {/* Live accuracy bar */}
       {answered > 0 && (
         <div className="h-1 bg-[#30363d] rounded-full overflow-hidden -mt-2">
           <div
@@ -345,7 +424,11 @@ export default function TriviaPage() {
 
         {isAnswered && (
           <div className={`mt-4 rounded-lg px-4 py-3 text-sm ${selected === q.answer ? 'bg-green-900/20 border border-green-800/40 text-green-300' : 'bg-red-900/20 border border-red-800/40 text-red-300'}`}>
-            <span className="font-medium">{selected === q.answer ? '✓ Correct! ' : '✗ Wrong. '}</span>
+            <span className="font-medium">
+              {selected === q.answer
+                ? (lang === 'es' ? '✓ ¡Correcto! ' : '✓ Correct! ')
+                : (lang === 'es' ? '✗ Incorrecto. ' : '✗ Wrong. ')}
+            </span>
             <span className="text-gray-300">{q.fact}</span>
           </div>
         )}
@@ -353,7 +436,9 @@ export default function TriviaPage() {
 
       {isAnswered && (
         <button onClick={next} className="btn-primary w-full py-2.5">
-          {current + 1 >= questions.length ? 'See Results' : 'Next Question →'}
+          {current + 1 >= questions.length
+            ? (lang === 'es' ? 'Ver resultados' : 'See Results')
+            : (lang === 'es' ? 'Siguiente pregunta →' : 'Next Question →')}
         </button>
       )}
     </div>
