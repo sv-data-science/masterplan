@@ -1,9 +1,10 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import { leaderboardApi, matchesApi } from '@/lib/api';
-import { Match, LeaderboardEntry } from '@/types';
+import { Match, LeaderboardEntry, DEFAULT_KIT, KitConfig } from '@/types';
 import Link from 'next/link';
 import { MatchCard } from '@/components/MatchCard';
+import { KitSVG } from '@/components/KitSVG';
 import { useAuthStore } from '@/store/auth';
 
 export default function HomePage() {
@@ -54,8 +55,11 @@ export default function HomePage() {
             {top5.length === 0 && <p className="p-4 text-sm text-gray-500 text-center">No scores yet</p>}
             {top5.map(e => (
               <div key={e.user_id} className={`flex items-center gap-3 px-4 py-3 ${e.user_id===user?.id?'bg-green-900/10':''}`}>
-                <span className={`font-bold w-6 text-center text-sm ${e.rank===1?'text-yellow-400':e.rank===2?'text-gray-300':e.rank===3?'text-orange-400':'text-gray-500'}`}>{e.rank===1?'🥇':e.rank===2?'🥈':e.rank===3?'🥉':`#${e.rank}`}</span>
-                <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{e.display_name}</p><p className="text-xs text-gray-500">{e.predictions_made} predictions</p></div>
+                <span className={`font-bold w-6 text-center text-sm shrink-0 ${e.rank===1?'text-yellow-400':e.rank===2?'text-gray-300':e.rank===3?'text-orange-400':'text-gray-500'}`}>{e.rank===1?'🥇':e.rank===2?'🥈':e.rank===3?'🥉':`#${e.rank}`}</span>
+                <div className="shrink-0">
+                  <KitSVG kit={{ ...DEFAULT_KIT, ...(e.kit as KitConfig), jersey: { ...DEFAULT_KIT.jersey, ...((e.kit as KitConfig)?.jersey) }, shorts: { ...DEFAULT_KIT.shorts, ...((e.kit as KitConfig)?.shorts) }, socks: { ...DEFAULT_KIT.socks, ...((e.kit as KitConfig)?.socks) } }} width={24} />
+                </div>
+                <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{e.display_name}</p><p className="text-xs text-gray-500">{(e as any).predictions ?? e.predictions_made ?? 0} predictions</p></div>
                 <div className="text-right"><p className="font-bold text-green-400">{e.total_points}</p><p className="text-xs text-gray-500">pts</p></div>
               </div>
             ))}

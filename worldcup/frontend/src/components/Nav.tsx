@@ -20,22 +20,22 @@ export function Nav() {
 
   const baseLinks = [
     { href: '/', label: 'Dashboard' },
+    { href: '/leaderboard', label: 'Leaderboard' },
     { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
     { href: '/matches', label: 'Matches' },
     { href: '/groups', label: 'Groups' },
     { href: '/top-scorers', label: 'Top Scorers' },
-    { href: '/leaderboard', label: 'Leaderboard' },
   ];
   const links = user
     ? [
         { href: '/', label: 'Dashboard' },
+        { href: '/leaderboard', label: 'Leaderboard' },
         { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
         { href: '/kit', label: '🎽 My Uniform' },
         { href: '/my-predictions', label: 'My Picks' },
+        { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/matches', label: 'Matches' },
         { href: '/groups', label: 'Groups' },
-        { href: '/top-scorers', label: 'Top Scorers' },
-        { href: '/leaderboard', label: 'Leaderboard' },
       ]
     : baseLinks;
 
