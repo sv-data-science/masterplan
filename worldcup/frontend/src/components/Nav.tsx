@@ -31,7 +31,7 @@ export function Nav() {
         { href: '/', label: 'Dashboard' },
         { href: '/leaderboard', label: 'Leaderboard' },
         { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
-        { href: '/kit', label: '🎽 My Uniform' },
+        { href: '/kit', label: '🎽 My Uniform', badge: 'New' },
         { href: '/my-predictions', label: 'My Picks' },
         { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/matches', label: 'Matches' },

@@ -160,10 +160,17 @@ export default function TriviaPage() {
     }
   };
 
-  const goToStart = () => {
-    // Mark questions seen up to current position when exiting early
+  const goToStart = async () => {
     if (phase === 'question' && questions.length > 0) {
-      markSeen(questions.slice(0, current + 1).map(q => q.id));
+      // Count how many questions were actually answered
+      const answeredCount = current + (selected !== null ? 1 : 0);
+      if (answeredCount > 0) {
+        // Save partial score as a completed game entry
+        if (user) triviaApi.submitScore(score, answeredCount).catch(() => {});
+        // Persist live score to reflect exit state
+        if (user) triviaApi.saveLive(score, answeredCount).catch(() => {});
+      }
+      markSeen(questions.slice(0, answeredCount).map(q => q.id));
     }
     setRemainingEn(unseenCount(ALL_QUESTIONS));
     if (ALL_QUESTIONS_ES.length > 0) setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
