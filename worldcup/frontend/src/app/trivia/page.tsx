@@ -288,11 +288,20 @@ export default function TriviaPage() {
       {/* Progress through questions */}
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="text-gray-500">Question {current + 1} of {questions.length}</span>
-        {answered > 0 && (
-          <span className={`font-semibold ${accuracyColor(livePctNow)}`}>
-            {score}/{answered} · {livePctNow}%
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {answered > 0 && (
+            <span className={`font-semibold ${accuracyColor(livePctNow)}`}>
+              {score}/{answered} · {livePctNow}%
+            </span>
+          )}
+          <button
+            onClick={goToStart}
+            className="text-xs text-gray-500 hover:text-gray-300 border border-[#30363d] rounded px-2 py-1 hover:border-gray-500 transition-colors"
+            title="Exit quiz — your running score is saved"
+          >
+            ✕ Exit
+          </button>
+        </div>
       </div>
       <div className="h-1.5 bg-[#30363d] rounded-full overflow-hidden">
         <div

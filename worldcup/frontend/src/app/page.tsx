@@ -26,6 +26,7 @@ export default function HomePage() {
         <p className="text-gray-400 mt-1">🇲🇽 Mexico · 🇺🇸 USA · 🇨🇦 Canada · Jun 11 – Jul 19</p>
         {myRank ? (
           <div className="mt-4 inline-flex items-center gap-3 bg-[#0d1117] rounded-lg px-4 py-2">
+            <KitSVG kit={{ ...DEFAULT_KIT, ...(user?.kit as KitConfig), jersey: { ...DEFAULT_KIT.jersey, ...((user?.kit as KitConfig)?.jersey) }, shorts: { ...DEFAULT_KIT.shorts, ...((user?.kit as KitConfig)?.shorts) }, socks: { ...DEFAULT_KIT.socks, ...((user?.kit as KitConfig)?.socks) } }} width={32} />
             <span className="text-gray-400 text-sm">Your rank</span>
             <span className="text-2xl font-bold text-green-400">#{myRank.rank}</span>
             <span className="text-gray-400 text-sm">·</span>
