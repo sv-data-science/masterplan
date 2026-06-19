@@ -301,6 +301,8 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
 
 function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
   const [syncing, setSyncing] = useState(false);
+  const [debugResult, setDebugResult] = useState<string | null>(null);
+  const [debugging, setDebugging] = useState(false);
 
   const sync = async () => {
     setSyncing(true);
@@ -323,9 +325,6 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
       setSyncing(false);
     }
   };
-
-  const [debugResult, setDebugResult] = useState<string | null>(null);
-  const [debugging, setDebugging] = useState(false);
 
   const debug = async () => {
     setDebugging(true);

@@ -22,6 +22,7 @@ export function Nav() {
     { href: '/groups', label: 'Groups' },
     { href: '/top-scorers', label: 'Top Scorers' },
     { href: '/leaderboard', label: 'Leaderboard' },
+    { href: '/trivia', label: '🧠 Trivia' },
   ];
   const links = user
     ? [
@@ -31,6 +32,7 @@ export function Nav() {
         { href: '/groups', label: 'Groups' },
         { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/leaderboard', label: 'Leaderboard' },
+        { href: '/trivia', label: '🧠 Trivia' },
       ]
     : baseLinks;
 
