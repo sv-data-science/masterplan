@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
 from app.models import user, worldcup  # noqa: register models
-from app.api import auth, matches, predictions, leaderboard, admin, goals
+from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia
 
 logging.basicConfig(
     level=logging.INFO,
@@ -88,6 +88,7 @@ app.include_router(predictions.router, prefix="/api/v1")
 app.include_router(leaderboard.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(goals.router, prefix="/api/v1")
+app.include_router(trivia.router, prefix="/api/v1")
 
 
 @app.exception_handler(Exception)

@@ -71,3 +71,15 @@ class GoalEvent(Base):
 
     match = relationship("Match", back_populates="goals")
     team = relationship("Team")
+
+
+class TriviaScore(Base):
+    __tablename__ = "trivia_scores"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    score = Column(Integer, nullable=False)
+    total = Column(Integer, nullable=False)
+    played_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")

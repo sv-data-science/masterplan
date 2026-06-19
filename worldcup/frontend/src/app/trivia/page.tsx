@@ -1,8 +1,9 @@
 'use client';
 import { useState, useCallback } from 'react';
-import { getRandomQuestions, TriviaQuestion } from '@/lib/trivia';
-
-const QUESTIONS_PER_GAME = 10;
+import { getRandomQuestions, ALL_QUESTIONS, TriviaQuestion } from '@/lib/trivia';
+import { useAuthStore } from '@/store/auth';
+import { api } from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
 
 type Phase = 'start' | 'question' | 'result';
 
@@ -17,28 +18,65 @@ function scoreEmoji(score: number, total: number) {
 
 function scoreMessage(score: number, total: number) {
   const pct = score / total;
-  if (pct === 1) return 'Perfect score! You\'re a true World Cup expert!';
+  if (pct === 1) return "Perfect score! You're a true World Cup expert!";
   if (pct >= 0.8) return 'Excellent! You really know your football history.';
   if (pct >= 0.6) return 'Solid effort! You know your World Cup facts.';
   if (pct >= 0.4) return 'Not bad! Brush up on your WC history.';
   return 'Keep studying — the World Cup has a rich history to explore!';
 }
 
+function TriviaLeaderboard({ refreshKey }: { refreshKey: number }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['trivia-leaderboard', refreshKey],
+    queryFn: () => api.get('/trivia/leaderboard').then(r => r.data),
+    staleTime: 30_000,
+  });
+
+  if (isLoading) return <div className="text-center py-4 text-gray-500 text-sm">Loading leaderboard…</div>;
+  if (!data?.length) return <div className="text-center py-4 text-gray-600 text-sm">No scores yet — be the first!</div>;
+
+  return (
+    <div className="divide-y divide-[#30363d]">
+      {data.map((row: any) => (
+        <div key={row.username} className="flex items-center gap-3 px-4 py-2.5 text-sm">
+          <span className="w-6 text-center font-bold text-gray-500 shrink-0">
+            {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`}
+          </span>
+          <span className="flex-1 text-white font-medium">{row.display_name}</span>
+          <span className="text-green-400 font-bold">
+            {row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span>
+          </span>
+          <span className="text-gray-600 text-xs hidden sm:inline">
+            {row.games_played} game{row.games_played !== 1 ? 's' : ''}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function TriviaPage() {
+  const { user } = useAuthStore();
   const [phase, setPhase] = useState<Phase>('start');
   const [questions, setQuestions] = useState<TriviaQuestion[]>([]);
   const [current, setCurrent] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [lbRefreshKey, setLbRefreshKey] = useState(0);
+
+  const totalQuestions = ALL_QUESTIONS.length;
 
   const startGame = useCallback(() => {
-    const qs = getRandomQuestions(QUESTIONS_PER_GAME);
+    const qs = getRandomQuestions();
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
     setScore(0);
-    setAnswers(new Array(QUESTIONS_PER_GAME).fill(null));
+    setAnswers(new Array(qs.length).fill(null));
+    setSubmitted(false);
     setPhase('question');
   }, []);
 
@@ -63,11 +101,24 @@ export default function TriviaPage() {
     }
   };
 
+  const submitScore = async () => {
+    setSubmitting(true);
+    try {
+      await api.post('/trivia/score', { score, total: questions.length });
+      setSubmitted(true);
+      setLbRefreshKey(k => k + 1);
+    } catch {
+      // score display still works even if save fails
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const q = questions[current];
 
   if (phase === 'start') {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto space-y-4">
         <div className="card p-8 text-center space-y-6">
           <div>
             <div className="text-6xl mb-4">🏆</div>
@@ -79,7 +130,7 @@ export default function TriviaPage() {
 
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div className="bg-[#21262d] rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-400">{QUESTIONS_PER_GAME}</div>
+              <div className="text-2xl font-bold text-green-400">{totalQuestions}</div>
               <div className="text-gray-500 mt-0.5">Questions</div>
             </div>
             <div className="bg-[#21262d] rounded-lg p-3">
@@ -87,16 +138,23 @@ export default function TriviaPage() {
               <div className="text-gray-500 mt-0.5">Options each</div>
             </div>
             <div className="bg-[#21262d] rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-400">40+</div>
-              <div className="text-gray-500 mt-0.5">Question bank</div>
+              <div className="text-2xl font-bold text-green-400">10+</div>
+              <div className="text-gray-500 mt-0.5">Categories</div>
             </div>
           </div>
 
-          <p className="text-xs text-gray-600">Questions are randomly selected each game.</p>
+          <p className="text-xs text-gray-600">Questions are shuffled every game. Complete all {totalQuestions} to save your score.</p>
 
           <button onClick={startGame} className="btn-primary py-3 px-8 text-lg w-full">
             Start Quiz ⚽
           </button>
+        </div>
+
+        <div className="card">
+          <div className="px-4 py-3 border-b border-[#30363d]">
+            <h2 className="font-semibold text-white text-sm">🏅 Trivia Leaderboard</h2>
+          </div>
+          <TriviaLeaderboard refreshKey={lbRefreshKey} />
         </div>
       </div>
     );
@@ -111,9 +169,35 @@ export default function TriviaPage() {
             {score} / {questions.length}
           </h2>
           <p className="text-gray-400 mb-6">{scoreMessage(score, questions.length)}</p>
-          <button onClick={startGame} className="btn-primary py-2.5 px-6">
+
+          {user && !submitted && (
+            <button
+              onClick={submitScore}
+              disabled={submitting}
+              className="btn-primary py-2.5 px-6 mb-3 w-full"
+            >
+              {submitting ? '⏳ Saving…' : '📊 Save my score to leaderboard'}
+            </button>
+          )}
+          {submitted && (
+            <p className="text-green-400 text-sm mb-3">✓ Score saved to leaderboard!</p>
+          )}
+          {!user && (
+            <p className="text-gray-500 text-xs mb-3">
+              <a href="/login" className="text-green-400 hover:underline">Log in</a> to save your score to the leaderboard.
+            </p>
+          )}
+
+          <button onClick={startGame} className="btn-secondary py-2.5 px-6 w-full">
             Play Again
           </button>
+        </div>
+
+        <div className="card">
+          <div className="px-4 py-3 border-b border-[#30363d]">
+            <h2 className="font-semibold text-white text-sm">🏅 Trivia Leaderboard</h2>
+          </div>
+          <TriviaLeaderboard refreshKey={lbRefreshKey} />
         </div>
 
         <div className="card divide-y divide-[#30363d]">
@@ -144,11 +228,10 @@ export default function TriviaPage() {
 
   // question phase
   const isAnswered = selected !== null;
-  const progress = ((current) / questions.length) * 100;
+  const progress = (current / questions.length) * 100;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      {/* Progress */}
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="text-gray-500">Question {current + 1} of {questions.length}</span>
         <span className="text-green-400 font-medium">{score} correct</span>
@@ -160,7 +243,6 @@ export default function TriviaPage() {
         />
       </div>
 
-      {/* Question card */}
       <div className="card p-6">
         <p className="text-lg font-semibold text-white leading-snug mb-6">{q.question}</p>
 
@@ -185,7 +267,6 @@ export default function TriviaPage() {
           })}
         </div>
 
-        {/* Fact reveal */}
         {isAnswered && (
           <div className={`mt-4 rounded-lg px-4 py-3 text-sm ${selected === q.answer ? 'bg-green-900/20 border border-green-800/40 text-green-300' : 'bg-red-900/20 border border-red-800/40 text-red-300'}`}>
             <span className="font-medium">{selected === q.answer ? '✓ Correct! ' : '✗ Wrong. '}</span>

@@ -59,3 +59,8 @@ export const goalsApi = {
   delete: (goalId: string) => api.delete(`/goals/${goalId}`),
   topScorers: () => api.get('/stats/top-scorers'),
 };
+
+export const triviaApi = {
+  submitScore: (score: number, total: number) => api.post('/trivia/score', { score, total }),
+  leaderboard: () => api.get('/trivia/leaderboard'),
+};

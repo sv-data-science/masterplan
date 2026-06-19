@@ -298,9 +298,297 @@ export const ALL_QUESTIONS: TriviaQuestion[] = [
     answer: 1,
     fact: '"Naranja" means orange in Spanish. Naranjito wore a Spain jersey and was hugely popular.',
   },
+
+  // WC FINALS
+  {
+    id: 41,
+    question: 'Which stadium is the only one in history to have hosted two separate World Cup Finals?',
+    options: ['Maracanã', 'Estadio Azteca', 'Luzhniki', 'Wembley'],
+    answer: 1,
+    fact: 'The Azteca in Mexico City hosted the 1970 final (Brazil 4–1 Italy) and the 1986 final (Argentina 3–2 West Germany).',
+  },
+  {
+    id: 42,
+    question: "Who scored the winning goal in Spain's 2010 World Cup Final victory over the Netherlands?",
+    options: ['David Villa', 'Fernando Torres', 'Andrés Iniesta', 'Xavi'],
+    answer: 2,
+    fact: "Iniesta struck in the 116th minute of extra time. It remains Spain's only World Cup title.",
+  },
+  {
+    id: 43,
+    question: "The 1994 World Cup Final ended 0–0 and went to penalties. Who missed Italy's decisive spot kick?",
+    options: ['Franco Baresi', 'Daniele Massaro', 'Roberto Baggio', 'Demetrio Albertini'],
+    answer: 2,
+    fact: "Baggio's miss over the bar handed Brazil the title 3–2 on penalties — one of football's most iconic images.",
+  },
+  {
+    id: 44,
+    question: 'Which country has appeared in the most World Cup Finals (8 times)?',
+    options: ['Brazil', 'Italy', 'Germany', 'Argentina'],
+    answer: 2,
+    fact: 'Germany/West Germany have reached 8 finals (1954, 1966, 1974, 1982, 1986, 1990, 2002, 2014), winning 4.',
+  },
+
+  // FAMOUS UPSETS
+  {
+    id: 45,
+    question: 'Which country shocked reigning champion France 1–0 in the opening match of the 2002 World Cup?',
+    options: ['South Korea', 'Senegal', 'Japan', 'Turkey'],
+    answer: 1,
+    fact: "Senegal, in just their second World Cup, stunned France who had won in 1998 and Euro 2000.",
+  },
+  {
+    id: 46,
+    question: 'Which defending World Cup champion was eliminated in the group stage at Russia 2018?',
+    options: ['Spain', 'Germany', 'Italy', 'Brazil'],
+    answer: 1,
+    fact: 'Germany — winners in 2014 — finished bottom of their group after losses to Mexico and South Korea.',
+  },
+  {
+    id: 47,
+    question: "The USA beat England 1–0 at the 1950 World Cup in one of football's greatest upsets. Who scored?",
+    options: ['Joe Gaetjens', 'Walter Bahr', 'Frank Wallace', 'Eddie McIlvenny'],
+    answer: 0,
+    fact: "Joe Gaetjens' header in the 37th minute produced one of the biggest upsets in World Cup history.",
+  },
+  {
+    id: 48,
+    question: "Which African nation opened Italia '90 by beating defending champions Argentina?",
+    options: ['Nigeria', 'Ghana', 'Senegal', 'Cameroon'],
+    answer: 3,
+    fact: "Roger Milla's Cameroon beat Argentina 1–0 in the opening match — a result that stunned the football world.",
+  },
+  {
+    id: 49,
+    question: 'Saudi Arabia came from behind to pull off a stunning 2022 WC group stage upset. Who did they beat 2–1?',
+    options: ['Brazil', 'France', 'Argentina', 'England'],
+    answer: 2,
+    fact: "Saudi Arabia ended Argentina's 36-game unbeaten run — widely called one of the greatest WC upsets ever.",
+  },
+
+  // TEAM NICKNAMES
+  {
+    id: 50,
+    question: "Brazil's national team is nicknamed 'A Seleção.' What does this mean?",
+    options: ['The Warriors', 'The Selection', 'The Yellow', 'The Champions'],
+    answer: 1,
+    fact: '"A Seleção" simply means "The Selection" — used so universally in Brazil that no further description is needed.',
+  },
+  {
+    id: 51,
+    question: "What is Germany's national football team nicknamed?",
+    options: ['Die Roten', 'Die Adler', 'Die Mannschaft', 'Das Team'],
+    answer: 2,
+    fact: '"Die Mannschaft" means "The Team" in German — embraced globally after their dominant 2014 triumph.',
+  },
+  {
+    id: 52,
+    question: "What is Argentina's national team nicknamed, referring to the colours of their shirt?",
+    options: ['Los Pumas', 'La Albiceleste', 'Los Gauchos', 'El Tri'],
+    answer: 1,
+    fact: '"La Albiceleste" means "the white and sky blue" — the iconic stripes worn since 1908.',
+  },
+  {
+    id: 53,
+    question: "Mexico's national team is nicknamed 'El Tri.' What does it refer to?",
+    options: ['Three legends', 'The Tricolour (flag)', 'Triple champions', 'Trinity of attack'],
+    answer: 1,
+    fact: '"El Tri" is short for "El Tricolor" — a reference to the green, white, and red of the Mexican flag.',
+  },
+
+  // COACHES & MANAGERS
+  {
+    id: 54,
+    question: 'Vittorio Pozzo is the only manager to win the World Cup twice (1934 & 1938). Which country?',
+    options: ['Argentina', 'Brazil', 'Italy', 'Uruguay'],
+    answer: 2,
+    fact: 'Pozzo led Italy to back-to-back titles — a feat no other manager has ever matched in World Cup history.',
+  },
+  {
+    id: 55,
+    question: 'Which Dutch manager guided South Korea to the 2002 World Cup semi-finals on home soil?',
+    options: ['Louis van Gaal', 'Guus Hiddink', 'Dick Advocaat', 'Johan Cruyff'],
+    answer: 1,
+    fact: "Hiddink's Korea beat Spain and Italy to reach the semis — one of the great coaching stories in WC history.",
+  },
+  {
+    id: 56,
+    question: 'Didier Deschamps (2018) was the third person to win the WC as both player and coach. Who was the first?',
+    options: ['Franz Beckenbauer', 'Johan Cruyff', 'Pelé', 'Michel Platini'],
+    answer: 0,
+    fact: 'Beckenbauer won as player in 1974 and coach in 1990 (both Germany). Zagallo did it for Brazil; Deschamps for France.',
+  },
+
+  // ICONIC STADIUMS
+  {
+    id: 57,
+    question: "What is the name given to Uruguay's shock 1950 World Cup win over Brazil in their own Maracanã stadium?",
+    options: ['The Miracle of Bern', 'O Maracanazo', 'The Tragedy of Rio', 'The Final Shock'],
+    answer: 1,
+    fact: '"O Maracanazo" — Uruguay beat Brazil 2–1 before ~200,000 fans in Rio. It remains Brazil\'s most painful footballing memory.',
+  },
+  {
+    id: 58,
+    question: 'Which stadium will host the 2026 World Cup Final?',
+    options: ['AT&T Stadium, Dallas', 'Rose Bowl, Los Angeles', 'MetLife Stadium, New Jersey', 'SoFi Stadium, Los Angeles'],
+    answer: 2,
+    fact: 'MetLife Stadium in East Rutherford, NJ — serving the New York metro area — will stage the 2026 WC Final.',
+  },
+
+  // WC SONGS
+  {
+    id: 59,
+    question: "Who performed 'Waka Waka (This Time for Africa)', the official song of the 2010 World Cup?",
+    options: ['Beyoncé', 'Shakira', 'Jennifer Lopez', 'Rihanna'],
+    answer: 1,
+    fact: "Shakira's Waka Waka became one of the best-selling WC songs ever, surpassing 1 billion YouTube views.",
+  },
+  {
+    id: 60,
+    question: "Which operatic piece became the BBC's iconic theme for the 1990 World Cup in Italy?",
+    options: ['World in Motion', 'Three Lions', 'Nessun Dorma', 'La Copa de la Vida'],
+    answer: 2,
+    fact: "Pavarotti's Nessun Dorma — used as the BBC broadcast theme — became one of Italia '90's defining symbols.",
+  },
+  {
+    id: 61,
+    question: "Ricky Martin's 'La Copa de la Vida' was the official song of which World Cup?",
+    options: ['1994 USA', '1998 France', '2002 Korea/Japan', '2006 Germany'],
+    answer: 1,
+    fact: '"La Copa de la Vida" (The Cup of Life) — performed live at the final ceremony in Paris — became a global stadium anthem.',
+  },
+
+  // HAT-TRICKS
+  {
+    id: 62,
+    question: 'Who is the only player ever to score a hat-trick in a World Cup Final?',
+    options: ['Pelé', 'Geoff Hurst', 'Ronaldo (Brazil)', 'Zinedine Zidane'],
+    answer: 1,
+    fact: "Hurst scored 3 of England's 4 goals in the 1966 Final against West Germany — the only hat-trick in any WC Final.",
+  },
+  {
+    id: 63,
+    question: 'Cristiano Ronaldo scored a hat-trick at the 2018 World Cup. Against which opponent?',
+    options: ['Morocco', 'Iran', 'Spain', 'Uruguay'],
+    answer: 2,
+    fact: "Ronaldo's hat-trick — including a stunning late free-kick — sealed a thrilling 3–3 draw against Spain in the group stage.",
+  },
+
+  // PENALTIES & SHOOTOUTS
+  {
+    id: 64,
+    question: 'Which World Cup Final was the first ever decided by a penalty shootout?',
+    options: ['1982 Spain', '1986 Mexico', '1990 Italy', '1994 USA'],
+    answer: 3,
+    fact: "The 1994 Brazil vs Italy final was the first WC final decided by shootout — Brazil won 3–2 after Baggio's miss.",
+  },
+  {
+    id: 65,
+    question: 'Which country has won all 5 of their World Cup penalty shootouts, earning the "penalty kings" tag?',
+    options: ['Germany', 'Brazil', 'Argentina', 'Spain'],
+    answer: 0,
+    fact: "Germany's perfect WC shootout record (5 from 5) is unmatched by any other major nation.",
+  },
+
+  // AFRICAN & ASIAN MILESTONES
+  {
+    id: 66,
+    question: "Cameroon became the first African team to reach the World Cup quarter-finals. In which year?",
+    options: ['1982', '1986', '1990', '1994'],
+    answer: 2,
+    fact: "The 'Indomitable Lions' at Italia '90 beat Argentina in the opener and reached the QF — inspiring a continent.",
+  },
+  {
+    id: 67,
+    question: 'Which Asian team reached the World Cup semi-finals for the first time ever in 2002?',
+    options: ['Japan', 'South Korea', 'Saudi Arabia', 'China'],
+    answer: 1,
+    fact: 'Co-hosts South Korea beat both Spain and Italy to reach the semis — still the best-ever result by an Asian side.',
+  },
+
+  // INNOVATION & FORMAT
+  {
+    id: 68,
+    question: 'Which World Cup was the first broadcast worldwide in colour television?',
+    options: ['1966 England', '1970 Mexico', '1974 West Germany', '1978 Argentina'],
+    answer: 1,
+    fact: 'Mexico 1970 was the first WC in glorious colour TV — transforming how billions of fans experienced football.',
+  },
+  {
+    id: 69,
+    question: 'Brazil 2014 introduced goal-line technology. Which other innovation also debuted at that same tournament?',
+    options: ['VAR', 'Vanishing spray for free kicks', 'Wearable GPS trackers', 'Video replays on screens'],
+    answer: 1,
+    fact: 'Vanishing foam spray for free-kick walls was used for the first time at Brazil 2014, adopted worldwide shortly after.',
+  },
+  {
+    id: 70,
+    question: "How many groups will the 2026 World Cup have with its 48-team format?",
+    options: ['8', '10', '12', '16'],
+    answer: 2,
+    fact: '48 teams in 12 groups of 4 — the top 2 plus 8 best third-place teams advance to the new Round of 32.',
+  },
+
+  // MORE RECORDS & MOMENTS
+  {
+    id: 71,
+    question: "Maradona's 'Goal of the Century' in 1986 — where he dribbled past 5 players — was scored against?",
+    options: ['Belgium', 'West Germany', 'England', 'France'],
+    answer: 2,
+    fact: "Voted the greatest WC goal ever, Maradona's run vs England came in the same match as the infamous 'Hand of God.'",
+  },
+  {
+    id: 72,
+    question: 'Diego Maradona was sent home from the 1994 World Cup mid-tournament. What for?',
+    options: ['Violent conduct', 'Failed a drug test', 'Passport forgery', 'Refusing to play'],
+    answer: 1,
+    fact: 'Maradona tested positive for ephedrine after Argentina beat Greece — ending his World Cup career in disgrace.',
+  },
+  {
+    id: 73,
+    question: 'The 1950 World Cup had no knockout final. How was the champion decided?',
+    options: ['Golden goal', 'Final round-robin group', 'Penalty shootout', 'Coin toss'],
+    answer: 1,
+    fact: "A 4-team 'Final Pool' round-robin — Uruguay beat Brazil in the decisive last match to claim the title.",
+  },
+  {
+    id: 74,
+    question: 'Which World Cup was the first held outside of Europe or the Americas?',
+    options: ['1994 USA', '2002 Japan & South Korea', '2010 South Africa', '2022 Qatar'],
+    answer: 1,
+    fact: 'Japan and South Korea 2002 was the first WC in Asia and the first co-hosted edition of the tournament.',
+  },
+  {
+    id: 75,
+    question: 'Which nation hosted AND won the 1978 World Cup?',
+    options: ['Chile', 'Brazil', 'Argentina', 'Peru'],
+    answer: 2,
+    fact: 'Argentina beat the Netherlands 3–1 in AET in Buenos Aires — their first-ever World Cup title on home soil.',
+  },
+  {
+    id: 76,
+    question: 'Who won the Golden Ball (best player) at the 2022 World Cup in Qatar?',
+    options: ['Kylian Mbappé', 'Luka Modrić', 'Lionel Messi', 'Antoine Griezmann'],
+    answer: 2,
+    fact: "Messi's 7 goals and 3 assists earned the Golden Ball — completing his journey to football's ultimate honour.",
+  },
+  {
+    id: 77,
+    question: "The 'Battle of Santiago' in 1962 is remembered as the most violent WC match in history. Which teams played?",
+    options: ['Brazil vs Argentina', 'Italy vs Chile', 'Germany vs Netherlands', 'England vs France'],
+    answer: 1,
+    fact: "Chile beat Italy 2–0 but the match had 2 red cards, mass brawling, and police on the pitch. BBC's Coleman called it 'the most disgraceful match in WC history.'",
+  },
+  {
+    id: 78,
+    question: 'Which country scored in every single one of their 7 matches at Russia 2018?',
+    options: ['France', 'England', 'Belgium', 'Croatia'],
+    answer: 2,
+    fact: 'Belgium scored in all 7 matches at Russia 2018 on their way to a record 3rd-place finish.',
+  },
 ];
 
-export function getRandomQuestions(n = 10): TriviaQuestion[] {
+export function getRandomQuestions(n?: number): TriviaQuestion[] {
   const shuffled = [...ALL_QUESTIONS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, Math.min(n, shuffled.length));
+  return n !== undefined ? shuffled.slice(0, Math.min(n, shuffled.length)) : shuffled;
 }
