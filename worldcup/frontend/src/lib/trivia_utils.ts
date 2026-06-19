@@ -30,7 +30,7 @@ export function markSeen(ids: number[]) {
   try {
     const seen = getSeenIds();
     ids.forEach(id => seen.add(id));
-    localStorage.setItem(SEEN_KEY, JSON.stringify([...seen]));
+    localStorage.setItem(SEEN_KEY, JSON.stringify(Array.from(seen)));
   } catch {}
 }
 
