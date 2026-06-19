@@ -43,6 +43,15 @@ async def lifespan(app: FastAPI):
         log.error("DB init failed: %s", e)
         log.error("DATABASE_URL configured: %s", bool(settings.DATABASE_URL))
 
+    # Add kit column to existing deployments that predate this column
+    try:
+        from sqlalchemy import text
+        async with engine.begin() as conn:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN kit TEXT"))
+        log.info("Added kit column to users table")
+    except Exception:
+        pass  # column already exists
+
     try:
         from sqlalchemy import select, func
         from app.models.worldcup import Team

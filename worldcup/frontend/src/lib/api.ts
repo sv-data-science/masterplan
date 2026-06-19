@@ -31,6 +31,7 @@ export const authApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
+  updateKit: (kit: object) => api.put('/auth/kit', kit),
 };
 
 export const matchesApi = {

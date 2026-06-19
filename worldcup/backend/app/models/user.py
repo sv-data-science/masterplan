@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Boolean, DateTime, func
+from sqlalchemy import Column, String, Boolean, DateTime, Text, func
 from sqlalchemy.orm import relationship
 import uuid
 from app.database import Base
@@ -15,5 +15,6 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    kit = Column(Text, nullable=True)  # JSON-encoded KitConfig
 
     predictions = relationship("Prediction", back_populates="user", cascade="all, delete-orphan")

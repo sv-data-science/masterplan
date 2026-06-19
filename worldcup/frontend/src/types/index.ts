@@ -1,9 +1,49 @@
+export type KitPattern = 'solid' | 'stripes' | 'hoops' | 'checkerboard' | 'diagonal';
+export type CollarStyle = 'vneck' | 'round' | 'polo';
+
+export interface KitJersey {
+  color1: string;
+  color2: string;
+  pattern: KitPattern;
+  collarStyle: CollarStyle;
+  collarColor: string;
+  sleeveAccentColor: string;
+  shoulderStripes: boolean;
+}
+
+export interface KitPiece {
+  color1: string;
+  color2: string;
+  pattern: KitPattern;
+}
+
+export interface KitConfig {
+  jersey: KitJersey;
+  shorts: KitPiece;
+  socks: KitPiece;
+}
+
+export const DEFAULT_KIT: KitConfig = {
+  jersey: {
+    color1: '#1a56db',
+    color2: '#ffffff',
+    pattern: 'solid',
+    collarStyle: 'vneck',
+    collarColor: '#ffffff',
+    sleeveAccentColor: '#e3a008',
+    shoulderStripes: false,
+  },
+  shorts: { color1: '#1e3a5f', color2: '#ffffff', pattern: 'solid' },
+  socks: { color1: '#1e3a5f', color2: '#1a56db', pattern: 'solid' },
+};
+
 export interface User {
   id: string;
   username: string;
   display_name: string;
   is_admin: boolean;
   created_at: string;
+  kit?: KitConfig | null;
 }
 
 export interface Team {
@@ -80,4 +120,5 @@ export interface LeaderboardEntry {
   exact_scores: number;
   correct_outcomes: number;
   predictions_made: number;
+  kit?: KitConfig | null;
 }

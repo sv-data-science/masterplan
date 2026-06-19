@@ -4,6 +4,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { useEffect } from 'react';
 import { authApi } from '@/lib/api';
+import { KitSVG } from '@/components/KitSVG';
+import { DEFAULT_KIT, KitConfig } from '@/types';
 
 export function Nav() {
   const { user, token, setUser, logout } = useAuthStore();
@@ -33,6 +35,7 @@ export function Nav() {
         { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/leaderboard', label: 'Leaderboard' },
         { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
+        { href: '/kit', label: '🎽 My Kit' },
       ]
     : baseLinks;
 
@@ -63,6 +66,9 @@ export function Nav() {
         <div className="flex items-center gap-2 shrink-0">
           {user ? (
             <>
+              <Link href="/kit" className="hidden sm:block shrink-0" title="Edit my kit">
+                <KitSVG kit={(user.kit as KitConfig) ?? DEFAULT_KIT} width={22} />
+              </Link>
               <span className="text-sm text-gray-400 hidden sm:inline">{user.display_name}</span>
               <button onClick={() => { logout(); router.push('/'); }} className="btn-secondary text-sm py-1.5">Logout</button>
             </>

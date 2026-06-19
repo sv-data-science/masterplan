@@ -1,8 +1,9 @@
 'use client';
 import { useQuery } from '@tanstack/react-query';
 import { leaderboardApi } from '@/lib/api';
-import { LeaderboardEntry } from '@/types';
+import { LeaderboardEntry, DEFAULT_KIT, KitConfig } from '@/types';
 import { useAuthStore } from '@/store/auth';
+import { KitSVG } from '@/components/KitSVG';
 
 export default function LeaderboardPage() {
   const { user } = useAuthStore();
@@ -42,11 +43,16 @@ export default function LeaderboardPage() {
                 <div className={`col-span-1 font-bold text-sm ${e.rank === 1 ? 'text-yellow-400' : e.rank === 2 ? 'text-gray-300' : e.rank === 3 ? 'text-orange-400' : 'text-gray-500'}`}>
                   {icon(e.rank)}
                 </div>
-                <div className="col-span-6">
-                  <p className={`font-semibold text-sm ${isMe ? 'text-green-400' : 'text-white'}`}>
-                    {e.display_name}{isMe && <span className="ml-1 text-xs text-green-600">(you)</span>}
-                  </p>
-                  <p className="text-xs text-gray-500">@{e.username}</p>
+                <div className="col-span-6 flex items-center gap-2">
+                  <div className="shrink-0 hidden sm:block">
+                    <KitSVG kit={(e.kit as KitConfig) ?? DEFAULT_KIT} width={26} />
+                  </div>
+                  <div>
+                    <p className={`font-semibold text-sm ${isMe ? 'text-green-400' : 'text-white'}`}>
+                      {e.display_name}{isMe && <span className="ml-1 text-xs text-green-600">(you)</span>}
+                    </p>
+                    <p className="text-xs text-gray-500">@{e.username}</p>
+                  </div>
                 </div>
                 <div className="col-span-2 text-center">
                   <span className="text-xl font-bold">{e.total_points}</span>

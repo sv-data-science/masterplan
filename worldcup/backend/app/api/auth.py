@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid
+import json
+from pydantic import BaseModel
+from typing import Any
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserPublic, Token, LoginRequest
@@ -53,6 +56,23 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 @router.get("/me", response_model=UserPublic)
 async def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+class KitUpdate(BaseModel):
+    jersey: dict[str, Any]
+    shorts: dict[str, Any]
+    socks: dict[str, Any]
+
+
+@router.put("/kit", response_model=UserPublic)
+async def update_kit(
+    body: KitUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    current_user.kit = json.dumps(body.model_dump())
+    await db.flush()
     return current_user
 
 

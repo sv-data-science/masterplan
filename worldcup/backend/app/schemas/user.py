@@ -1,4 +1,6 @@
 import re
+import json
+from typing import Optional
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 
@@ -11,6 +13,18 @@ class UserPublic(BaseModel):
     display_name: str
     is_admin: bool
     created_at: datetime
+    kit: Optional[dict] = None
+
+    @field_validator("kit", mode="before")
+    @classmethod
+    def parse_kit(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except Exception:
+                return None
+        return v
+
     model_config = {"from_attributes": True}
 
 
