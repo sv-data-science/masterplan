@@ -20,22 +20,22 @@ export function Nav() {
 
   const baseLinks = [
     { href: '/', label: 'Dashboard' },
+    { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
     { href: '/matches', label: 'Matches' },
     { href: '/groups', label: 'Groups' },
     { href: '/top-scorers', label: 'Top Scorers' },
     { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
   ];
   const links = user
     ? [
         { href: '/', label: 'Dashboard' },
+        { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
+        { href: '/kit', label: '🎽 My Uniform' },
         { href: '/my-predictions', label: 'My Picks' },
         { href: '/matches', label: 'Matches' },
         { href: '/groups', label: 'Groups' },
         { href: '/top-scorers', label: 'Top Scorers' },
         { href: '/leaderboard', label: 'Leaderboard' },
-        { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
-        { href: '/kit', label: '🎽 My Kit' },
       ]
     : baseLinks;
 
@@ -66,7 +66,7 @@ export function Nav() {
         <div className="flex items-center gap-2 shrink-0">
           {user ? (
             <>
-              <Link href="/kit" className="hidden sm:block shrink-0" title="Edit my kit">
+              <Link href="/kit" className="hidden sm:block shrink-0" title="Edit my uniform">
                 <KitSVG kit={(user.kit as KitConfig) ?? DEFAULT_KIT} width={22} />
               </Link>
               <span className="text-sm text-gray-400 hidden sm:inline">{user.display_name}</span>

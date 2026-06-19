@@ -128,23 +128,6 @@ export default function TriviaPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div className="bg-[#21262d] rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-400">{totalQuestions}</div>
-              <div className="text-gray-500 mt-0.5">Questions</div>
-            </div>
-            <div className="bg-[#21262d] rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-400">4</div>
-              <div className="text-gray-500 mt-0.5">Options each</div>
-            </div>
-            <div className="bg-[#21262d] rounded-lg p-3">
-              <div className="text-2xl font-bold text-green-400">10+</div>
-              <div className="text-gray-500 mt-0.5">Categories</div>
-            </div>
-          </div>
-
-          <p className="text-xs text-gray-600">Questions are shuffled every game. Complete all {totalQuestions} to save your score.</p>
-
           <button onClick={startGame} className="btn-primary py-3 px-8 text-lg w-full">
             Start Quiz ⚽
           </button>

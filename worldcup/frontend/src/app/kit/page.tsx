@@ -228,8 +228,8 @@ export default function KitPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">My Kit</h1>
-        <p className="text-sm text-gray-500 mt-1">Design your soccer kit — it shows next to your name on the leaderboard.</p>
+        <h1 className="text-2xl font-bold text-white">My Uniform</h1>
+        <p className="text-sm text-gray-500 mt-1">Design your uniform — it shows next to your name on the leaderboard.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-6">
