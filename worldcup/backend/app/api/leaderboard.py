@@ -26,12 +26,12 @@ async def leaderboard(
                 User.id,
                 User.display_name,
                 User.username,
-                User.kit,
+                func.max(User.kit).label("kit"),
                 func.count(Prediction.id).label("predictions"),
                 func.coalesce(func.sum(Prediction.points_earned), 0).label("total_points"),
             )
             .join(Prediction, Prediction.user_id == User.id, isouter=True)
-            .group_by(User.id, User.display_name, User.username, User.kit)
+            .group_by(User.id, User.display_name, User.username)
             .order_by(func.coalesce(func.sum(Prediction.points_earned), 0).desc())
         )
     ).all()

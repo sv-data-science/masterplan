@@ -44,8 +44,8 @@ export default function LeaderboardPage() {
                   {icon(e.rank)}
                 </div>
                 <div className="col-span-6 flex items-center gap-2">
-                  <div className="shrink-0 hidden sm:block">
-                    <KitSVG kit={(e.kit as KitConfig) ?? DEFAULT_KIT} width={26} />
+                  <div className="shrink-0">
+                    <KitSVG kit={{ ...DEFAULT_KIT, ...(e.kit as KitConfig), jersey: { ...DEFAULT_KIT.jersey, ...((e.kit as KitConfig)?.jersey) }, shorts: { ...DEFAULT_KIT.shorts, ...((e.kit as KitConfig)?.shorts) }, socks: { ...DEFAULT_KIT.socks, ...((e.kit as KitConfig)?.socks) } }} width={26} />
                   </div>
                   <div>
                     <p className={`font-semibold text-sm ${isMe ? 'text-green-400' : 'text-white'}`}>

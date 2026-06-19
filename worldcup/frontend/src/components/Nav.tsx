@@ -67,7 +67,7 @@ export function Nav() {
           {user ? (
             <>
               <Link href="/kit" className="hidden sm:block shrink-0" title="Edit my uniform">
-                <KitSVG kit={(user.kit as KitConfig) ?? DEFAULT_KIT} width={22} />
+                <KitSVG kit={{ ...DEFAULT_KIT, ...(user.kit as KitConfig), jersey: { ...DEFAULT_KIT.jersey, ...((user.kit as KitConfig)?.jersey) }, shorts: { ...DEFAULT_KIT.shorts, ...((user.kit as KitConfig)?.shorts) }, socks: { ...DEFAULT_KIT.socks, ...((user.kit as KitConfig)?.socks) } }} width={22} />
               </Link>
               <span className="text-sm text-gray-400 hidden sm:inline">{user.display_name}</span>
               <button onClick={() => { logout(); router.push('/'); }} className="btn-secondary text-sm py-1.5">Logout</button>
