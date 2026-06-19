@@ -299,6 +299,46 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
+  const [syncing, setSyncing] = useState(false);
+
+  const sync = async () => {
+    setSyncing(true);
+    try {
+      const r = await api.post('/admin/sync-goals');
+      const { goals_synced, matches_updated, skipped_teams, error } = r.data;
+      if (error) {
+        toast.error(`ESPN sync error: ${error}`);
+      } else {
+        const skipMsg = skipped_teams?.length ? ` · ${skipped_teams.length} unmatched` : '';
+        toast.success(`ESPN sync — ${goals_synced} goal${goals_synced !== 1 ? 's' : ''} from ${matches_updated} match${matches_updated !== 1 ? 'es' : ''}${skipMsg}`);
+        onSynced();
+      }
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'ESPN sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <div className="card p-4 border-green-800/40 bg-green-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">⚽ Sync goal scorers (ESPN)</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Fetches goal scorer data from ESPN's public API — no API key needed.
+            Replaces existing goal events for all completed matches.
+          </p>
+        </div>
+        <button onClick={sync} disabled={syncing} className="btn-primary py-1.5 text-sm">
+          {syncing ? '⏳ Syncing…' : '⚽ Sync goals'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PatchSchedulePanel({ onPatched }: { onPatched: () => void }) {
   const [patching, setPatching] = useState(false);
 
@@ -497,6 +537,8 @@ export default function AdminPage() {
       <ReseedPanel onReseeded={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
+
+      <EspnGoalSyncPanel onSynced={invalidate} />
 
       <CreateUserPanel onCreated={invalidateUsers} />
 

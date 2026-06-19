@@ -6,7 +6,7 @@ from app.auth import get_current_user, hash_password
 from app.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserPublic
-from app.services.sync import sync_scores, last_sync_result
+from app.services.sync import sync_scores, sync_goals_espn, last_sync_result
 from app.config import settings
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -57,6 +57,12 @@ async def trigger_reseed(admin: User = Depends(require_admin)):
 @router.post("/sync")
 async def trigger_sync(admin: User = Depends(require_admin)):
     return await sync_scores()
+
+
+@router.post("/sync-goals")
+async def trigger_sync_goals(admin: User = Depends(require_admin)):
+    """Sync goal scorers from ESPN's public API (no key required)."""
+    return await sync_goals_espn()
 
 
 @router.get("/sync/status")

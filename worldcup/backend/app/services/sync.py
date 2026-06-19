@@ -1,9 +1,8 @@
 """
-Sync match scores and goal scorers from football-data.org free API.
+Sync match scores from football-data.org and goal scorers from ESPN's public API.
 
-Endpoint: GET https://api.football-data.org/v4/competitions/WC/matches
-Auth:     X-Auth-Token header
-Rate:     10 req/min on free tier (one call fetches all group-stage matches)
+football-data.org: scores/status only (free tier excludes goal events)
+ESPN: goal scorer data via public scoreboard + summary endpoints (no key needed)
 """
 import logging
 import uuid
@@ -20,8 +19,10 @@ from app.config import settings
 log = logging.getLogger(__name__)
 
 API_URL = "https://api.football-data.org/v4/competitions/WC/matches"
+ESPN_SCOREBOARD_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard"
+ESPN_SUMMARY_URL = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary"
 
-# Map football-data.org team names → our DB team names where they differ
+# Map football-data.org / ESPN team names → our DB team names where they differ
 TEAM_NAME_MAP: dict[str, str] = {
     "Bosnia and Herzegovina": "Bosnia-Herzegovina",
     "Côte d'Ivoire": "Ivory Coast",
@@ -63,9 +64,49 @@ STATUS_MAP = {
 
 last_sync_result: dict = {"synced_at": None, "updated": 0, "error": None}
 
+# Extra ESPN-specific name variants not covered by TEAM_NAME_MAP
+ESPN_EXTRA: dict[str, str] = {
+    "Bosnia & Herzegovina": "Bosnia-Herzegovina",
+    "Bosnia and Herzegovina": "Bosnia-Herzegovina",
+    "Congo, DR": "Congo DR",
+    "Korea Republic": "South Korea",
+    "Korea, Republic of": "South Korea",
+    "Cote d'Ivoire": "Ivory Coast",
+    "Côte d'Ivoire": "Ivory Coast",
+    "Czech Republic": "Czechia",
+    "Cabo Verde": "Cape Verde",
+    "Cape Verde Islands": "Cape Verde",
+    "IR Iran": "Iran",
+    "USA": "United States",
+    "Curacao": "Curaçao",
+    "Turkey": "Türkiye",
+    "DR Congo": "Congo DR",
+}
+
 
 def _canonical(name: str) -> str:
     return TEAM_NAME_MAP.get(name, name)
+
+
+def _espn_canonical(name: str) -> str:
+    return ESPN_EXTRA.get(name, TEAM_NAME_MAP.get(name, name))
+
+
+def _parse_espn_minute(display: str) -> Optional[int]:
+    """Parse '23'' or '45'+2'' into an integer minute."""
+    if not display:
+        return None
+    s = display.rstrip("'").strip()
+    if "+" in s:
+        parts = s.split("+", 1)
+        try:
+            return int(parts[0].strip()) + int(parts[1].strip())
+        except (ValueError, IndexError):
+            return None
+    try:
+        return int(s)
+    except ValueError:
+        return None
 
 
 async def _sync_goals(db: AsyncSession, match: Match, api_goals: list, team_by_name: dict) -> int:
@@ -207,3 +248,130 @@ async def sync_scores() -> dict:
     last_sync_result = result_data
     log.info("Sync complete: %d matches updated", updated)
     return result_data
+
+
+async def sync_goals_espn() -> dict:
+    """Sync goal scorers from ESPN's public API (no key required).
+
+    Fetches the full WC scoreboard for the tournament window, then pulls
+    a scoring summary for each completed match and upserts GoalEvents.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get(
+                ESPN_SCOREBOARD_URL,
+                params={"dates": "20260611-20260719", "limit": 200},
+            )
+        if resp.status_code != 200:
+            return {"error": f"ESPN scoreboard returned HTTP {resp.status_code}", "goals_synced": 0}
+        events = resp.json().get("events", [])
+    except Exception as e:
+        err = f"ESPN request failed: {e}"
+        log.error(err)
+        return {"error": err, "goals_synced": 0}
+
+    completed = [
+        ev for ev in events
+        if (ev.get("status") or {}).get("type", {}).get("name") == "STATUS_FINAL"
+    ]
+    log.info("ESPN: %d total events, %d completed", len(events), len(completed))
+
+    goals_synced = 0
+    matches_updated = 0
+    skipped: list[str] = []
+
+    async with AsyncSessionLocal() as db:
+        teams_result = await db.execute(select(Team))
+        team_by_name = {t.name: t.id for t in teams_result.scalars().all()}
+
+        async with httpx.AsyncClient(timeout=20) as client:
+            for ev in completed:
+                event_id = ev.get("id")
+                competitors = (ev.get("competitions") or [{}])[0].get("competitors", [])
+                home_comp = next((c for c in competitors if c.get("homeAway") == "home"), None)
+                away_comp = next((c for c in competitors if c.get("homeAway") == "away"), None)
+                if not home_comp or not away_comp or not event_id:
+                    continue
+
+                home_name = _espn_canonical((home_comp.get("team") or {}).get("displayName", ""))
+                away_name = _espn_canonical((away_comp.get("team") or {}).get("displayName", ""))
+                home_id = team_by_name.get(home_name)
+                away_id = team_by_name.get(away_name)
+
+                if not home_id or not away_id:
+                    skipped.append(f"{home_name} vs {away_name}")
+                    log.warning("ESPN — unmatched teams: %s vs %s", home_name, away_name)
+                    continue
+
+                # Try home/away then flipped (ESPN home/away may differ from ours)
+                match_res = await db.execute(
+                    select(Match).where(Match.home_team_id == home_id, Match.away_team_id == away_id)
+                )
+                match: Optional[Match] = match_res.scalar_one_or_none()
+                if not match:
+                    match_res = await db.execute(
+                        select(Match).where(Match.home_team_id == away_id, Match.away_team_id == home_id)
+                    )
+                    match = match_res.scalar_one_or_none()
+                if not match or match.status != "completed":
+                    continue
+
+                # Fetch match summary for scoring events
+                try:
+                    summary_resp = await client.get(ESPN_SUMMARY_URL, params={"event": event_id})
+                    if summary_resp.status_code != 200:
+                        continue
+                    scoring_summary = summary_resp.json().get("scoringSummary", [])
+                except Exception as exc:
+                    log.warning("ESPN summary fetch failed for event %s: %s", event_id, exc)
+                    continue
+
+                if not scoring_summary:
+                    continue
+
+                await db.execute(delete(GoalEvent).where(GoalEvent.match_id == match.id))
+                inserted = 0
+                for play in scoring_summary:
+                    type_text = ((play.get("type") or {}).get("text") or "Goal").lower()
+                    is_own_goal = "own" in type_text
+                    is_penalty = "penalty" in type_text
+
+                    athletes = play.get("athletesInvolved") or []
+                    if not athletes:
+                        continue
+                    scorer_name = (athletes[0].get("displayName") or "").strip()
+                    if not scorer_name:
+                        continue
+
+                    team_name = _espn_canonical((play.get("team") or {}).get("displayName", ""))
+                    team_id = team_by_name.get(team_name)
+                    if not team_id:
+                        log.warning("ESPN goal — team not found: %s", team_name)
+                        continue
+
+                    minute = _parse_espn_minute((play.get("clock") or {}).get("displayValue", ""))
+                    db.add(GoalEvent(
+                        id=str(uuid.uuid4()),
+                        match_id=match.id,
+                        team_id=team_id,
+                        player_name=scorer_name,
+                        minute=minute,
+                        is_own_goal=is_own_goal,
+                        is_penalty=is_penalty,
+                    ))
+                    inserted += 1
+
+                goals_synced += inserted
+                matches_updated += 1
+                log.info("ESPN goals: %s vs %s — %d inserted", home_name, away_name, inserted)
+
+        await db.commit()
+
+    return {
+        "source": "ESPN",
+        "completed_matches_found": len(completed),
+        "matches_updated": matches_updated,
+        "goals_synced": goals_synced,
+        "skipped_teams": skipped,
+        "error": None,
+    }
