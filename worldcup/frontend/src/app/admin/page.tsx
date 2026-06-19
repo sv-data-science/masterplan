@@ -621,13 +621,13 @@ export default function AdminPage() {
 
       <SeedPanel onSeeded={invalidate} />
 
-      <PatchSchedulePanel onPatched={invalidate} />
-
-      <ReseedPanel onReseeded={invalidate} />
+      <EspnGoalSyncPanel onSynced={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
 
-      <EspnGoalSyncPanel onSynced={invalidate} />
+      <PatchSchedulePanel onPatched={invalidate} />
+
+      <ReseedPanel onReseeded={invalidate} />
 
       <CreateUserPanel onCreated={invalidateUsers} />
 
