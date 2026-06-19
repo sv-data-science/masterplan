@@ -321,9 +321,10 @@ async def sync_goals_espn() -> dict:
             seen.add(eid)
             events.append(ev)
 
+    ESPN_FINAL_STATUSES = {"STATUS_FINAL", "STATUS_FULL_TIME", "STATUS_FULL_PEN"}
     completed_events = [
         ev for ev in events
-        if (ev.get("status") or {}).get("type", {}).get("name") == "STATUS_FINAL"
+        if (ev.get("status") or {}).get("type", {}).get("name") in ESPN_FINAL_STATUSES
     ]
     log.info("ESPN: %d unique events, %d completed", len(events), len(completed_events))
 
@@ -372,13 +373,19 @@ async def sync_goals_espn() -> dict:
                     if summary_resp.status_code != 200:
                         log.warning("ESPN summary %s → HTTP %d", event_id, summary_resp.status_code)
                         continue
-                    scoring_summary = summary_resp.json().get("scoringSummary", [])
+                    summary_data = summary_resp.json()
+                    # Goals are in keyEvents (scoringSummary is absent in ESPN WC responses)
+                    key_events = summary_data.get("keyEvents") or []
+                    scoring_summary = [
+                        ev for ev in key_events
+                        if "goal" in ((ev.get("type") or {}).get("text") or "").lower()
+                    ]
                 except Exception as exc:
                     log.warning("ESPN summary fetch failed for event %s: %s", event_id, exc)
                     continue
 
                 if not scoring_summary:
-                    log.info("ESPN: no scoringSummary for %s vs %s (event %s)", home_name, away_name, event_id)
+                    log.info("ESPN: no goal keyEvents for %s vs %s (event %s)", home_name, away_name, event_id)
                     continue
 
                 await db.execute(delete(GoalEvent).where(GoalEvent.match_id == match.id))
@@ -388,10 +395,20 @@ async def sync_goals_espn() -> dict:
                     is_own_goal = "own" in type_text
                     is_penalty = "penalty" in type_text
 
-                    athletes = play.get("athletesInvolved") or []
-                    if not athletes:
-                        continue
-                    scorer_name = (athletes[0].get("displayName") or "").strip()
+                    # ESPN keyEvents uses "participants" with type.text == "scorer"
+                    participants = play.get("participants") or []
+                    scorer_name = ""
+                    for p in participants:
+                        p_type = ((p.get("type") or {}).get("text") or "").lower()
+                        if "scorer" in p_type or not p_type:
+                            scorer_name = ((p.get("athlete") or {}).get("displayName") or "").strip()
+                            if scorer_name:
+                                break
+                    # Fallback: athletesInvolved (older ESPN structure)
+                    if not scorer_name:
+                        athletes = play.get("athletesInvolved") or []
+                        if athletes:
+                            scorer_name = (athletes[0].get("displayName") or "").strip()
                     if not scorer_name:
                         continue
 

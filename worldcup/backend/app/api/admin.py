@@ -100,6 +100,19 @@ async def debug_espn(admin: User = Depends(require_admin)):
                             for k in ["scoringSummary", "scoringPlays", "scoring", "plays", "gamepackageJSON"]:
                                 v = d2.get(k)
                                 result[f"summary_{k}"] = f"{type(v).__name__}, len={len(v) if isinstance(v, list) else 'n/a'}"
+                            # keyEvents — show count and first goal event structure
+                            key_events = d2.get("keyEvents") or []
+                            goal_events = [ev for ev in key_events if "goal" in ((ev.get("type") or {}).get("text") or "").lower()]
+                            result["summary_keyEvents_count"] = len(key_events)
+                            result["summary_keyEvents_goal_count"] = len(goal_events)
+                            if goal_events:
+                                first_goal = goal_events[0]
+                                result["first_goal_event_keys"] = list(first_goal.keys())
+                                result["first_goal_type"] = first_goal.get("type")
+                                result["first_goal_team"] = first_goal.get("team")
+                                result["first_goal_clock"] = first_goal.get("clock")
+                                result["first_goal_participants"] = first_goal.get("participants")
+                                result["first_goal_athletesInvolved"] = first_goal.get("athletesInvolved")
         except Exception as e:
             result["error"] = str(e)
     return result
