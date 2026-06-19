@@ -324,6 +324,20 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
     }
   };
 
+  const [debugResult, setDebugResult] = useState<string | null>(null);
+  const [debugging, setDebugging] = useState(false);
+
+  const debug = async () => {
+    setDebugging(true);
+    setDebugResult(null);
+    try {
+      const r = await api.get('/admin/debug-espn');
+      setDebugResult(JSON.stringify(r.data, null, 2));
+    } catch (e: any) {
+      setDebugResult(`Error: ${e.response?.data?.detail ?? e.message}`);
+    } finally { setDebugging(false); }
+  };
+
   return (
     <div className="card p-4 border-green-800/40 bg-green-900/10">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -334,10 +348,20 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
             Replaces existing goal events for all completed matches.
           </p>
         </div>
-        <button onClick={sync} disabled={syncing} className="btn-primary py-1.5 text-sm">
-          {syncing ? '⏳ Syncing…' : '⚽ Sync goals'}
-        </button>
+        <div className="flex gap-2">
+          <button onClick={debug} disabled={debugging} className="btn-secondary py-1.5 text-xs">
+            {debugging ? '…' : '🔍 Test ESPN'}
+          </button>
+          <button onClick={sync} disabled={syncing} className="btn-primary py-1.5 text-sm">
+            {syncing ? '⏳ Syncing…' : '⚽ Sync goals'}
+          </button>
+        </div>
       </div>
+      {debugResult && (
+        <pre className="mt-3 text-xs text-gray-300 bg-[#0d1117] rounded p-3 overflow-auto max-h-48 border border-[#30363d]">
+          {debugResult}
+        </pre>
+      )}
     </div>
   );
 }

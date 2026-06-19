@@ -6,7 +6,7 @@ ESPN: goal scorer data via public scoreboard + summary endpoints (no key needed)
 """
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -285,7 +285,6 @@ async def sync_goals_espn() -> dict:
             # Add the kickoff date and the day after (UTC midnight edge cases)
             d = m.kickoff_utc
             unique_dates.add(d.strftime("%Y%m%d"))
-            from datetime import timedelta
             unique_dates.add((d + timedelta(days=1)).strftime("%Y%m%d"))
 
     log.info("ESPN sync: fetching scoreboard for %d dates", len(unique_dates))

@@ -65,6 +65,46 @@ async def trigger_sync_goals(admin: User = Depends(require_admin)):
     return await sync_goals_espn()
 
 
+@router.get("/debug-espn")
+async def debug_espn(admin: User = Depends(require_admin)):
+    """Hit ESPN for June 11 and return raw response structure for diagnosis."""
+    import httpx
+    from app.services.sync import ESPN_SCOREBOARD_URL, ESPN_SUMMARY_URL, _ESPN_HEADERS
+    result: dict = {}
+    async with httpx.AsyncClient(timeout=15, headers=_ESPN_HEADERS) as client:
+        try:
+            r = await client.get(ESPN_SCOREBOARD_URL, params={"dates": "20260611"})
+            result["scoreboard_status"] = r.status_code
+            if r.status_code == 200:
+                data = r.json()
+                events = data.get("events", [])
+                result["events_count"] = len(events)
+                result["top_level_keys"] = list(data.keys())
+                if events:
+                    ev = events[0]
+                    result["first_event_keys"] = list(ev.keys())
+                    result["first_event_status"] = ev.get("status", {}).get("type", {}).get("name")
+                    comps = (ev.get("competitions") or [{}])[0]
+                    result["first_event_competitors"] = [
+                        {"displayName": c.get("team", {}).get("displayName"), "homeAway": c.get("homeAway")}
+                        for c in comps.get("competitors", [])
+                    ]
+                    # Try fetching summary for this event
+                    eid = ev.get("id")
+                    if eid:
+                        r2 = await client.get(ESPN_SUMMARY_URL, params={"event": eid})
+                        result["summary_status"] = r2.status_code
+                        if r2.status_code == 200:
+                            d2 = r2.json()
+                            result["summary_top_level_keys"] = list(d2.keys())
+                            for k in ["scoringSummary", "scoringPlays", "scoring", "plays", "gamepackageJSON"]:
+                                v = d2.get(k)
+                                result[f"summary_{k}"] = f"{type(v).__name__}, len={len(v) if isinstance(v, list) else 'n/a'}"
+        except Exception as e:
+            result["error"] = str(e)
+    return result
+
+
 @router.get("/sync/status")
 async def sync_status(admin: User = Depends(require_admin)):
     return {
