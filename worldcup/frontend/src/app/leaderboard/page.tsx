@@ -4,6 +4,7 @@ import { leaderboardApi } from '@/lib/api';
 import { LeaderboardEntry, DEFAULT_KIT, KitConfig } from '@/types';
 import { useAuthStore } from '@/store/auth';
 import { KitSVG } from '@/components/KitSVG';
+import Link from 'next/link';
 
 export default function LeaderboardPage() {
   const { user } = useAuthStore();
@@ -47,12 +48,12 @@ export default function LeaderboardPage() {
                   <div className="shrink-0">
                     <KitSVG kit={{ ...DEFAULT_KIT, ...(e.kit as KitConfig), jersey: { ...DEFAULT_KIT.jersey, ...((e.kit as KitConfig)?.jersey) }, shorts: { ...DEFAULT_KIT.shorts, ...((e.kit as KitConfig)?.shorts) }, socks: { ...DEFAULT_KIT.socks, ...((e.kit as KitConfig)?.socks) } }} width={26} />
                   </div>
-                  <div>
+                  <Link href={`/profile/${e.username}`} className="min-w-0 hover:opacity-80">
                     <p className={`font-semibold text-sm ${isMe ? 'text-green-400' : 'text-white'}`}>
                       {e.display_name}{isMe && <span className="ml-1 text-xs text-green-600">(you)</span>}
                     </p>
                     <p className="text-xs text-gray-500">@{e.username}</p>
-                  </div>
+                  </Link>
                 </div>
                 <div className="col-span-2 text-center">
                   <span className="text-xl font-bold">{e.total_points}</span>

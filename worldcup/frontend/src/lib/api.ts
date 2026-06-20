@@ -67,3 +67,7 @@ export const triviaApi = {
   saveLive: (score: number, total: number) => api.put('/trivia/live', { score, total }),
   myStats: () => api.get('/trivia/my-stats'),
 };
+
+export const profileApi = {
+  get: (username: string) => api.get(`/auth/profile/${username}`),
+};

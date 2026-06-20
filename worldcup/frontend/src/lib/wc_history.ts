@@ -19,6 +19,7 @@ export interface WCEdition {
   mascot?: string;
   ball?: string;
   funFacts: string[];
+  funFactsEs: string[];
 }
 
 export const WC_EDITIONS: WCEdition[] = [
@@ -45,6 +46,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Uruguay and Argentina used different balls in each half — both claimed victory in their half.',
       'The Jules Rimet trophy was awarded for the first time.',
     ],
+    funFactsEs: [
+      'El primer Mundial — 13 naciones compitieron, todas invitadas por la FIFA.',
+      'Los equipos europeos tuvieron que viajar dos semanas en barco para llegar a Uruguay.',
+      'La final se disputó en el recién construido Estadio Centenario de Montevideo.',
+      'Uruguay y Argentina usaron balones distintos en cada parte — ambos reclamaron la victoria con su balón.',
+      'El Trofeo Jules Rimet fue entregado por primera vez.',
+    ],
   },
   {
     year: 1934,
@@ -68,6 +76,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Vittorio Pozzo became the only manager to win two World Cups (1934 and 1938).',
       'Italy\'s win under Mussolini raised political controversy about pressure on referees.',
       'Brazil and Argentina were both eliminated in their opening matches.',
+    ],
+    funFactsEs: [
+      'El primer torneo con formato de eliminación directa desde el inicio.',
+      'Uruguay, el campeón defensor, boicoteó en represalia por la ausencia europea en 1930.',
+      'Vittorio Pozzo se convirtió en el único seleccionador en ganar dos Mundiales (1934 y 1938).',
+      'La victoria italiana bajo Mussolini generó controversia sobre la presión a los árbitros.',
+      'Brasil y Argentina fueron eliminados en sus partidos de apertura.',
     ],
   },
   {
@@ -93,6 +108,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Spain was in the middle of its Civil War and couldn\'t participate.',
       'The next World Cup would not be held for 12 years due to World War II.',
     ],
+    funFactsEs: [
+      'Italia se convirtió en bicampeón del mundo.',
+      'Leônidas de Brasil, apodado \'El Diamante Negro\', marcó 7 goles.',
+      'Austria se clasificó pero fue absorbida por Alemania antes del torneo; sus jugadores se unieron a la selección alemana.',
+      'España estaba en plena Guerra Civil y no pudo participar.',
+      'El siguiente Mundial no se celebraría hasta 12 años después, a causa de la Segunda Guerra Mundial.',
+    ],
   },
   {
     year: 1950,
@@ -116,6 +138,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Scotland, India, and Turkey all withdrew before the tournament.',
       'England participated in the World Cup for the very first time — and lost to the USA 1–0.',
       'The shock Uruguay victory caused massive grief across Brazil; some fans reportedly died of heart attacks.',
+    ],
+    funFactsEs: [
+      '\'El Maracanazo\' — la victoria de Uruguay 2–1 sobre Brasil ante ~200.000 aficionados en el Maracaná sigue siendo uno de los mayores golpes del deporte.',
+      'La final fue una \'liguilla final\', no un partido único de eliminación directa.',
+      'Escocia, India y Turquía se retiraron antes del torneo.',
+      'Inglaterra participó en el Mundial por primera vez — y perdió ante EE. UU. 1–0.',
+      'La impactante victoria de Uruguay provocó una oleada de duelo en Brasil; se dice que algunos aficionados murieron de ataques al corazón.',
     ],
   },
   {
@@ -141,6 +170,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Uruguay\'s match vs Hungary produced 4 red cards and a brawl; dubbed "The Battle of Bern."',
       'First World Cup to be televised.',
     ],
+    funFactsEs: [
+      '\'El Milagro de Berna\' — Alemania Occidental venció en la final a los imbatibles \'Húngaros Magníficos\'.',
+      'Hungría había derrotado a Alemania Occidental 8–3 en la fase de grupos pocas semanas antes.',
+      'El torneo promedió 5,38 goles por partido, el mayor promedio en la historia del Mundial.',
+      'El partido Uruguay–Hungría tuvo 4 expulsiones y una pelea campal; apodado \'La Batalla de Berna\'.',
+      'Primer Mundial televisado.',
+    ],
   },
   {
     year: 1958,
@@ -160,6 +196,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Vavá scored twice in the final to help Brazil win their first World Cup title.',
       'France finished 3rd — their best result until 1998.',
       'Brazil introduced the 4-2-4 formation that revolutionized football tactics.',
+    ],
+    funFactsEs: [
+      'Un Pelé de 17 años se convirtió en sensación mundial, marcando 6 goles incluyendo un hat-trick en semifinales.',
+      'Los 13 goles de Just Fontaine en un solo torneo son un récord que hoy aún se mantiene.',
+      'Vavá marcó dos veces en la final para ayudar a Brasil a conquistar su primer título.',
+      'Francia terminó tercera — su mejor resultado hasta 1998.',
+      'Brasil introdujo el sistema 4-2-4 que revolucionó la táctica del fútbol.',
     ],
     teams: 16,
     matches: 35,
@@ -189,6 +232,13 @@ export const WC_EDITIONS: WCEdition[] = [
       '"The Battle of Santiago" (Italy vs Chile) was so violent the BBC commentator called it "the most disgraceful exhibition of football."',
       'A magnitude 9.5 earthquake hit Chile the year before; hosting the tournament was a major achievement.',
     ],
+    funFactsEs: [
+      'Brasil ganó títulos consecutivos, siendo el primer equipo en lograrlo desde Italia en 1934–38.',
+      'Pelé se lesionó en el segundo partido de la fase de grupos y se perdió el resto del torneo.',
+      'Garrincha, \'El Pájaro\', fue el jugador más destacado pese a sus piernas arqueadas.',
+      '\'La Batalla de Santiago\' (Italia vs Chile) fue tan violenta que el comentarista de la BBC la llamó \'la exposición más vergonzosa del fútbol\'.',
+      'Un terremoto de magnitud 9,5 asoló Chile el año anterior; organizar el torneo fue un enorme logro.',
+    ],
   },
   {
     year: 1966,
@@ -213,6 +263,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'World Cup Willie became the first official World Cup mascot.',
       'North Korea knocked out Italy in the group stage — one of the biggest upsets ever.',
       'The Jules Rimet trophy was stolen and then found by a dog named Pickles.',
+    ],
+    funFactsEs: [
+      'El único título mundial de Inglaterra — Geoff Hurst marcó un hat-trick en la final.',
+      'El famoso \'gol de Wembley\' — el tercer gol de Hurst sigue generando debate sobre si cruzó la línea.',
+      'World Cup Willie se convirtió en la primera mascota oficial del Mundial.',
+      'Corea del Norte eliminó a Italia en la fase de grupos, una de las mayores sorpresas de la historia.',
+      'El Trofeo Jules Rimet fue robado y luego encontrado por un perro llamado Pickles.',
     ],
   },
   {
@@ -241,6 +298,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'The "Game of the Century" — Italy beat West Germany 4–3 in extra time in the semi-final.',
       'Jairzinho scored in every single game of the tournament — a unique feat.',
     ],
+    funFactsEs: [
+      'Brasil ganó su tercer título y se quedó definitivamente con el Trofeo Jules Rimet.',
+      'Considerado ampliamente el mejor Mundial de la historia — Pelé, Rivelino, Jairzinho y Tostão en un mismo equipo.',
+      'Primer Mundial retransmitido en color por todo el mundo.',
+      '\'El Partido del Siglo\' — Italia venció a Alemania Occidental 4–3 en la prórroga de la semifinal.',
+      'Jairzinho marcó en todos y cada uno de los partidos del torneo, un hito irrepetible.',
+    ],
   },
   {
     year: 1974,
@@ -267,6 +331,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'The current FIFA World Cup trophy was introduced for the first time.',
       'Pelé was absent — his Brazil squad was controversially eliminated in the second group stage.',
       'East Germany beat West Germany 1–0 in the group stage — the only time the two German states ever met.',
+    ],
+    funFactsEs: [
+      'Johan Cruyff y los Países Bajos presentaron el \'Fútbol Total\' al mundo.',
+      'Los Países Bajos llegaron a la final de 1978 sin Cruyff, quien se negó a ir alegando un intento de secuestro.',
+      'El actual trofeo de la Copa del Mundo FIFA se entregó por primera vez.',
+      'La ausencia de Pelé fue notable — su Brasil fue eliminado polémicamente en la segunda fase de grupos.',
+      'Alemania del Este venció a Alemania Occidental 1–0 en la fase de grupos: el único enfrentamiento entre los dos estados alemanes.',
     ],
   },
   {
@@ -295,6 +366,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Scotland\'s Archie Gemmill scored one of the greatest World Cup goals ever against the Netherlands.',
       'The tournament was held amid protests against Argentina\'s military junta government.',
     ],
+    funFactsEs: [
+      'El primer título mundial de Argentina, bajo dictadura militar — el torneo estuvo envuelto en polémica.',
+      'Mario Kempes, máximo goleador del torneo, anotó dos goles en la final.',
+      'La lluvia de papelitos en el estadio River Plate durante los partidos de Argentina se convirtió en imagen icónica.',
+      'Archie Gemmill de Escocia marcó uno de los mejores goles de la historia del Mundial contra los Países Bajos.',
+      'El torneo se celebró en medio de protestas contra la junta militar argentina.',
+    ],
   },
   {
     year: 1982,
@@ -322,6 +400,13 @@ export const WC_EDITIONS: WCEdition[] = [
       '"Night of Shame" — West Germany and Austria played a 1–0 result that sent both through, with both teams happy with the score.',
       'Brazil\'s incredible attacking team (Zico, Sócrates, Falcão) was sensationally eliminated by Italy.',
     ],
+    funFactsEs: [
+      'Se amplió a 24 equipos por primera vez.',
+      'Paolo Rossi había regresado de una sanción de 2 años por amaño de partidos y se convirtió en el héroe marcando 6 goles en la fase final.',
+      'Hungría venció a El Salvador 10–1, el mayor margen de victoria en la historia del Mundial.',
+      '\'La Noche de la Vergüenza\' — Alemania Occidental y Austria jugaron un 1–0 con el que ambas avanzaban, sin ninguno intentar remontar.',
+      'El increíble Brasil atacante (Zico, Sócrates, Falcão) fue sensacionalmente eliminado por Italia.',
+    ],
   },
   {
     year: 1986,
@@ -348,6 +433,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Maradona had 10 assists in the tournament, an extraordinary tally for the era.',
       'First World Cup to use penalty shootouts to decide knockout matches.',
       'Mexico hosted on very short notice after Colombia withdrew — and was devastated by an earthquake in 1985.',
+    ],
+    funFactsEs: [
+      'El torneo de Maradona — el gol con \'La Mano de Dios\' y el \'Gol del Siglo\' llegaron en el mismo partido ante Inglaterra.',
+      'El Gol del Siglo fue elegido el mejor gol de la historia del Mundial en una encuesta online de la FIFA.',
+      'Maradona acumuló 10 asistencias en el torneo, una cifra extraordinaria para la época.',
+      'Primer Mundial en resolver los partidos de eliminatoria mediante tanda de penaltis.',
+      'México acogió el torneo con muy poco margen tras la retirada de Colombia — y pese a un devastador terremoto en 1985.',
     ],
   },
   {
@@ -377,6 +469,13 @@ export const WC_EDITIONS: WCEdition[] = [
       '"Nessun Dorma" by Pavarotti became the iconic anthem of the tournament.',
       'Republic of Ireland reached the quarter-finals in their first-ever World Cup.',
     ],
+    funFactsEs: [
+      'El Mundial más defensivo y con menos goles — solo 115 en 52 partidos.',
+      'El camerunés Roger Milla (38 años) se hizo leyenda mundial con sus celebraciones en el banderín de córner.',
+      'El torneo batió el récord con 16 tarjetas rojas.',
+      '\'Nessun Dorma\' de Pavarotti se convirtió en el himno icónico del torneo.',
+      'La República de Irlanda llegó a los cuartos de final en su primera Copa del Mundo.',
+    ],
   },
   {
     year: 1994,
@@ -404,6 +503,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Oleg Salenko scored 5 goals in a single game vs Cameroon — a World Cup record.',
       'Colombia\'s Andrés Escobar was shot dead after returning home, following his own goal vs USA.',
       'Brazil won their fourth title after a 24-year wait.',
+    ],
+    funFactsEs: [
+      'Primer Mundial celebrado en Estados Unidos — batió el récord histórico de asistencia con 3,58 millones.',
+      'Primera final del Mundial resuelta mediante tanda de penaltis — Roberto Baggio falló el penalti decisivo.',
+      'Oleg Salenko marcó 5 goles en un solo partido ante Camerún, récord del Mundial.',
+      'El colombiano Andrés Escobar fue asesinado a tiros al volver a su país, tras su gol en propia puerta ante EE. UU.',
+      'Brasil conquistó su cuarto título tras 24 años de espera.',
     ],
   },
   {
@@ -433,6 +539,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Croatia finished 3rd in their first World Cup appearance.',
       'The Stade de France in Saint-Denis was built specifically for this tournament.',
     ],
+    funFactsEs: [
+      'Se amplió a 32 equipos — el formato utilizado hasta 2022.',
+      'Francia ganó su primer Mundial en casa; Zidane marcó dos goles de cabeza en la final.',
+      'La misteriosa enfermedad de Ronaldo antes del partido sigue siendo un enigma del fútbol — salió al campo pero fue muy discreto.',
+      'Croacia terminó tercera en su primera participación en el Mundial.',
+      'El Stade de France en Saint-Denis se construyó expresamente para este torneo.',
+    ],
   },
   {
     year: 2002,
@@ -460,6 +573,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'South Korea reached the semi-finals in a run full of controversial refereeing decisions.',
       'Defending champion France failed to score a single goal and was eliminated in the group stage.',
       'Senegal, in their first World Cup, beat France and reached the quarter-finals.',
+    ],
+    funFactsEs: [
+      'Primer Mundial celebrado en Asia — y el único torneo coanfitrionado.',
+      'Ronaldo marcó 8 goles, incluyendo los dos de la final, para redimirse del Mundial de 1998.',
+      'Corea del Sur llegó a las semifinales en una carrera marcada por polémicas decisiones arbitrales.',
+      'La campeona defensora Francia no marcó un solo gol y fue eliminada en la fase de grupos.',
+      'Senegal, en su primer Mundial, venció a Francia y llegó a los cuartos de final.',
     ],
   },
   {
@@ -489,6 +609,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Australia returned to the World Cup after a 32-year absence.',
       'Germany vs Italy semi-final (2–0 in extra time) was one of the tournament\'s finest matches.',
     ],
+    funFactsEs: [
+      'Zidane ganó el Balón de Oro en su último partido profesional — tras ser expulsado por su cabezazo a Materazzi.',
+      'Italia conquistó su cuarto título.',
+      '\'El cuento de hadas del verano\' — Alemania disfrutó de un ambiente de fiesta como país anfitrión.',
+      'Australia regresó al Mundial tras 32 años de ausencia.',
+      'La semifinal Alemania–Italia (2–0 en la prórroga) fue uno de los mejores partidos del torneo.',
+    ],
   },
   {
     year: 2010,
@@ -516,6 +643,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'The vuvuzela became the sound of the tournament — and of controversy.',
       'The Jabulani ball was criticized by goalkeepers for its unpredictable movement.',
       'Octopus Paul correctly predicted all of Germany\'s results and the final winner.',
+    ],
+    funFactsEs: [
+      'Primer Mundial celebrado en África — Sudáfrica construyó 5 nuevos estadios.',
+      'España ganó su primer Mundial, completando un triplete único (Eurocopa 2008, Mundial 2010, Eurocopa 2012).',
+      'La vuvuzela se convirtió en el sonido del torneo — y de la polémica.',
+      'El balón Jabulani fue criticado por los porteros por su trayectoria imprevisible.',
+      'El pulpo Paul acertó todos los resultados de Alemania y el ganador del torneo.',
     ],
   },
   {
@@ -545,6 +679,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'James Rodríguez\'s volley vs Uruguay was voted Goal of the Tournament.',
       'VAR was not yet in use — several controversial decisions sparked major debate.',
     ],
+    funFactsEs: [
+      '\'El Mineirazo\' — Brasil cayó 7–1 ante Alemania en la semifinal; los alemanes marcaron 5 goles en 18 minutos.',
+      'Miroslav Klose marcó su 16.º gol mundialista para convertirse en el máximo goleador histórico.',
+      'Mario Götze, entrando desde el banquillo, anotó el gol de la prórroga — Alemania conquistó su 4.º título.',
+      'El voleo de James Rodríguez ante Uruguay fue elegido Gol del Torneo.',
+      'El VAR aún no estaba en uso — varias decisiones polémicas generaron un intenso debate.',
+    ],
   },
   {
     year: 2018,
@@ -573,6 +714,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Luka Modrić won the Golden Ball; only the second player after Ronaldo (2002) to win it from a non-top-4 team.',
       'Germany, the defending champions, were eliminated in the group stage.',
     ],
+    funFactsEs: [
+      'El VAR se usó por primera vez — se pitaron un récord de 29 penaltis.',
+      'Croacia eliminó a Rusia, Dinamarca y al país anfitrión en tanda de penaltis para llegar a la final.',
+      'Kylian Mbappé (19 años) se convirtió en el segundo adolescente, tras Pelé, en marcar en una final del Mundial.',
+      'Luka Modrić ganó el Balón de Oro; solo el segundo jugador tras Ronaldo (2002) en lograrlo sin ser del Top 4.',
+      'Alemania, la campeona defensora, fue eliminada en la fase de grupos.',
+    ],
   },
   {
     year: 2022,
@@ -600,6 +748,13 @@ export const WC_EDITIONS: WCEdition[] = [
       'Morocco became the first African team to reach the semi-finals.',
       'The first World Cup held in the Middle East — and in winter (November–December).',
       'All 8 stadiums were within 55 km of each other, making it the most compact World Cup ever.',
+    ],
+    funFactsEs: [
+      'La mejor final de la historia — Mbappé marcó un hat-trick, pero Argentina ganó en los penaltis.',
+      'Lionel Messi finalmente ganó el Mundial, afianzando su legado en el debate del GOAT.',
+      'Marruecos se convirtió en el primer equipo africano en llegar a las semifinales.',
+      'El primer Mundial celebrado en Oriente Medio — y en invierno (noviembre–diciembre).',
+      'Los 8 estadios estaban a menos de 55 km entre sí, convirtiéndolo en el Mundial más compacto de la historia.',
     ],
   },
 ];

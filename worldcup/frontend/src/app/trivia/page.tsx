@@ -6,6 +6,7 @@ import { getLang, saveLang, getQuestionsForQuiz, markSeen, unseenCount, TriviaLa
 import { useAuthStore } from '@/store/auth';
 import { api, triviaApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import Link from 'next/link';
 
 const TIMER_SECONDS = 15;
 
@@ -53,7 +54,7 @@ function TriviaLeaderboard({ refreshKey }: { refreshKey: number }) {
           <span className="w-6 text-center font-bold text-gray-500 shrink-0">
             {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`}
           </span>
-          <span className="flex-1 text-white font-medium">{row.display_name}</span>
+          <Link href={`/profile/${row.username}`} className="flex-1 text-white font-medium hover:text-green-400 transition-colors truncate">{row.display_name}</Link>
           <span className="text-green-400 font-bold">
             {row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span>
           </span>

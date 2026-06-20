@@ -1,6 +1,44 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { WC_EDITIONS, WCEdition } from '@/lib/wc_history';
+import { getLang, saveLang, TriviaLang } from '@/lib/trivia_utils';
+
+const tx = {
+  en: {
+    title: '📖 World Cup History',
+    subtitle: '22 tournaments · 1930–2022 · The complete story',
+    select: 'Select Tournament',
+    champion: 'Champion',
+    final: 'Final',
+    stats: 'Tournament Stats',
+    teams: 'Teams', matches: 'Matches', goals: 'Goals', attendance: 'Attendance',
+    awards: 'Awards',
+    boot: 'Golden Boot',
+    ball: 'Golden Ball (Best Player)',
+    glove: 'Golden Glove (Best Keeper)',
+    mascot: 'Mascot',
+    officialBall: 'Official Ball',
+    facts: 'Fun Facts & Story',
+    goals_label: 'goals',
+  },
+  es: {
+    title: '📖 Historia del Mundial',
+    subtitle: '22 torneos · 1930–2022 · La historia completa',
+    select: 'Seleccionar torneo',
+    champion: 'Campeón',
+    final: 'Final',
+    stats: 'Estadísticas del torneo',
+    teams: 'Equipos', matches: 'Partidos', goals: 'Goles', attendance: 'Asistencia',
+    awards: 'Premios',
+    boot: 'Bota de Oro',
+    ball: 'Balón de Oro (Mejor jugador)',
+    glove: 'Guante de Oro (Mejor portero)',
+    mascot: 'Mascota',
+    officialBall: 'Balón oficial',
+    facts: 'Curiosidades e historia',
+    goals_label: 'goles',
+  },
+};
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
@@ -37,19 +75,34 @@ function EditionCard({ ed, selected, onClick }: { ed: WCEdition; selected: boole
 
 export default function WCHistoryPage() {
   const [selectedYear, setSelectedYear] = useState<number>(2022);
+  const [lang, setLang] = useState<TriviaLang>('en');
+
+  useEffect(() => { setLang(getLang()); }, []);
+  const switchLang = (l: TriviaLang) => { setLang(l); saveLang(l); };
+  const l = tx[lang];
+
   const edition = WC_EDITIONS.find(e => e.year === selectedYear) ?? WC_EDITIONS[WC_EDITIONS.length - 1];
+  const funFacts = lang === 'es' && edition.funFactsEs?.length ? edition.funFactsEs : edition.funFacts;
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       <div className="card p-6 bg-gradient-to-br from-blue-900/20 to-[#161b22] border-blue-800/30">
-        <h1 className="text-2xl font-bold text-white mb-1">📖 World Cup History</h1>
-        <p className="text-gray-400 text-sm">22 tournaments · 1930–2022 · The complete story</p>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold text-white mb-1">{l.title}</h1>
+            <p className="text-gray-400 text-sm">{l.subtitle}</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => switchLang('en')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${lang === 'en' ? 'border-green-500 bg-green-900/20 text-green-300' : 'border-[#30363d] text-gray-400 hover:border-gray-500'}`}>🇺🇸 English</button>
+            <button onClick={() => switchLang('es')} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${lang === 'es' ? 'border-green-500 bg-green-900/20 text-green-300' : 'border-[#30363d] text-gray-400 hover:border-gray-500'}`}>🇪🇸 Español</button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Year selector */}
         <div className="card p-4 space-y-2 lg:max-h-[80vh] lg:overflow-y-auto">
-          <h2 className="text-xs text-gray-500 uppercase font-medium tracking-widest mb-3">Select Tournament</h2>
+          <h2 className="text-xs text-gray-500 uppercase font-medium tracking-widest mb-3">{l.select}</h2>
           {[...WC_EDITIONS].reverse().map(ed => (
             <EditionCard
               key={ed.year}
@@ -72,14 +125,14 @@ export default function WCHistoryPage() {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">Champion</div>
+                <div className="text-xs text-gray-500 uppercase tracking-widest mb-1">{l.champion}</div>
                 <div className="text-4xl">{edition.championFlag}</div>
                 <div className="text-white font-bold mt-1">{edition.champion}</div>
               </div>
             </div>
 
             <div className="mt-4 p-4 bg-[#0d1117] rounded-xl">
-              <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 text-center">Final</div>
+              <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 text-center">{l.final}</div>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
                   <div className="text-2xl">{edition.championFlag}</div>
@@ -96,32 +149,32 @@ export default function WCHistoryPage() {
 
           {/* Stats grid */}
           <div className="card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">Tournament Stats</h3>
+            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{l.stats}</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <StatCard label="Teams" value={edition.teams} />
-              <StatCard label="Matches" value={edition.matches} />
-              <StatCard label="Goals" value={edition.goals} />
-              <StatCard label="Attendance" value={edition.attendance} />
+              <StatCard label={l.teams} value={edition.teams} />
+              <StatCard label={l.matches} value={edition.matches} />
+              <StatCard label={l.goals} value={edition.goals} />
+              <StatCard label={l.attendance} value={edition.attendance} />
             </div>
           </div>
 
           {/* Awards */}
           <div className="card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">Awards</h3>
+            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{l.awards}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="flex items-center gap-3 bg-[#0d1117] rounded-lg p-3">
                 <span className="text-2xl">🥾</span>
                 <div>
-                  <div className="text-xs text-gray-500">Golden Boot</div>
+                  <div className="text-xs text-gray-500">{l.boot}</div>
                   <div className="font-semibold text-white text-sm">{edition.topScorer}</div>
-                  <div className="text-xs text-green-400">{edition.topScorerGoals} goals · {edition.topScorerCountry}</div>
+                  <div className="text-xs text-green-400">{edition.topScorerGoals} {l.goals_label} · {edition.topScorerCountry}</div>
                 </div>
               </div>
               {edition.goldenBall && (
                 <div className="flex items-center gap-3 bg-[#0d1117] rounded-lg p-3">
                   <span className="text-2xl">🏅</span>
                   <div>
-                    <div className="text-xs text-gray-500">Golden Ball (Best Player)</div>
+                    <div className="text-xs text-gray-500">{l.ball}</div>
                     <div className="font-semibold text-white text-sm">{edition.goldenBall}</div>
                   </div>
                 </div>
@@ -130,7 +183,7 @@ export default function WCHistoryPage() {
                 <div className="flex items-center gap-3 bg-[#0d1117] rounded-lg p-3">
                   <span className="text-2xl">🧤</span>
                   <div>
-                    <div className="text-xs text-gray-500">Golden Glove (Best Keeper)</div>
+                    <div className="text-xs text-gray-500">{l.glove}</div>
                     <div className="font-semibold text-white text-sm">{edition.goldenGlove}</div>
                   </div>
                 </div>
@@ -139,7 +192,7 @@ export default function WCHistoryPage() {
                 <div className="flex items-center gap-3 bg-[#0d1117] rounded-lg p-3">
                   <span className="text-2xl">🎭</span>
                   <div>
-                    <div className="text-xs text-gray-500">Mascot</div>
+                    <div className="text-xs text-gray-500">{l.mascot}</div>
                     <div className="font-semibold text-white text-sm">{edition.mascot}</div>
                   </div>
                 </div>
@@ -148,7 +201,7 @@ export default function WCHistoryPage() {
                 <div className="flex items-center gap-3 bg-[#0d1117] rounded-lg p-3">
                   <span className="text-2xl">⚽</span>
                   <div>
-                    <div className="text-xs text-gray-500">Official Ball</div>
+                    <div className="text-xs text-gray-500">{l.officialBall}</div>
                     <div className="font-semibold text-white text-sm">{edition.ball}</div>
                   </div>
                 </div>
@@ -158,9 +211,9 @@ export default function WCHistoryPage() {
 
           {/* Fun facts */}
           <div className="card p-5">
-            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">Fun Facts & Story</h3>
+            <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{l.facts}</h3>
             <ul className="space-y-3">
-              {edition.funFacts.map((fact, i) => (
+              {funFacts.map((fact, i) => (
                 <li key={i} className="flex gap-3 text-sm">
                   <span className="text-green-500 shrink-0 mt-0.5">✦</span>
                   <span className="text-gray-300">{fact}</span>

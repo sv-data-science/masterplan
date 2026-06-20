@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 import uuid
 import json
 from pydantic import BaseModel
-from typing import Any
-from app.database import get_db
+from typing import Any, Optional
+from app.database import get_db, AsyncSessionLocal
 from app.models.user import User
+from app.models.worldcup import Prediction, TriviaScore, TriviaLiveScore
 from app.schemas.user import UserCreate, UserPublic, Token, LoginRequest
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
 from app.config import settings
@@ -74,6 +75,81 @@ async def update_kit(
     current_user.kit = json.dumps(body.model_dump())
     await db.flush()
     return current_user
+
+
+@router.get("/profile/{username}")
+async def get_public_profile(username: str):
+    """Public profile — no auth required."""
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(User).where(func.lower(User.username) == username.lower()))
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Leaderboard rank
+        rows = (await db.execute(
+            select(
+                User.id,
+                func.coalesce(func.sum(Prediction.points_earned), 0).label("total_points"),
+                func.count(Prediction.id).label("predictions"),
+            )
+            .join(Prediction, Prediction.user_id == User.id, isouter=True)
+            .group_by(User.id)
+            .order_by(func.coalesce(func.sum(Prediction.points_earned), 0).desc())
+        )).all()
+
+        rank: Optional[int] = None
+        total_points = 0
+        predictions_made = 0
+        prev_pts = None
+        prev_rank = 0
+        for i, r in enumerate(rows):
+            pts = int(r.total_points or 0)
+            cur_rank = prev_rank if pts == prev_pts else i + 1
+            prev_pts = pts
+            prev_rank = cur_rank
+            if r.id == user.id:
+                rank = cur_rank
+                total_points = pts
+                predictions_made = int(r.predictions or 0)
+                break
+
+        # Trivia stats
+        best_row = (await db.execute(
+            select(TriviaScore)
+            .where(TriviaScore.user_id == user.id, TriviaScore.total > 0)
+            .order_by(TriviaScore.score.desc())
+            .limit(1)
+        )).scalar_one_or_none()
+
+        games_played = (await db.execute(
+            select(func.count(TriviaScore.id)).where(TriviaScore.user_id == user.id)
+        )).scalar() or 0
+
+        live = (await db.execute(
+            select(TriviaLiveScore).where(TriviaLiveScore.user_id == user.id)
+        )).scalar_one_or_none()
+
+        kit = None
+        if user.kit:
+            try:
+                kit = json.loads(user.kit)
+            except Exception:
+                pass
+
+        return {
+            "username": user.username,
+            "display_name": user.display_name,
+            "kit": kit,
+            "rank": rank,
+            "total_points": total_points,
+            "predictions_made": predictions_made,
+            "best_score": best_row.score if best_row else None,
+            "best_total": best_row.total if best_row else None,
+            "games_played": int(games_played),
+            "live_score": live.score if live else None,
+            "live_total": live.total if live else None,
+        }
 
 
 @router.post("/make-admin/{user_id}", response_model=UserPublic)
