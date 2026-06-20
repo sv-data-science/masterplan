@@ -52,16 +52,19 @@ function mkPattern(id: string, c1: string, c2: string, pat: KitPattern, cell: nu
 }
 
 // Jersey body paths (viewBox 0 0 80 130).
-// Body tapers 2 px inward at the waist (y≈58) then flares back at the hem,
-// and the hem is a soft quadratic-bezier curve rather than a flat line.
+// Straight sides (no waist taper), curved bottom hem via quadratic bezier.
 const JERSEY_PATH: Record<CollarStyle, string> = {
-  vneck: 'M 30,14 L 8,22 L 2,38 L 6,48 L 22,42 L 24,58 L 22,73 Q 40,77 58,73 L 56,58 L 58,42 L 74,48 L 78,38 L 72,22 L 50,14 L 46,22 L 40,28 L 34,22 Z',
-  round: 'M 31,12 L 8,22 L 2,38 L 6,48 L 22,42 L 24,58 L 22,73 Q 40,77 58,73 L 56,58 L 58,42 L 74,48 L 78,38 L 72,22 L 49,12 C 46,15 43,16 40,16 C 37,16 33,15 31,12 Z',
-  polo:  'M 30,13 L 8,22 L 2,38 L 6,48 L 22,42 L 24,58 L 22,73 Q 40,77 58,73 L 56,58 L 58,42 L 74,48 L 78,38 L 72,22 L 50,13 Z',
+  vneck: 'M 30,14 L 8,22 L 2,38 L 6,48 L 22,42 L 22,73 Q 40,77 58,73 L 58,42 L 74,48 L 78,38 L 72,22 L 50,14 L 46,22 L 40,28 L 34,22 Z',
+  round: 'M 31,12 L 8,22 L 2,38 L 6,48 L 22,42 L 22,73 Q 40,77 58,73 L 58,42 L 74,48 L 78,38 L 72,22 L 49,12 C 46,15 43,16 40,16 C 37,16 33,15 31,12 Z',
+  polo:  'M 30,13 L 8,22 L 2,38 L 6,48 L 22,42 L 22,73 Q 40,77 58,73 L 58,42 L 74,48 L 78,38 L 72,22 L 50,13 Z',
 };
 
-const L_SLEEVE_CLIP = '8,22 2,38 6,48 22,42 22,26';
-const R_SLEEVE_CLIP = '72,22 78,38 74,48 58,42 58,26';
+// Short-sleeve clip regions for shoulder stripe rendering
+const L_SLEEVE_CLIP_SHORT = '8,22 2,38 6,48 22,42 22,26';
+const R_SLEEVE_CLIP_SHORT = '72,22 78,38 74,48 58,42 58,26';
+// Long-sleeve clip regions extend down to wrist (y≈73)
+const L_SLEEVE_CLIP_LONG  = '8,22 2,38 6,48 5,73 22,73 22,26';
+const R_SLEEVE_CLIP_LONG  = '72,22 78,38 74,48 75,73 58,73 58,26';
 
 export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) {
   const uid = useId().replace(/:/g, '');
@@ -72,7 +75,10 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
   const kP = mkPattern(`${uid}k`, kit.socks.color1, kit.socks.color2, kit.socks.pattern, 9);
 
   const { collarStyle, collarColor, sleeveAccentColor, shoulderStripes } = kit.jersey;
+  const isLong = kit.jersey.sleeveLength === 'long';
   const jerseyPath = JERSEY_PATH[collarStyle] ?? JERSEY_PATH.vneck;
+  const lSlip = isLong ? L_SLEEVE_CLIP_LONG : L_SLEEVE_CLIP_SHORT;
+  const rSlip = isLong ? R_SLEEVE_CLIP_LONG : R_SLEEVE_CLIP_SHORT;
 
   return (
     <svg width={width} height={height} viewBox="0 0 80 130" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
@@ -81,38 +87,57 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         {sP.defs}
         {kP.defs}
         <clipPath id={`${uid}-lsl`}>
-          <polygon points={L_SLEEVE_CLIP} />
+          <polygon points={lSlip} />
         </clipPath>
         <clipPath id={`${uid}-rsl`}>
-          <polygon points={R_SLEEVE_CLIP} />
+          <polygon points={rSlip} />
         </clipPath>
         <clipPath id={`${uid}-jc`}>
           <path d={jerseyPath} />
         </clipPath>
       </defs>
 
+      {/* ── Long sleeve extensions (drawn before body so body outline covers junction) ── */}
+      {isLong && (
+        <>
+          <path d="M 6,48 L 5,73 L 22,73 L 22,42 Z" fill={jP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
+          <path d="M 74,48 L 75,73 L 58,73 L 58,42 Z" fill={jP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
+        </>
+      )}
+
       {/* ── Jersey body ── */}
       <path d={jerseyPath} fill={jP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
 
-      {/* ── Shoulder stripes (Adidas-style, clipped to each sleeve) ── */}
+      {/* ── Shoulder stripes — clipped to sleeve, extend full length for long sleeves ── */}
       {shoulderStripes && (
         <g strokeLinecap="butt">
           <g clipPath={`url(#${uid}-lsl)`}>
-            <line x1="10" y1="13" x2="3" y2="51" stroke={sleeveAccentColor} strokeWidth="2.5" />
-            <line x1="14" y1="13" x2="7" y2="51" stroke={sleeveAccentColor} strokeWidth="2.5" />
-            <line x1="18" y1="13" x2="11" y2="51" stroke={sleeveAccentColor} strokeWidth="2.5" />
+            <line x1="10" y1="13" x2={isLong ? "2"  : "3" } y2={isLong ? "74" : "51"} stroke={sleeveAccentColor} strokeWidth="2.5" />
+            <line x1="14" y1="13" x2={isLong ? "6"  : "7" } y2={isLong ? "74" : "51"} stroke={sleeveAccentColor} strokeWidth="2.5" />
+            <line x1="18" y1="13" x2={isLong ? "10" : "11"} y2={isLong ? "74" : "51"} stroke={sleeveAccentColor} strokeWidth="2.5" />
           </g>
           <g clipPath={`url(#${uid}-rsl)`}>
-            <line x1="70" y1="13" x2="77" y2="51" stroke={sleeveAccentColor} strokeWidth="2.5" />
-            <line x1="66" y1="13" x2="73" y2="51" stroke={sleeveAccentColor} strokeWidth="2.5" />
-            <line x1="62" y1="13" x2="69" y2="51" stroke={sleeveAccentColor} strokeWidth="2.5" />
+            <line x1="70" y1="13" x2={isLong ? "78" : "77"} y2={isLong ? "74" : "51"} stroke={sleeveAccentColor} strokeWidth="2.5" />
+            <line x1="66" y1="13" x2={isLong ? "74" : "73"} y2={isLong ? "74" : "51"} stroke={sleeveAccentColor} strokeWidth="2.5" />
+            <line x1="62" y1="13" x2={isLong ? "70" : "69"} y2={isLong ? "74" : "51"} stroke={sleeveAccentColor} strokeWidth="2.5" />
           </g>
         </g>
       )}
 
-      {/* ── Sleeve cuffs ── */}
-      <line x1="6" y1="48" x2="22" y2="42" stroke={sleeveAccentColor} strokeWidth="5" strokeLinecap="butt" clipPath={`url(#${uid}-jc)`} />
-      <line x1="74" y1="48" x2="58" y2="42" stroke={sleeveAccentColor} strokeWidth="5" strokeLinecap="butt" clipPath={`url(#${uid}-jc)`} />
+      {/* ── Cuff accent ── */}
+      {isLong ? (
+        <>
+          {/* Wrist cuff bands */}
+          <line x1="5" y1="73" x2="22" y2="73" stroke={sleeveAccentColor} strokeWidth="4" strokeLinecap="butt" />
+          <line x1="75" y1="73" x2="58" y2="73" stroke={sleeveAccentColor} strokeWidth="4" strokeLinecap="butt" />
+        </>
+      ) : (
+        <>
+          {/* Short sleeve hem bands */}
+          <line x1="6" y1="48" x2="22" y2="42" stroke={sleeveAccentColor} strokeWidth="5" strokeLinecap="butt" clipPath={`url(#${uid}-jc)`} />
+          <line x1="74" y1="48" x2="58" y2="42" stroke={sleeveAccentColor} strokeWidth="5" strokeLinecap="butt" clipPath={`url(#${uid}-jc)`} />
+        </>
+      )}
 
       {/* ── Collar overlays ── */}
       {collarStyle === 'vneck' && (
@@ -147,21 +172,27 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         </>
       )}
 
-      {/* ── Jersey outline on top ── */}
+      {/* ── Jersey outline ── */}
       <path d={jerseyPath} fill="none" stroke="rgba(0,0,0,0.18)" strokeWidth="0.75" />
 
-      {/* ── Shorts — curved leg openings instead of flat rect ── */}
-      <path
-        d="M 19,76 L 19,97 C 25,101 33,102 40,102 C 47,102 55,101 61,97 L 61,76 Z"
-        fill={sP.fill}
-        stroke="rgba(0,0,0,0.12)"
-        strokeWidth="0.75"
-      />
-      <line x1="40" y1="76" x2="40" y2="101" stroke="rgba(0,0,0,0.08)" strokeWidth="0.5" />
+      {/* ── Long sleeve outer outline (segments not covered by jersey body outline) ── */}
+      {isLong && (
+        <>
+          <path d="M 6,48 L 5,73 L 22,73" fill="none" stroke="rgba(0,0,0,0.18)" strokeWidth="0.75" />
+          <path d="M 74,48 L 75,73 L 58,73" fill="none" stroke="rgba(0,0,0,0.18)" strokeWidth="0.75" />
+        </>
+      )}
+
+      {/* ── Shorts — waistband + two separate leg tubes ── */}
+      <rect x="19" y="76" width="42" height="5" fill={sP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
+      {/* Left leg */}
+      <path d="M 19,81 L 19,101 Q 28,104 37,102 L 37,81 Z" fill={sP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
+      {/* Right leg */}
+      <path d="M 43,81 L 43,81 L 43,102 Q 52,104 61,101 L 61,81 Z" fill={sP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
 
       {/* ── Socks ── */}
-      <rect x="21" y="103" width="15" height="22" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
-      <rect x="44" y="103" width="15" height="22" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
+      <rect x="21" y="104" width="15" height="21" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
+      <rect x="44" y="104" width="15" height="21" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.12)" strokeWidth="0.75" />
     </svg>
   );
 }

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
-import { KitConfig, KitJersey, KitPiece, KitPattern, CollarStyle, DEFAULT_KIT } from '@/types';
+import { KitConfig, KitJersey, KitPiece, KitPattern, CollarStyle, SleeveLength, DEFAULT_KIT } from '@/types';
 import { KitSVG } from '@/components/KitSVG';
 import { authApi } from '@/lib/api';
 
@@ -156,6 +156,24 @@ function JerseyEditor({ jersey, onChange }: {
 
       <div className="border-t border-[#30363d] pt-3 space-y-3">
         <p className="text-xs text-gray-500 uppercase tracking-wide">Sleeve accents</p>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-400 w-28 shrink-0">Sleeve length</span>
+          <div className="flex gap-2">
+            {(['short', 'long'] as SleeveLength[]).map(sl => (
+              <button
+                key={sl}
+                onClick={() => set('sleeveLength', sl)}
+                className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
+                  (jersey.sleeveLength ?? 'short') === sl
+                    ? 'bg-green-600/20 border-green-500 text-green-400'
+                    : 'border-[#30363d] text-gray-400 hover:border-gray-500 hover:text-white'
+                }`}
+              >
+                {sl === 'short' ? '💪 Short' : '🧥 Long'}
+              </button>
+            ))}
+          </div>
+        </div>
         <ColorRow label="Cuff & stripe" value={jersey.sleeveAccentColor} onChange={v => set('sleeveAccentColor', v)} />
         <div className="flex items-center gap-3">
           <span className="text-xs text-gray-400 w-28 shrink-0">Shoulder stripes</span>
@@ -181,6 +199,7 @@ function randomColor(): string {
 function randomKit(): KitConfig {
   const pats: KitPattern[] = ['solid', 'stripes', 'hoops', 'checkerboard', 'diagonal'];
   const collars: CollarStyle[] = ['vneck', 'round', 'polo'];
+  const sleeves: SleeveLength[] = ['short', 'long'];
   const rp = () => pats[Math.floor(Math.random() * pats.length)];
   return {
     jersey: {
@@ -189,6 +208,7 @@ function randomKit(): KitConfig {
       collarColor: randomColor(),
       sleeveAccentColor: randomColor(),
       shoulderStripes: Math.random() > 0.5,
+      sleeveLength: sleeves[Math.floor(Math.random() * sleeves.length)],
     },
     shorts: { color1: randomColor(), color2: randomColor(), pattern: rp() },
     socks:  { color1: randomColor(), color2: randomColor(), pattern: rp() },

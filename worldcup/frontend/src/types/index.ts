@@ -1,5 +1,6 @@
 export type KitPattern = 'solid' | 'stripes' | 'hoops' | 'checkerboard' | 'diagonal';
 export type CollarStyle = 'vneck' | 'round' | 'polo';
+export type SleeveLength = 'short' | 'long';
 
 export interface KitJersey {
   color1: string;
@@ -9,6 +10,7 @@ export interface KitJersey {
   collarColor: string;
   sleeveAccentColor: string;
   shoulderStripes: boolean;
+  sleeveLength?: SleeveLength;
 }
 
 export interface KitPiece {
@@ -32,6 +34,7 @@ export const DEFAULT_KIT: KitConfig = {
     collarColor: '#ffffff',
     sleeveAccentColor: '#e3a008',
     shoulderStripes: false,
+    sleeveLength: 'short',
   },
   shorts: { color1: '#1e3a5f', color2: '#ffffff', pattern: 'solid' },
   socks: { color1: '#1e3a5f', color2: '#1a56db', pattern: 'solid' },
