@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getLang, saveLang, TriviaLang } from '@/lib/trivia_utils';
 import { useAuthStore } from '@/store/auth';
+import { WC_EDITIONS } from '@/lib/wc_history';
 
 const t = {
   en: {
@@ -21,6 +22,10 @@ const t = {
     noTrivia: 'No trivia games yet',
     isYou: 'This is your profile',
     editProfile: 'Edit your profile →',
+    favorites: '❤️ Favorites',
+    favWC: 'Favorite World Cup',
+    favTeam: 'Favorite Team',
+    favPlayer: 'Favorite Player',
   },
   es: {
     notFound: 'Jugador no encontrado',
@@ -33,6 +38,10 @@ const t = {
     noTrivia: 'Aún no hay partidas de trivia',
     isYou: 'Este es tu perfil',
     editProfile: 'Editar tu perfil →',
+    favorites: '❤️ Favoritos',
+    favWC: 'Mundial favorito',
+    favTeam: 'Selección favorita',
+    favPlayer: 'Jugador favorito',
   },
 };
 
@@ -87,6 +96,8 @@ export default function PublicProfilePage() {
   const pct = (n: number, d: number) => d > 0 ? Math.round((n / d) * 100) : 0;
   const bestPct = profile.best_score != null ? pct(profile.best_score, profile.best_total) : null;
   const livePct = profile.live_total > 0 ? pct(profile.live_score, profile.live_total) : null;
+  const favWcEdition = profile.fav_wc_year ? WC_EDITIONS.find((e: { year: number }) => e.year === profile.fav_wc_year) : null;
+  const hasFavorites = profile.fav_wc_year || profile.fav_national_team || profile.fav_player;
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
@@ -122,6 +133,44 @@ export default function PublicProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Favorites */}
+      {hasFavorites && (
+        <div className="card p-5">
+          <h2 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{tx.favorites}</h2>
+          <div className="space-y-3">
+            {favWcEdition && (
+              <div className="flex items-center gap-3">
+                <span className="text-xl shrink-0">🏆</span>
+                <div>
+                  <div className="text-xs text-gray-500">{tx.favWC}</div>
+                  <div className="text-sm font-medium text-white mt-0.5">
+                    {favWcEdition.year} {favWcEdition.hostFlag} {favWcEdition.host} · {favWcEdition.champion} {favWcEdition.championFlag}
+                  </div>
+                </div>
+              </div>
+            )}
+            {profile.fav_national_team && (
+              <div className="flex items-center gap-3">
+                <span className="text-xl shrink-0">🌍</span>
+                <div>
+                  <div className="text-xs text-gray-500">{tx.favTeam}</div>
+                  <div className="text-sm font-medium text-white mt-0.5">{profile.fav_national_team}</div>
+                </div>
+              </div>
+            )}
+            {profile.fav_player && (
+              <div className="flex items-center gap-3">
+                <span className="text-xl shrink-0">⭐</span>
+                <div>
+                  <div className="text-xs text-gray-500">{tx.favPlayer}</div>
+                  <div className="text-sm font-medium text-white mt-0.5">{profile.fav_player}</div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Prediction stats */}
       <div className="card p-5">

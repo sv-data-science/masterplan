@@ -14,6 +14,9 @@ class UserPublic(BaseModel):
     is_admin: bool
     created_at: datetime
     kit: Optional[dict] = None
+    fav_wc_year: Optional[int] = None
+    fav_national_team: Optional[str] = None
+    fav_player: Optional[str] = None
 
     @field_validator("kit", mode="before")
     @classmethod

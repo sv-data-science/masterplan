@@ -77,6 +77,25 @@ async def update_kit(
     return current_user
 
 
+class PreferencesUpdate(BaseModel):
+    fav_wc_year: Optional[int] = None
+    fav_national_team: Optional[str] = None
+    fav_player: Optional[str] = None
+
+
+@router.put("/preferences", response_model=UserPublic)
+async def update_preferences(
+    body: PreferencesUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    current_user.fav_wc_year = body.fav_wc_year
+    current_user.fav_national_team = body.fav_national_team
+    current_user.fav_player = body.fav_player
+    await db.flush()
+    return current_user
+
+
 @router.get("/profile/{username}")
 async def get_public_profile(username: str):
     """Public profile — no auth required."""
@@ -149,6 +168,9 @@ async def get_public_profile(username: str):
             "games_played": int(games_played),
             "live_score": live.score if live else None,
             "live_total": live.total if live else None,
+            "fav_wc_year": user.fav_wc_year,
+            "fav_national_team": user.fav_national_team,
+            "fav_player": user.fav_player,
         }
 
 

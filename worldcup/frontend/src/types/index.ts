@@ -44,6 +44,9 @@ export interface User {
   is_admin: boolean;
   created_at: string;
   kit?: KitConfig | null;
+  fav_wc_year?: number | null;
+  fav_national_team?: string | null;
+  fav_player?: string | null;
 }
 
 export interface Team {

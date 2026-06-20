@@ -32,6 +32,8 @@ export const authApi = {
     api.post('/auth/login', { email, password }),
   me: () => api.get('/auth/me'),
   updateKit: (kit: object) => api.put('/auth/kit', kit),
+  updatePreferences: (data: { fav_wc_year?: number | null; fav_national_team?: string | null; fav_player?: string | null }) =>
+    api.put('/auth/preferences', data),
 };
 
 export const matchesApi = {
