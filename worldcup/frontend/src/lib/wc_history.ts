@@ -20,6 +20,10 @@ export interface WCEdition {
   ball?: string;
   funFacts: string[];
   funFactsEs: string[];
+  thirdPlace?: string;
+  thirdPlaceFlag?: string;
+  thirdPlaceScore?: string;
+  stars: string[];
 }
 
 export const WC_EDITIONS: WCEdition[] = [
@@ -53,6 +57,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Uruguay y Argentina usaron balones distintos en cada parte — ambos reclamaron la victoria con su balón.',
       'El Trofeo Jules Rimet fue entregado por primera vez.',
     ],
+    thirdPlace: 'Yugoslavia',
+    thirdPlaceFlag: '🇷🇸',
+    thirdPlaceScore: 'No playoff (round-robin)',
+    stars: ['Guillermo Stábile 🇦🇷', 'Pedro Cea 🇺🇾', 'Bert Patenaude 🇺🇸'],
   },
   {
     year: 1934,
@@ -84,6 +92,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'La victoria italiana bajo Mussolini generó controversia sobre la presión a los árbitros.',
       'Brasil y Argentina fueron eliminados en sus partidos de apertura.',
     ],
+    thirdPlace: 'Germany',
+    thirdPlaceFlag: '🇩🇪',
+    thirdPlaceScore: '3–2 vs Austria',
+    stars: ['Giuseppe Meazza 🇮🇹', 'Oldřich Nejedlý 🇨🇿', 'Edmund Conen 🇩🇪'],
   },
   {
     year: 1938,
@@ -115,6 +127,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'España estaba en plena Guerra Civil y no pudo participar.',
       'El siguiente Mundial no se celebraría hasta 12 años después, a causa de la Segunda Guerra Mundial.',
     ],
+    thirdPlace: 'Brazil',
+    thirdPlaceFlag: '🇧🇷',
+    thirdPlaceScore: '4–2 vs Sweden',
+    stars: ['Leônidas 🇧🇷', 'Silvio Piola 🇮🇹', 'György Sárosi 🇭🇺'],
   },
   {
     year: 1950,
@@ -146,6 +162,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Inglaterra participó en el Mundial por primera vez — y perdió ante EE. UU. 1–0.',
       'La impactante victoria de Uruguay provocó una oleada de duelo en Brasil; se dice que algunos aficionados murieron de ataques al corazón.',
     ],
+    thirdPlace: 'Sweden',
+    thirdPlaceFlag: '🇸🇪',
+    thirdPlaceScore: 'No playoff (round-robin)',
+    stars: ['Ademir 🇧🇷', 'Juan Schiaffino 🇺🇾', 'Zizinho 🇧🇷'],
   },
   {
     year: 1954,
@@ -177,6 +197,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'El partido Uruguay–Hungría tuvo 4 expulsiones y una pelea campal; apodado \'La Batalla de Berna\'.',
       'Primer Mundial televisado.',
     ],
+    thirdPlace: 'Austria',
+    thirdPlaceFlag: '🇦🇹',
+    thirdPlaceScore: '3–1 vs Uruguay',
+    stars: ['Sándor Kocsis 🇭🇺', 'Fritz Walter 🇩🇪', 'Nándor Hidegkuti 🇭🇺'],
   },
   {
     year: 1958,
@@ -208,6 +232,10 @@ export const WC_EDITIONS: WCEdition[] = [
     matches: 35,
     goals: 126,
     attendance: '819,810',
+    thirdPlace: 'France',
+    thirdPlaceFlag: '🇫🇷',
+    thirdPlaceScore: '6–3 vs West Germany',
+    stars: ['Pelé 🇧🇷', 'Just Fontaine 🇫🇷', 'Garrincha 🇧🇷', 'Didi 🇧🇷'],
   },
   {
     year: 1962,
@@ -239,13 +267,17 @@ export const WC_EDITIONS: WCEdition[] = [
       '\'La Batalla de Santiago\' (Italia vs Chile) fue tan violenta que el comentarista de la BBC la llamó \'la exposición más vergonzosa del fútbol\'.',
       'Un terremoto de magnitud 9,5 asoló Chile el año anterior; organizar el torneo fue un enorme logro.',
     ],
+    thirdPlace: 'Chile',
+    thirdPlaceFlag: '🇨🇱',
+    thirdPlaceScore: '1–0 vs Yugoslavia',
+    stars: ['Garrincha 🇧🇷', 'Vavá 🇧🇷', 'Leonel Sánchez 🇨🇱'],
   },
   {
     year: 1966,
     host: 'England',
-    hostFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    hostFlag: '🇬🇧',
     champion: 'England',
-    championFlag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+    championFlag: '🇬🇧',
     runnerUp: 'West Germany',
     runnerUpFlag: '🇩🇪',
     finalScore: '4–2 (aet)',
@@ -271,6 +303,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Corea del Norte eliminó a Italia en la fase de grupos, una de las mayores sorpresas de la historia.',
       'El Trofeo Jules Rimet fue robado y luego encontrado por un perro llamado Pickles.',
     ],
+    thirdPlace: 'Portugal',
+    thirdPlaceFlag: '🇵🇹',
+    thirdPlaceScore: '2–1 vs Soviet Union',
+    stars: ['Eusébio 🇵🇹', 'Bobby Charlton 🇬🇧', 'Franz Beckenbauer 🇩🇪'],
   },
   {
     year: 1970,
@@ -305,6 +341,10 @@ export const WC_EDITIONS: WCEdition[] = [
       '\'El Partido del Siglo\' — Italia venció a Alemania Occidental 4–3 en la prórroga de la semifinal.',
       'Jairzinho marcó en todos y cada uno de los partidos del torneo, un hito irrepetible.',
     ],
+    thirdPlace: 'West Germany',
+    thirdPlaceFlag: '🇩🇪',
+    thirdPlaceScore: '1–0 vs Uruguay',
+    stars: ['Pelé 🇧🇷', 'Gerd Müller 🇩🇪', 'Jairzinho 🇧🇷', 'Bobby Moore 🇬🇧'],
   },
   {
     year: 1974,
@@ -339,6 +379,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'La ausencia de Pelé fue notable — su Brasil fue eliminado polémicamente en la segunda fase de grupos.',
       'Alemania del Este venció a Alemania Occidental 1–0 en la fase de grupos: el único enfrentamiento entre los dos estados alemanes.',
     ],
+    thirdPlace: 'Poland',
+    thirdPlaceFlag: '🇵🇱',
+    thirdPlaceScore: '1–0 vs Brazil',
+    stars: ['Johan Cruyff 🇳🇱', 'Grzegorz Lato 🇵🇱', 'Franz Beckenbauer 🇩🇪'],
   },
   {
     year: 1978,
@@ -373,6 +417,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Archie Gemmill de Escocia marcó uno de los mejores goles de la historia del Mundial contra los Países Bajos.',
       'El torneo se celebró en medio de protestas contra la junta militar argentina.',
     ],
+    thirdPlace: 'Brazil',
+    thirdPlaceFlag: '🇧🇷',
+    thirdPlaceScore: '2–1 vs Italy',
+    stars: ['Mario Kempes 🇦🇷', 'Rob Rensenbrink 🇳🇱', 'Dirceu 🇧🇷'],
   },
   {
     year: 1982,
@@ -407,6 +455,10 @@ export const WC_EDITIONS: WCEdition[] = [
       '\'La Noche de la Vergüenza\' — Alemania Occidental y Austria jugaron un 1–0 con el que ambas avanzaban, sin ninguno intentar remontar.',
       'El increíble Brasil atacante (Zico, Sócrates, Falcão) fue sensacionalmente eliminado por Italia.',
     ],
+    thirdPlace: 'Poland',
+    thirdPlaceFlag: '🇵🇱',
+    thirdPlaceScore: '3–2 vs France',
+    stars: ['Paolo Rossi 🇮🇹', 'Zbigniew Boniek 🇵🇱', 'Karl-Heinz Rummenigge 🇩🇪', 'Falcão 🇧🇷'],
   },
   {
     year: 1986,
@@ -441,6 +493,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Primer Mundial en resolver los partidos de eliminatoria mediante tanda de penaltis.',
       'México acogió el torneo con muy poco margen tras la retirada de Colombia — y pese a un devastador terremoto en 1985.',
     ],
+    thirdPlace: 'France',
+    thirdPlaceFlag: '🇫🇷',
+    thirdPlaceScore: '4–2 vs Belgium',
+    stars: ['Diego Maradona 🇦🇷', 'Gary Lineker 🇬🇧', 'Michel Platini 🇫🇷'],
   },
   {
     year: 1990,
@@ -476,6 +532,10 @@ export const WC_EDITIONS: WCEdition[] = [
       '\'Nessun Dorma\' de Pavarotti se convirtió en el himno icónico del torneo.',
       'La República de Irlanda llegó a los cuartos de final en su primera Copa del Mundo.',
     ],
+    thirdPlace: 'Italy',
+    thirdPlaceFlag: '🇮🇹',
+    thirdPlaceScore: '2–1 vs England',
+    stars: ['Salvatore Schillaci 🇮🇹', 'Diego Maradona 🇦🇷', 'Roger Milla 🇨🇲', 'Roberto Baggio 🇮🇹'],
   },
   {
     year: 1994,
@@ -511,6 +571,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'El colombiano Andrés Escobar fue asesinado a tiros al volver a su país, tras su gol en propia puerta ante EE. UU.',
       'Brasil conquistó su cuarto título tras 24 años de espera.',
     ],
+    thirdPlace: 'Sweden',
+    thirdPlaceFlag: '🇸🇪',
+    thirdPlaceScore: '4–0 vs Bulgaria',
+    stars: ['Romário 🇧🇷', 'Roberto Baggio 🇮🇹', 'Hristo Stoichkov 🇧🇬', 'Bebeto 🇧🇷'],
   },
   {
     year: 1998,
@@ -546,6 +610,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Croacia terminó tercera en su primera participación en el Mundial.',
       'El Stade de France en Saint-Denis se construyó expresamente para este torneo.',
     ],
+    thirdPlace: 'Croatia',
+    thirdPlaceFlag: '🇭🇷',
+    thirdPlaceScore: '2–1 vs Netherlands',
+    stars: ['Zinedine Zidane 🇫🇷', 'Ronaldo 🇧🇷', 'Davor Šuker 🇭🇷'],
   },
   {
     year: 2002,
@@ -581,6 +649,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'La campeona defensora Francia no marcó un solo gol y fue eliminada en la fase de grupos.',
       'Senegal, en su primer Mundial, venció a Francia y llegó a los cuartos de final.',
     ],
+    thirdPlace: 'Turkey',
+    thirdPlaceFlag: '🇹🇷',
+    thirdPlaceScore: '3–2 vs South Korea',
+    stars: ['Ronaldo 🇧🇷', 'Oliver Kahn 🇩🇪', 'Rivaldo 🇧🇷', 'Hakan Şükür 🇹🇷'],
   },
   {
     year: 2006,
@@ -616,6 +688,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Australia regresó al Mundial tras 32 años de ausencia.',
       'La semifinal Alemania–Italia (2–0 en la prórroga) fue uno de los mejores partidos del torneo.',
     ],
+    thirdPlace: 'Germany',
+    thirdPlaceFlag: '🇩🇪',
+    thirdPlaceScore: '3–1 vs Portugal',
+    stars: ['Zinedine Zidane 🇫🇷', 'Gianluigi Buffon 🇮🇹', 'Miroslav Klose 🇩🇪', 'Cristiano Ronaldo 🇵🇹'],
   },
   {
     year: 2010,
@@ -651,6 +727,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'El balón Jabulani fue criticado por los porteros por su trayectoria imprevisible.',
       'El pulpo Paul acertó todos los resultados de Alemania y el ganador del torneo.',
     ],
+    thirdPlace: 'Germany',
+    thirdPlaceFlag: '🇩🇪',
+    thirdPlaceScore: '3–2 vs Uruguay',
+    stars: ['Diego Forlán 🇺🇾', 'Wesley Sneijder 🇳🇱', 'David Villa 🇪🇸', 'Thomas Müller 🇩🇪'],
   },
   {
     year: 2014,
@@ -686,6 +766,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'El voleo de James Rodríguez ante Uruguay fue elegido Gol del Torneo.',
       'El VAR aún no estaba en uso — varias decisiones polémicas generaron un intenso debate.',
     ],
+    thirdPlace: 'Netherlands',
+    thirdPlaceFlag: '🇳🇱',
+    thirdPlaceScore: '3–0 vs Brazil',
+    stars: ['James Rodríguez 🇨🇴', 'Lionel Messi 🇦🇷', 'Thomas Müller 🇩🇪', 'Manuel Neuer 🇩🇪'],
   },
   {
     year: 2018,
@@ -721,6 +805,10 @@ export const WC_EDITIONS: WCEdition[] = [
       'Luka Modrić ganó el Balón de Oro; solo el segundo jugador tras Ronaldo (2002) en lograrlo sin ser del Top 4.',
       'Alemania, la campeona defensora, fue eliminada en la fase de grupos.',
     ],
+    thirdPlace: 'Belgium',
+    thirdPlaceFlag: '🇧🇪',
+    thirdPlaceScore: '2–0 vs England',
+    stars: ['Luka Modrić 🇭🇷', 'Kylian Mbappé 🇫🇷', 'Eden Hazard 🇧🇪', 'Harry Kane 🇬🇧'],
   },
   {
     year: 2022,
@@ -756,5 +844,9 @@ export const WC_EDITIONS: WCEdition[] = [
       'El primer Mundial celebrado en Oriente Medio — y en invierno (noviembre–diciembre).',
       'Los 8 estadios estaban a menos de 55 km entre sí, convirtiéndolo en el Mundial más compacto de la historia.',
     ],
+    thirdPlace: 'Croatia',
+    thirdPlaceFlag: '🇭🇷',
+    thirdPlaceScore: '2–1 vs Morocco',
+    stars: ['Lionel Messi 🇦🇷', 'Kylian Mbappé 🇫🇷', 'Luka Modrić 🇭🇷', 'Emi Martínez 🇦🇷'],
   },
 ];

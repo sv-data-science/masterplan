@@ -9,7 +9,10 @@ const tx = {
     subtitle: '22 tournaments · 1930–2022 · The complete story',
     select: 'Select Tournament',
     champion: 'Champion',
+    runnerUp: 'Runner-up',
+    thirdPlace: '3rd Place',
     final: 'Final',
+    stars: '⭐ Stars of the Tournament',
     stats: 'Tournament Stats',
     teams: 'Teams', matches: 'Matches', goals: 'Goals', attendance: 'Attendance',
     awards: 'Awards',
@@ -26,7 +29,10 @@ const tx = {
     subtitle: '22 torneos · 1930–2022 · La historia completa',
     select: 'Seleccionar torneo',
     champion: 'Campeón',
+    runnerUp: 'Subcampeón',
+    thirdPlace: '3.er puesto',
     final: 'Final',
+    stars: '⭐ Estrellas del torneo',
     stats: 'Estadísticas del torneo',
     teams: 'Equipos', matches: 'Partidos', goals: 'Goles', attendance: 'Asistencia',
     awards: 'Premios',
@@ -60,13 +66,13 @@ function EditionCard({ ed, selected, onClick }: { ed: WCEdition; selected: boole
       }`}
     >
       <div className="flex items-center gap-3">
-        <span className="text-2xl">{ed.hostFlag.split('').slice(0, 4).join('')}</span>
+        <span className="text-2xl">{ed.hostFlag}</span>
         <div>
           <div className="font-bold text-white text-sm">{ed.year}</div>
           <div className="text-xs text-gray-500">{ed.host}</div>
         </div>
         <div className="ml-auto text-right">
-          <span className="text-lg">{ed.championFlag.split('').slice(0, 4).join('')}</span>
+          <span className="text-lg">{ed.championFlag}</span>
         </div>
       </div>
     </button>
@@ -131,21 +137,47 @@ export default function WCHistoryPage() {
               </div>
             </div>
 
-            <div className="mt-4 p-4 bg-[#0d1117] rounded-xl">
+            <div className="mt-4 p-4 bg-[#0d1117] rounded-xl space-y-3">
               <div className="text-xs text-gray-500 uppercase tracking-widest mb-2 text-center">{l.final}</div>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
                   <div className="text-2xl">{edition.championFlag}</div>
-                  <div className="text-sm font-semibold text-white mt-1">{edition.champion}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{l.champion}</div>
+                  <div className="text-sm font-semibold text-white mt-0.5">{edition.champion}</div>
                 </div>
                 <div className="text-2xl font-black text-green-400">{edition.finalScore}</div>
                 <div className="text-center">
                   <div className="text-2xl">{edition.runnerUpFlag}</div>
-                  <div className="text-sm font-semibold text-white mt-1">{edition.runnerUp}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{l.runnerUp}</div>
+                  <div className="text-sm font-semibold text-white mt-0.5">{edition.runnerUp}</div>
                 </div>
               </div>
+              {edition.thirdPlace && (
+                <div className="border-t border-[#21262d] pt-3 flex items-center justify-center gap-2 text-sm">
+                  <span className="text-gray-500 text-xs">{l.thirdPlace}:</span>
+                  <span>{edition.thirdPlaceFlag}</span>
+                  <span className="text-gray-300 font-medium">{edition.thirdPlace}</span>
+                  {edition.thirdPlaceScore && (
+                    <span className="text-gray-600 text-xs">({edition.thirdPlaceScore})</span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Stars of the tournament */}
+          {edition.stars?.length > 0 && (
+            <div className="card p-5">
+              <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-3">{l.stars}</h3>
+              <div className="flex flex-wrap gap-2">
+                {edition.stars.map((star, i) => (
+                  <span key={i} className="inline-flex items-center gap-1.5 bg-[#0d1117] border border-[#30363d] rounded-full px-3 py-1.5 text-sm text-gray-200">
+                    {star}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Stats grid */}
           <div className="card p-5">
