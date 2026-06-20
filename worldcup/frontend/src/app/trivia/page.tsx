@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ALL_QUESTIONS, TriviaQuestion } from '@/lib/trivia';
 import { ALL_QUESTIONS_ES } from '@/lib/trivia_es';
 import { getLang, saveLang, getQuestionsForQuiz, markSeen, unseenCount, TriviaLang } from '@/lib/trivia_utils';
@@ -147,9 +147,10 @@ export default function TriviaPage() {
     setRemainingEs(unseenCount(ALL_QUESTIONS_ES));
   };
 
-  const startGame = useCallback(() => {
-    const pool = lang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
-    const qs = getQuestionsForQuiz(pool);
+  const startGame = (overrideLang?: TriviaLang) => {
+    const activeLang = overrideLang ?? lang;
+    const pool = activeLang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
+    const qs = getQuestionsForQuiz(pool).slice(0, 10);
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
@@ -158,7 +159,7 @@ export default function TriviaPage() {
     setAnswers(new Array(qs.length).fill(null));
     setSubmitted(false);
     setPhase('question');
-  }, [lang]);
+  };
 
   const pct = (n: number, d: number) => d > 0 ? Math.round((n / d) * 100) : 0;
   const accuracyColor = (p: number) =>
@@ -265,8 +266,8 @@ export default function TriviaPage() {
 
           <p className="text-xs text-gray-600">
             {lang === 'es'
-              ? `${remaining} preguntas nuevas de ${totalPool} en total · ⏱ 15 seg por pregunta`
-              : `${remaining} new questions of ${totalPool} total · ⏱ 15 sec per question`}
+              ? `10 preguntas por partida · ${remaining} nuevas de ${totalPool} en total · ⏱ 15 seg`
+              : `10 questions per game · ${remaining} new of ${totalPool} total · ⏱ 15 sec each`}
           </p>
 
           {user && myStats && myStats.games_played > 0 && (
@@ -312,7 +313,7 @@ export default function TriviaPage() {
             </div>
           )}
 
-          <button onClick={startGame} className="btn-primary py-3 px-8 text-lg w-full">
+          <button onClick={() => startGame(lang)} className="btn-primary py-3 px-8 text-lg w-full">
             {myStats?.games_played > 0
               ? (lang === 'es' ? 'Jugar de nuevo ⚽' : 'Play Again ⚽')
               : (lang === 'es' ? 'Comenzar quiz ⚽' : 'Start Quiz ⚽')}
@@ -362,7 +363,7 @@ export default function TriviaPage() {
           )}
 
           <div className="flex gap-2">
-            <button onClick={startGame} className="btn-primary flex-1 py-2.5">
+            <button onClick={() => startGame(lang)} className="btn-primary flex-1 py-2.5">
               {lang === 'es' ? 'Jugar de nuevo' : 'Play Again'}
             </button>
             <button onClick={goToStart} className="btn-secondary flex-1 py-2.5">
