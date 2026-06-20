@@ -178,17 +178,15 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         <path d="M 30,14 L 40,28 L 50,14 Z" fill={collarColor} />
       )}
       {collarStyle === 'round' && (
-        <path d="M 30,12 C 32,9 36,7 40,7 C 44,7 48,9 50,12 C 48,15 44,16 40,16 C 36,16 32,15 30,12 Z" fill={collarColor} />
+        <path d="M 30,12 C 32,6 36,4 40,4 C 44,4 48,6 50,12 C 48,18 44,20 40,20 C 36,20 32,18 30,12 Z" fill={collarColor} />
       )}
       {collarStyle === 'polo' && (
         <>
-          <rect x="33" y="12.5" width="14" height="2" rx="0.5" fill={collarColor} />
-          <path d="M 40,13 L 40,20 L 35,24 L 30,16 L 32,13 Z" fill={collarColor} />
-          <path d="M 40,13 L 40,20 L 45,24 L 50,16 L 48,13 Z" fill={collarColor} />
-          <line x1="35" y1="15" x2="37" y2="21" stroke="rgba(0,0,0,0.15)" strokeWidth="0.6" />
-          <line x1="45" y1="15" x2="43" y2="21" stroke="rgba(0,0,0,0.15)" strokeWidth="0.6" />
-          <line x1="40" y1="13" x2="40" y2="22" stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
-          <circle cx="40" cy="20" r="0.9" fill="rgba(0,0,0,0.3)" />
+          {/* Round collar band */}
+          <path d="M 29,13 C 31,7 35,5 40,5 C 45,5 49,7 51,13 C 49,17 45,19 40,19 C 35,19 31,17 29,13 Z" fill={collarColor} />
+          {/* Shoulder yoke panels */}
+          <polygon points={`29,13 ${sleeveXL},20 22,20`} fill={collarColor} />
+          <polygon points={`51,13 ${sleeveXR},20 58,20`} fill={collarColor} />
         </>
       )}
 
