@@ -25,6 +25,10 @@ export interface WCEdition {
   thirdPlaceScore?: string;
   stars: string[];
   venues?: { city: string; stadium: string }[];
+  rounds?: {
+    name: string;
+    matches: { home: string; score: string; away: string; note?: string }[];
+  }[];
 }
 
 export const WC_EDITIONS: WCEdition[] = [
@@ -67,6 +71,41 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Montevideo', stadium: 'Estadio Gran Parque Central' },
       { city: 'Montevideo', stadium: 'Estadio Pocitos' },
       { city: 'Montevideo', stadium: 'Estadio Peñarol' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'France', score: '4–1', away: 'Mexico', note: 'Lucien Laurent — first WC goal ever' },
+          { home: 'Argentina', score: '1–0', away: 'France' },
+          { home: 'Chile', score: '3–0', away: 'Mexico' },
+          { home: 'Argentina', score: '6–3', away: 'Mexico' },
+          { home: 'Chile', score: '1–0', away: 'France' },
+          { home: 'Argentina', score: '3–1', away: 'Chile' },
+          { home: 'Yugoslavia', score: '2–1', away: 'Brazil' },
+          { home: 'Yugoslavia', score: '4–0', away: 'Bolivia' },
+          { home: 'Brazil', score: '4–0', away: 'Bolivia' },
+          { home: 'Romania', score: '3–1', away: 'Peru' },
+          { home: 'Uruguay', score: '1–0', away: 'Peru' },
+          { home: 'Uruguay', score: '4–0', away: 'Romania' },
+          { home: 'USA', score: '3–0', away: 'Belgium' },
+          { home: 'USA', score: '3–0', away: 'Paraguay' },
+          { home: 'Belgium', score: '0–1', away: 'Paraguay' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Argentina', score: '6–1', away: 'USA' },
+          { home: 'Uruguay', score: '6–1', away: 'Yugoslavia' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Uruguay', score: '4–2', away: 'Argentina' },
+        ],
+      },
     ],
   },
   {
@@ -112,6 +151,49 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Naples', stadium: 'Stadio Ascarelli' },
       { city: 'Bologna', stadium: 'Stadio Littoriale' },
       { city: 'Trieste', stadium: 'Stadio Littorio' },
+    ],
+    rounds: [
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Italy', score: '7–1', away: 'USA' },
+          { home: 'Czechoslovakia', score: '2–1', away: 'Romania', note: 'aet' },
+          { home: 'Germany', score: '5–2', away: 'Belgium' },
+          { home: 'Austria', score: '3–2', away: 'France', note: 'aet' },
+          { home: 'Spain', score: '3–1', away: 'Brazil' },
+          { home: 'Switzerland', score: '3–2', away: 'Netherlands' },
+          { home: 'Sweden', score: '3–2', away: 'Argentina' },
+          { home: 'Hungary', score: '4–2', away: 'Egypt' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Germany', score: '2–1', away: 'Sweden' },
+          { home: 'Austria', score: '2–1', away: 'Hungary' },
+          { home: 'Italy', score: '1–0', away: 'Spain', note: 'replay after 1–1 draw' },
+          { home: 'Czechoslovakia', score: '3–2', away: 'Switzerland' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Italy', score: '1–0', away: 'Austria' },
+          { home: 'Czechoslovakia', score: '3–1', away: 'Germany' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Germany', score: '3–2', away: 'Austria' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Italy', score: '2–1', away: 'Czechoslovakia', note: 'aet' },
+        ],
+      },
     ],
   },
   {
@@ -160,6 +242,49 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Le Havre', stadium: 'Stade Municipal' },
       { city: 'Antibes', stadium: 'Stade du Fort Carré' },
     ],
+    rounds: [
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Switzerland', score: '4–2', away: 'Germany', note: 'replay after 1–1 draw' },
+          { home: 'Cuba', score: '2–1', away: 'Romania', note: 'replay after 3–3 aet' },
+          { home: 'Hungary', score: '6–0', away: 'Dutch East Indies' },
+          { home: 'France', score: '3–1', away: 'Belgium' },
+          { home: 'Czechoslovakia', score: '3–0', away: 'Netherlands' },
+          { home: 'Brazil', score: '6–5', away: 'Poland', note: 'aet' },
+          { home: 'Italy', score: '2–1', away: 'Norway', note: 'aet' },
+          { home: 'Sweden', score: 'w/o', away: 'Austria', note: 'Austria withdrew after Anschluss' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Sweden', score: '8–0', away: 'Cuba' },
+          { home: 'Hungary', score: '2–0', away: 'Switzerland' },
+          { home: 'Italy', score: '3–1', away: 'France' },
+          { home: 'Brazil', score: '2–1', away: 'Czechoslovakia', note: 'replay after 1–1 draw' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Italy', score: '2–1', away: 'Brazil' },
+          { home: 'Hungary', score: '5–1', away: 'Sweden' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Brazil', score: '4–2', away: 'Sweden' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Italy', score: '4–2', away: 'Hungary' },
+        ],
+      },
+    ],
   },
   {
     year: 1950,
@@ -203,6 +328,40 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Recife', stadium: 'Estádio Ilha do Retiro' },
       { city: 'Curitiba', stadium: 'Estádio Durival de Britto' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Brazil', score: '4–0', away: 'Mexico' },
+          { home: 'Yugoslavia', score: '3–0', away: 'Switzerland' },
+          { home: 'Brazil', score: '2–2', away: 'Switzerland' },
+          { home: 'Yugoslavia', score: '4–1', away: 'Mexico' },
+          { home: 'Brazil', score: '2–0', away: 'Yugoslavia' },
+          { home: 'Switzerland', score: '2–1', away: 'Mexico' },
+          { home: 'Spain', score: '3–1', away: 'USA' },
+          { home: 'England', score: '0–1', away: 'USA', note: 'Famous upset' },
+          { home: 'Spain', score: '2–0', away: 'Chile' },
+          { home: 'England', score: '2–0', away: 'Chile' },
+          { home: 'Spain', score: '1–0', away: 'England' },
+          { home: 'Chile', score: '5–2', away: 'USA' },
+          { home: 'Sweden', score: '3–2', away: 'Italy' },
+          { home: 'Sweden', score: '2–2', away: 'Paraguay' },
+          { home: 'Italy', score: '2–0', away: 'Paraguay' },
+          { home: 'Uruguay', score: '8–0', away: 'Bolivia' },
+        ],
+      },
+      {
+        name: 'Final Round Robin',
+        matches: [
+          { home: 'Uruguay', score: '2–2', away: 'Spain' },
+          { home: 'Brazil', score: '7–1', away: 'Sweden' },
+          { home: 'Uruguay', score: '3–2', away: 'Sweden' },
+          { home: 'Brazil', score: '6–1', away: 'Spain' },
+          { home: 'Sweden', score: '3–1', away: 'Spain' },
+          { home: 'Uruguay', score: '2–1', away: 'Brazil', note: 'Maracanazo — decisive final match' },
+        ],
+      },
+    ],
   },
   {
     year: 1954,
@@ -245,6 +404,57 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Zurich', stadium: 'Hardturm Stadium' },
       { city: 'Basel', stadium: 'St. Jakob Stadium' },
       { city: 'Lugano', stadium: 'Stadio Cornaredo' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Hungary', score: '9–0', away: 'South Korea' },
+          { home: 'West Germany', score: '4–1', away: 'Turkey' },
+          { home: 'Hungary', score: '8–3', away: 'West Germany', note: 'Hungary dominant but WG rest stars' },
+          { home: 'Turkey', score: '7–0', away: 'South Korea' },
+          { home: 'Brazil', score: '5–0', away: 'Mexico' },
+          { home: 'Yugoslavia', score: '1–0', away: 'France' },
+          { home: 'Brazil', score: '1–1', away: 'Yugoslavia' },
+          { home: 'France', score: '3–2', away: 'Mexico' },
+          { home: 'Uruguay', score: '2–0', away: 'Czechoslovakia' },
+          { home: 'Austria', score: '1–0', away: 'Scotland' },
+          { home: 'Uruguay', score: '7–0', away: 'Scotland' },
+          { home: 'Austria', score: '5–0', away: 'Czechoslovakia' },
+          { home: 'England', score: '4–4', away: 'Belgium' },
+          { home: 'England', score: '2–0', away: 'Switzerland' },
+          { home: 'Italy', score: '4–1', away: 'Belgium' },
+          { home: 'Switzerland', score: '2–0', away: 'Italy' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'West Germany', score: '2–0', away: 'Yugoslavia' },
+          { home: 'Hungary', score: '4–2', away: 'Brazil', note: 'Battle of Bern — 3 red cards, brawl' },
+          { home: 'Austria', score: '7–5', away: 'Switzerland', note: 'Highest-scoring QF ever' },
+          { home: 'Uruguay', score: '4–2', away: 'England' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'West Germany', score: '6–1', away: 'Austria' },
+          { home: 'Hungary', score: '4–2', away: 'Uruguay', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Austria', score: '3–1', away: 'Uruguay' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'West Germany', score: '3–2', away: 'Hungary', note: 'Miracle of Bern' },
+        ],
+      },
     ],
   },
   {
@@ -295,6 +505,48 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Sandviken', stadium: 'Jernvallen' },
       { city: 'Västervik', stadium: 'Slottsvallen' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'West Germany', score: '3–1', away: 'Argentina' },
+          { home: 'Northern Ireland', score: '1–0', away: 'Czechoslovakia' },
+          { home: 'France', score: '7–3', away: 'Paraguay', note: 'Just Fontaine scores 3' },
+          { home: 'Brazil', score: '3–0', away: 'Austria' },
+          { home: 'Brazil', score: '2–0', away: 'England' },
+          { home: 'USSR', score: '2–2', away: 'England' },
+          { home: 'Brazil', score: '2–0', away: 'USSR' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'France', score: '4–0', away: 'Northern Ireland' },
+          { home: 'West Germany', score: '1–0', away: 'Yugoslavia' },
+          { home: 'Sweden', score: '2–0', away: 'USSR' },
+          { home: 'Brazil', score: '1–0', away: 'Wales', note: 'Pelé\'s first WC goal' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Brazil', score: '5–2', away: 'France', note: 'Pelé hat-trick' },
+          { home: 'Sweden', score: '3–1', away: 'West Germany' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'France', score: '6–3', away: 'West Germany' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Brazil', score: '5–2', away: 'Sweden' },
+        ],
+      },
+    ],
   },
   {
     year: 1962,
@@ -335,6 +587,50 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Viña del Mar', stadium: 'Estadio Sausalito' },
       { city: 'Rancagua', stadium: 'Estadio Braden Copper' },
       { city: 'Arica', stadium: 'Estadio Carlos Dittborn' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Chile', score: '3–1', away: 'Switzerland' },
+          { home: 'Chile', score: '2–0', away: 'Italy', note: 'Battle of Santiago — 2 red cards, police on field' },
+          { home: 'Brazil', score: '2–0', away: 'Mexico' },
+          { home: 'Brazil', score: '2–1', away: 'Spain' },
+          { home: 'England', score: '3–1', away: 'Argentina' },
+          { home: 'Hungary', score: '2–1', away: 'England' },
+          { home: 'Czechoslovakia', score: '1–0', away: 'Spain' },
+          { home: 'USSR', score: '2–0', away: 'Yugoslavia' },
+          { home: 'Uruguay', score: '2–1', away: 'Colombia' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Yugoslavia', score: '1–0', away: 'West Germany' },
+          { home: 'Chile', score: '2–1', away: 'USSR' },
+          { home: 'Brazil', score: '3–1', away: 'England' },
+          { home: 'Czechoslovakia', score: '1–0', away: 'Hungary' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Brazil', score: '4–2', away: 'Chile' },
+          { home: 'Czechoslovakia', score: '3–1', away: 'Yugoslavia' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Chile', score: '1–0', away: 'Yugoslavia' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Brazil', score: '3–1', away: 'Czechoslovakia' },
+        ],
+      },
     ],
   },
   {
@@ -382,6 +678,50 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Birmingham', stadium: 'Villa Park' },
       { city: 'London', stadium: 'White City Stadium' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'England', score: '0–0', away: 'Uruguay' },
+          { home: 'West Germany', score: '5–0', away: 'Switzerland' },
+          { home: 'North Korea', score: '1–0', away: 'Italy', note: 'Famous upset' },
+          { home: 'Portugal', score: '3–1', away: 'Hungary' },
+          { home: 'Brazil', score: '1–3', away: 'Hungary' },
+          { home: 'Brazil', score: '1–0', away: 'Bulgaria' },
+          { home: 'Portugal', score: '3–0', away: 'Brazil', note: 'Pelé injured, Brazil eliminated' },
+          { home: 'USSR', score: '3–0', away: 'North Korea' },
+          { home: 'North Korea', score: '3–5', away: 'Portugal', note: 'Eusébio 4 goals — comeback from 3-0 down' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'England', score: '1–0', away: 'Argentina', note: 'Rattin sent off' },
+          { home: 'West Germany', score: '4–0', away: 'Uruguay' },
+          { home: 'Portugal', score: '5–3', away: 'North Korea' },
+          { home: 'USSR', score: '2–1', away: 'Hungary' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'England', score: '2–1', away: 'Portugal' },
+          { home: 'West Germany', score: '2–1', away: 'USSR' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Portugal', score: '2–1', away: 'USSR' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'England', score: '4–2', away: 'West Germany', note: 'aet — Geoff Hurst hat-trick' },
+        ],
+      },
+    ],
   },
   {
     year: 1970,
@@ -426,6 +766,53 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Puebla', stadium: 'Estadio Cuauhtémoc' },
       { city: 'León', stadium: 'Estadio Nou Camp' },
       { city: 'Toluca', stadium: 'Estadio Nemesio Díez' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Mexico', score: '0–0', away: 'USSR' },
+          { home: 'Belgium', score: '3–0', away: 'El Salvador' },
+          { home: 'USSR', score: '4–1', away: 'Belgium' },
+          { home: 'Mexico', score: '4–0', away: 'El Salvador' },
+          { home: 'Italy', score: '1–0', away: 'Sweden' },
+          { home: 'Uruguay', score: '2–0', away: 'Israel' },
+          { home: 'Brazil', score: '4–1', away: 'Czechoslovakia' },
+          { home: 'Brazil', score: '1–0', away: 'England' },
+          { home: 'Romania', score: '2–1', away: 'Czechoslovakia' },
+          { home: 'Brazil', score: '3–2', away: 'Romania' },
+          { home: 'Peru', score: '3–2', away: 'Bulgaria' },
+          { home: 'Morocco', score: '1–0', away: 'West Germany', note: 'First African/Asian win vs European team' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Uruguay', score: '1–0', away: 'USSR', note: 'aet' },
+          { home: 'Italy', score: '4–1', away: 'Mexico' },
+          { home: 'Brazil', score: '4–2', away: 'Peru' },
+          { home: 'West Germany', score: '3–2', away: 'England', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Italy', score: '4–3', away: 'West Germany', note: 'aet — Game of the Century' },
+          { home: 'Brazil', score: '3–1', away: 'Uruguay' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'West Germany', score: '1–0', away: 'Uruguay' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Brazil', score: '4–1', away: 'Italy' },
+        ],
+      },
     ],
   },
   {
@@ -476,6 +863,46 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Hannover', stadium: 'Niedersachsenstadion' },
       { city: 'Berlin', stadium: 'Olympiastadion' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage 1',
+        matches: [
+          { home: 'East Germany', score: '1–0', away: 'West Germany', note: 'Only meeting between the two German states' },
+          { home: 'Brazil', score: '0–0', away: 'Yugoslavia' },
+          { home: 'Scotland', score: '2–0', away: 'Zaire' },
+          { home: 'Yugoslavia', score: '9–0', away: 'Zaire' },
+          { home: 'Brazil', score: '3–0', away: 'Zaire' },
+          { home: 'Brazil', score: '0–0', away: 'Scotland' },
+          { home: 'Yugoslavia', score: '1–1', away: 'Scotland' },
+        ],
+      },
+      {
+        name: 'Group Stage 2',
+        matches: [
+          { home: 'Netherlands', score: '4–0', away: 'Argentina' },
+          { home: 'Brazil', score: '1–0', away: 'East Germany' },
+          { home: 'Netherlands', score: '2–0', away: 'East Germany' },
+          { home: 'West Germany', score: '2–0', away: 'Poland' },
+          { home: 'Brazil', score: '2–1', away: 'Argentina' },
+          { home: 'Netherlands', score: '2–0', away: 'Brazil' },
+          { home: 'West Germany', score: '4–2', away: 'Sweden' },
+          { home: 'Poland', score: '3–0', away: 'Sweden' },
+          { home: 'West Germany', score: '1–0', away: 'Yugoslavia' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Poland', score: '1–0', away: 'Brazil' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'West Germany', score: '2–1', away: 'Netherlands' },
+        ],
+      },
+    ],
   },
   {
     year: 1978,
@@ -521,6 +948,45 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Rosario', stadium: 'Estadio Gigante de Arroyito' },
       { city: 'Mar del Plata', stadium: 'Estadio José María Minella' },
       { city: 'Mendoza', stadium: 'Estadio Malvinas Argentinas' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage 1',
+        matches: [
+          { home: 'Italy', score: '2–1', away: 'France' },
+          { home: 'Argentina', score: '2–1', away: 'Hungary' },
+          { home: 'West Germany', score: '0–0', away: 'Poland' },
+          { home: 'Tunisia', score: '3–1', away: 'Mexico' },
+          { home: 'Italy', score: '3–1', away: 'Hungary' },
+          { home: 'Argentina', score: '2–1', away: 'France' },
+        ],
+      },
+      {
+        name: 'Group Stage 2',
+        matches: [
+          { home: 'Netherlands', score: '5–1', away: 'Austria' },
+          { home: 'Italy', score: '1–0', away: 'West Germany' },
+          { home: 'Netherlands', score: '2–2', away: 'West Germany' },
+          { home: 'Argentina', score: '6–0', away: 'Peru', note: 'Controversial — Peru needed to lose by 4+' },
+          { home: 'Brazil', score: '3–1', away: 'Peru' },
+          { home: 'Brazil', score: '3–0', away: 'Austria' },
+          { home: 'Netherlands', score: '2–1', away: 'Italy' },
+          { home: 'Argentina', score: '0–0', away: 'Brazil' },
+          { home: 'Italy', score: '2–1', away: 'Austria' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Brazil', score: '2–1', away: 'Italy' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Argentina', score: '3–1', away: 'Netherlands', note: 'aet' },
+        ],
+      },
     ],
   },
   {
@@ -575,6 +1041,51 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Vigo', stadium: 'Estadio Municipal de Balaídos' },
       { city: 'Valladolid', stadium: 'Estadio José Zorrilla' },
       { city: 'Elche', stadium: 'Estadio Manuel Martínez Valero' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage 1',
+        matches: [
+          { home: 'West Germany', score: '1–2', away: 'Algeria', note: 'Upset' },
+          { home: 'Hungary', score: '10–1', away: 'El Salvador', note: 'Biggest winning margin in WC history' },
+          { home: 'Belgium', score: '1–0', away: 'Argentina' },
+          { home: 'Brazil', score: '2–1', away: 'USSR' },
+          { home: 'Argentina', score: '4–1', away: 'Hungary' },
+          { home: 'Scotland', score: '5–2', away: 'New Zealand' },
+          { home: 'Northern Ireland', score: '1–0', away: 'Spain' },
+          { home: 'West Germany', score: '1–0', away: 'Austria', note: 'Night of Shame' },
+        ],
+      },
+      {
+        name: 'Group Stage 2',
+        matches: [
+          { home: 'Italy', score: '2–1', away: 'Argentina', note: 'Rossi returns from ban' },
+          { home: 'Italy', score: '3–2', away: 'Brazil', note: 'Rossi hat-trick' },
+          { home: 'West Germany', score: '0–0', away: 'England' },
+          { home: 'West Germany', score: '2–1', away: 'Spain' },
+          { home: 'France', score: '4–1', away: 'Austria' },
+          { home: 'Northern Ireland', score: '2–2', away: 'Austria' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Italy', score: '2–0', away: 'Poland' },
+          { home: 'West Germany', score: '3–3', away: 'France', note: 'aet — WG win 5–4 pens (first WC shootout)' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Poland', score: '3–2', away: 'France' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Italy', score: '3–1', away: 'West Germany' },
+        ],
+      },
     ],
   },
   {

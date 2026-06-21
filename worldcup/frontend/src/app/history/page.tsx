@@ -24,6 +24,7 @@ const tx = {
     facts: 'Fun Facts & Story',
     goals_label: 'goals',
     venues: 'Host Cities & Stadiums',
+    results: 'Tournament Results',
   },
   es: {
     title: '📖 Historia del Mundial',
@@ -45,6 +46,7 @@ const tx = {
     facts: 'Curiosidades e historia',
     goals_label: 'goles',
     venues: 'Ciudades y estadios anfitriones',
+    results: 'Resultados del torneo',
   },
 };
 
@@ -203,6 +205,30 @@ export default function WCHistoryPage() {
                     <div className="min-w-0">
                       <div className="text-sm font-medium text-white truncate">{v.stadium}</div>
                       <div className="text-xs text-gray-500">{v.city}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Tournament Results by Round */}
+          {edition.rounds && edition.rounds.length > 0 && (
+            <div className="card p-5">
+              <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{l.results}</h3>
+              <div className="space-y-4">
+                {edition.rounds.map((round, ri) => (
+                  <div key={ri}>
+                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{round.name}</div>
+                    <div className="space-y-1">
+                      {round.matches.map((m, mi) => (
+                        <div key={mi} className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-3 py-2 text-sm">
+                          <span className="flex-1 text-right text-gray-300 font-medium text-xs">{m.home}</span>
+                          <span className="shrink-0 font-bold text-green-400 text-xs w-14 text-center">{m.score}</span>
+                          <span className="flex-1 text-gray-300 font-medium text-xs">{m.away}</span>
+                          {m.note && <span className="text-xs text-gray-600 italic ml-1 hidden sm:inline">— {m.note}</span>}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
