@@ -20,6 +20,29 @@ function pts(p: number | null) {
   return <span className="text-gray-600 text-xs">pending</span>;
 }
 
+function CompletedRow({ match }: { match: Match }) {
+  const pred = match.my_prediction;
+  return (
+    <div className="flex items-center gap-2 px-4 py-3 text-sm flex-wrap">
+      <span className="text-gray-500 text-xs w-14 shrink-0">{formatKickoff(match.kickoff_utc)}</span>
+      <span className="flex-1 min-w-0 text-white truncate">
+        {match.home_team.flag} {match.home_team.code} <span className="text-gray-600">vs</span> {match.away_team.code} {match.away_team.flag}
+        <span className="ml-2 text-gray-500 text-xs font-mono">({match.home_score}–{match.away_score})</span>
+      </span>
+      {pred ? (
+        <>
+          <span className="text-gray-400 text-xs font-mono">
+            pred: {pred.pred_home}–{pred.pred_away}
+          </span>
+          <div className="shrink-0">{pts(pred.points_earned)}</div>
+        </>
+      ) : (
+        <span className="text-gray-600 text-xs">no prediction</span>
+      )}
+    </div>
+  );
+}
+
 function PredictRow({ match, onSaved }: { match: Match; onSaved: () => void }) {
   const [home, setHome] = useState<string>(match.my_prediction?.pred_home?.toString() ?? '');
   const [away, setAway] = useState<string>(match.my_prediction?.pred_away?.toString() ?? '');
@@ -131,7 +154,7 @@ export default function MyPredictionsPage() {
           <div className="card divide-y divide-[#30363d]">
             {completed
               .sort((a, b) => new Date(b.kickoff_utc ?? 0).getTime() - new Date(a.kickoff_utc ?? 0).getTime())
-              .map(m => <PredictRow key={m.id} match={m} onSaved={refresh} />)}
+              .map(m => <CompletedRow key={m.id} match={m} />)}
           </div>
         </section>
       )}
