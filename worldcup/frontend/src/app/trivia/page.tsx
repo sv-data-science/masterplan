@@ -57,6 +57,7 @@ function TriviaLeaderboard({ refreshKey }: { refreshKey: number }) {
           <Link href={`/profile/${row.username}`} className="flex-1 text-white font-medium hover:text-green-400 transition-colors truncate">{row.display_name}</Link>
           <span className="text-green-400 font-bold">
             {row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span>
+            <span className="text-gray-400 font-normal text-xs ml-1">({Math.round(row.best_score / row.best_total * 100)}%)</span>
           </span>
           <span className="text-gray-600 text-xs hidden sm:inline">
             {row.games_played} game{row.games_played !== 1 ? 's' : ''}
