@@ -109,10 +109,6 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         {jP.defs}{sP.defs}{kP.defs}
         <clipPath id={`${uid}-lsl`}><polygon points={lClip} /></clipPath>
         <clipPath id={`${uid}-rsl`}><polygon points={rClip} /></clipPath>
-        {/* Shorts body clip — used to contain the hem stripe within the shorts shape */}
-        <clipPath id={`${uid}-sh`}>
-          <path d="M 20,82 L 18,107 L 36,107 L 40,96 L 44,107 L 62,107 L 60,82 Z" />
-        </clipPath>
       </defs>
 
       {/* ── Jersey fill ── */}
@@ -207,21 +203,13 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         </>
       )}
 
-      {/* ── Shorts: unified V-inseam shape (matches real shorts laid flat) ── */}
-      {/* Waistband */}
-      <rect x="20" y="77" width="40" height="5" rx="0.5" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
-      {/* Shorts body: one path, V-inseam apex at (40,96), legs flare 2 px at hem */}
-      <path
-        d="M 20,82 L 18,107 L 36,107 L 40,96 L 44,107 L 62,107 L 60,82 Z"
-        fill={sP.fill}
-        stroke="rgba(0,0,0,0.25)"
-        strokeWidth="0.7"
-      />
-      {/* Hem stripe on each leg (color2), clipped to shorts shape */}
-      <g clipPath={`url(#${uid}-sh)`}>
-        <rect x="17" y="102" width="20" height="4" fill={kit.shorts.color2} />
-        <rect x="43" y="102" width="20" height="4" fill={kit.shorts.color2} />
-      </g>
+      {/* ── Shorts: waistband + two legs with visible gap ── */}
+      <rect x="20" y="77" width="40" height="6" rx="1" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
+      <path d="M 20,83 L 20,104 Q 29,107 37,105 L 37,83 Z" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
+      <path d="M 43,83 L 43,105 Q 51,107 60,104 L 60,83 Z" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
+      {/* Hem stripe on each leg */}
+      <rect x="20" y="101" width="17" height="3" fill={kit.shorts.color2} />
+      <rect x="43" y="101" width="17" height="3" fill={kit.shorts.color2} />
 
       {/* ── Socks (centered under each leg, start just below shorts hem) ── */}
       {/* Left sock — under left leg (x≈18–36) */}
