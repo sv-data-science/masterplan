@@ -93,6 +93,29 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'USA', score: '3–0', away: 'Paraguay' },
           { home: 'Belgium', score: '0–1', away: 'Paraguay' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'Argentina', p: 3, w: 3, d: 0, l: 0, gf: 10, ga: 4 },
+            { team: 'Chile', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 3 },
+            { team: 'France', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 3 },
+            { team: 'Mexico', p: 3, w: 0, d: 0, l: 3, gf: 4, ga: 13 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'Yugoslavia', p: 2, w: 2, d: 0, l: 0, gf: 6, ga: 1 },
+            { team: 'Brazil', p: 2, w: 1, d: 0, l: 1, gf: 5, ga: 2 },
+            { team: 'Bolivia', p: 2, w: 0, d: 0, l: 2, gf: 0, ga: 8 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Uruguay', p: 2, w: 2, d: 0, l: 0, gf: 5, ga: 0 },
+            { team: 'Romania', p: 2, w: 1, d: 0, l: 1, gf: 3, ga: 5 },
+            { team: 'Peru', p: 2, w: 0, d: 0, l: 2, gf: 1, ga: 4 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'USA', p: 2, w: 2, d: 0, l: 0, gf: 6, ga: 0 },
+            { team: 'Paraguay', p: 2, w: 1, d: 0, l: 1, gf: 1, ga: 3 },
+            { team: 'Belgium', p: 2, w: 0, d: 0, l: 2, gf: 0, ga: 4 },
+          ] },
+        ],
       },
       {
         name: 'Semi-finals',
@@ -350,6 +373,29 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Italy', score: '2–0', away: 'Paraguay' },
           { home: 'Uruguay', score: '8–0', away: 'Bolivia' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 1, l: 0, gf: 8, ga: 2 },
+            { team: 'Yugoslavia', p: 3, w: 2, d: 0, l: 1, gf: 7, ga: 3 },
+            { team: 'Switzerland', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 6 },
+            { team: 'Mexico', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 10 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'Spain', p: 3, w: 3, d: 0, l: 0, gf: 6, ga: 1 },
+            { team: 'England', p: 2, w: 1, d: 0, l: 1, gf: 2, ga: 2 },
+            { team: 'Chile', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 6 },
+            { team: 'USA', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 8 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Sweden', p: 2, w: 1, d: 1, l: 0, gf: 4, ga: 3 },
+            { team: 'Italy', p: 2, w: 1, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Paraguay', p: 2, w: 0, d: 1, l: 1, gf: 2, ga: 4 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'Uruguay', p: 1, w: 1, d: 0, l: 0, gf: 8, ga: 0 },
+            { team: 'Bolivia', p: 1, w: 0, d: 0, l: 1, gf: 0, ga: 8 },
+          ] },
+        ],
       },
       {
         name: 'Final Round Robin',
@@ -426,6 +472,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'England', score: '2–0', away: 'Switzerland' },
           { home: 'Italy', score: '4–1', away: 'Belgium' },
           { home: 'Switzerland', score: '2–0', away: 'Italy' },
+        ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'Brazil', p: 2, w: 1, d: 1, l: 0, gf: 6, ga: 1 },
+            { team: 'Yugoslavia', p: 2, w: 1, d: 1, l: 0, gf: 2, ga: 1 },
+            { team: 'France', p: 2, w: 1, d: 0, l: 1, gf: 3, ga: 3 },
+            { team: 'Mexico', p: 2, w: 0, d: 0, l: 2, gf: 2, ga: 8 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'Hungary', p: 2, w: 2, d: 0, l: 0, gf: 17, ga: 3 },
+            { team: 'W. Germany', p: 2, w: 1, d: 0, l: 1, gf: 7, ga: 9 },
+            { team: 'Turkey', p: 2, w: 1, d: 0, l: 1, gf: 8, ga: 4 },
+            { team: 'S. Korea', p: 2, w: 0, d: 0, l: 2, gf: 0, ga: 16 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Uruguay', p: 2, w: 2, d: 0, l: 0, gf: 9, ga: 0 },
+            { team: 'Austria', p: 2, w: 2, d: 0, l: 0, gf: 6, ga: 0 },
+            { team: 'Czechoslovakia', p: 2, w: 0, d: 0, l: 2, gf: 0, ga: 7 },
+            { team: 'Scotland', p: 2, w: 0, d: 0, l: 2, gf: 0, ga: 8 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'England', p: 2, w: 1, d: 1, l: 0, gf: 6, ga: 4 },
+            { team: 'Switzerland', p: 2, w: 1, d: 1, l: 0, gf: 2, ga: 2 },
+            { team: 'Italy', p: 2, w: 1, d: 0, l: 1, gf: 5, ga: 3 },
+            { team: 'Belgium', p: 2, w: 0, d: 0, l: 2, gf: 5, ga: 9 },
+          ] },
         ],
       },
       {
@@ -518,6 +590,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'USSR', score: '2–2', away: 'England' },
           { home: 'Brazil', score: '2–0', away: 'USSR' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'W. Germany', p: 3, w: 1, d: 2, l: 0, gf: 7, ga: 5 },
+            { team: 'N. Ireland', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 5 },
+            { team: 'Czechoslovakia', p: 3, w: 1, d: 1, l: 1, gf: 8, ga: 4 },
+            { team: 'Argentina', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 10 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'France', p: 3, w: 2, d: 1, l: 0, gf: 11, ga: 7 },
+            { team: 'Yugoslavia', p: 3, w: 1, d: 2, l: 0, gf: 7, ga: 6 },
+            { team: 'Paraguay', p: 3, w: 1, d: 1, l: 1, gf: 9, ga: 12 },
+            { team: 'Scotland', p: 3, w: 0, d: 0, l: 3, gf: 4, ga: 6 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Sweden', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 1 },
+            { team: 'Hungary', p: 3, w: 1, d: 1, l: 1, gf: 6, ga: 3 },
+            { team: 'Wales', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 2 },
+            { team: 'Mexico', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 8 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 5, ga: 0 },
+            { team: 'USSR', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 4 },
+            { team: 'England', p: 3, w: 0, d: 3, l: 0, gf: 4, ga: 4 },
+            { team: 'Austria', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 7 },
+          ] },
+        ],
       },
       {
         name: 'Quarter-finals',
@@ -602,6 +700,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Czechoslovakia', score: '1–0', away: 'Spain' },
           { home: 'USSR', score: '2–0', away: 'Yugoslavia' },
           { home: 'Uruguay', score: '2–1', away: 'Colombia' },
+        ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'USSR', p: 3, w: 2, d: 1, l: 0, gf: 8, ga: 5 },
+            { team: 'Yugoslavia', p: 3, w: 2, d: 0, l: 1, gf: 8, ga: 3 },
+            { team: 'Uruguay', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 6 },
+            { team: 'Colombia', p: 3, w: 0, d: 1, l: 2, gf: 5, ga: 11 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'W. Germany', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 1 },
+            { team: 'Chile', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 3 },
+            { team: 'Italy', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 2 },
+            { team: 'Switzerland', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 8 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 4, ga: 1 },
+            { team: 'Czechoslovakia', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'Mexico', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 4 },
+            { team: 'Spain', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 3 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'Hungary', p: 3, w: 2, d: 0, l: 1, gf: 8, ga: 2 },
+            { team: 'England', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+            { team: 'Argentina', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'Bulgaria', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 7 },
+          ] },
         ],
       },
       {
@@ -692,6 +816,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Portugal', score: '3–0', away: 'Brazil', note: 'Pelé injured, Brazil eliminated' },
           { home: 'USSR', score: '3–0', away: 'North Korea' },
           { home: 'North Korea', score: '3–5', away: 'Portugal', note: 'Eusébio 4 goals — comeback from 3-0 down' },
+        ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'England', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 0 },
+            { team: 'Uruguay', p: 3, w: 1, d: 2, l: 0, gf: 2, ga: 1 },
+            { team: 'Mexico', p: 3, w: 0, d: 2, l: 1, gf: 1, ga: 3 },
+            { team: 'France', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 5 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'W. Germany', p: 3, w: 2, d: 1, l: 0, gf: 7, ga: 1 },
+            { team: 'Argentina', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 1 },
+            { team: 'Spain', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 5 },
+            { team: 'Switzerland', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 9 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Portugal', p: 3, w: 3, d: 0, l: 0, gf: 9, ga: 2 },
+            { team: 'Hungary', p: 3, w: 2, d: 0, l: 1, gf: 7, ga: 5 },
+            { team: 'Brazil', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 6 },
+            { team: 'Bulgaria', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 8 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'USSR', p: 3, w: 3, d: 0, l: 0, gf: 6, ga: 1 },
+            { team: 'N. Korea', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 4 },
+            { team: 'Italy', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 2 },
+            { team: 'Chile', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 5 },
+          ] },
         ],
       },
       {
@@ -785,6 +935,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Peru', score: '3–2', away: 'Bulgaria' },
           { home: 'Morocco', score: '1–0', away: 'West Germany', note: 'First African/Asian win vs European team' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'USSR', p: 3, w: 2, d: 1, l: 0, gf: 6, ga: 1 },
+            { team: 'Mexico', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 0 },
+            { team: 'Belgium', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 5 },
+            { team: 'El Salvador', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 9 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'Italy', p: 3, w: 1, d: 2, l: 0, gf: 1, ga: 0 },
+            { team: 'Uruguay', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 1 },
+            { team: 'Sweden', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Israel', p: 3, w: 0, d: 2, l: 1, gf: 1, ga: 3 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 8, ga: 3 },
+            { team: 'England', p: 3, w: 2, d: 0, l: 1, gf: 2, ga: 1 },
+            { team: 'Romania', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 5 },
+            { team: 'Czechoslovakia', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 7 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'W. Germany', p: 3, w: 3, d: 0, l: 0, gf: 10, ga: 4 },
+            { team: 'Peru', p: 3, w: 2, d: 0, l: 1, gf: 7, ga: 5 },
+            { team: 'Bulgaria', p: 3, w: 0, d: 1, l: 2, gf: 5, ga: 9 },
+            { team: 'Morocco', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+          ] },
+        ],
       },
       {
         name: 'Quarter-finals',
@@ -876,6 +1052,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Brazil', score: '0–0', away: 'Scotland' },
           { home: 'Yugoslavia', score: '1–1', away: 'Scotland' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'E. Germany', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 1 },
+            { team: 'W. Germany', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 1 },
+            { team: 'Chile', p: 3, w: 0, d: 2, l: 1, gf: 1, ga: 2 },
+            { team: 'Australia', p: 3, w: 0, d: 1, l: 2, gf: 0, ga: 5 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'Yugoslavia', p: 3, w: 1, d: 2, l: 0, gf: 10, ga: 1 },
+            { team: 'Brazil', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 0 },
+            { team: 'Scotland', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 1 },
+            { team: 'Zaire', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 14 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Netherlands', p: 3, w: 2, d: 1, l: 0, gf: 6, ga: 1 },
+            { team: 'Sweden', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 2 },
+            { team: 'Bulgaria', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 5 },
+            { team: 'Uruguay', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 6 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'Poland', p: 3, w: 3, d: 0, l: 0, gf: 12, ga: 3 },
+            { team: 'Argentina', p: 3, w: 1, d: 1, l: 1, gf: 7, ga: 5 },
+            { team: 'Italy', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 4 },
+            { team: 'Haiti', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 14 },
+          ] },
+        ],
       },
       {
         name: 'Group Stage 2',
@@ -889,6 +1091,20 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'West Germany', score: '4–2', away: 'Sweden' },
           { home: 'Poland', score: '3–0', away: 'Sweden' },
           { home: 'West Germany', score: '1–0', away: 'Yugoslavia' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Netherlands', p: 3, w: 3, d: 0, l: 0, gf: 8, ga: 0 },
+            { team: 'Brazil', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 3 },
+            { team: 'E. Germany', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 4 },
+            { team: 'Argentina', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 7 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'W. Germany', p: 3, w: 3, d: 0, l: 0, gf: 7, ga: 2 },
+            { team: 'Poland', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 2 },
+            { team: 'Sweden', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 6 },
+            { team: 'Yugoslavia', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 6 },
+          ] },
         ],
       },
       {
@@ -961,6 +1177,32 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Italy', score: '3–1', away: 'Hungary' },
           { home: 'Argentina', score: '2–1', away: 'France' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'Italy', p: 3, w: 3, d: 0, l: 0, gf: 6, ga: 2 },
+            { team: 'Argentina', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'France', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 5 },
+            { team: 'Hungary', p: 3, w: 0, d: 0, l: 3, gf: 3, ga: 8 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'Poland', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 1 },
+            { team: 'W. Germany', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 0 },
+            { team: 'Tunisia', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 2 },
+            { team: 'Mexico', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 12 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Austria', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Brazil', p: 3, w: 2, d: 0, l: 1, gf: 2, ga: 1 },
+            { team: 'Spain', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+            { team: 'Sweden', p: 3, w: 1, d: 0, l: 2, gf: 1, ga: 3 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'Peru', p: 3, w: 2, d: 1, l: 0, gf: 7, ga: 2 },
+            { team: 'Netherlands', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 3 },
+            { team: 'Scotland', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 6 },
+            { team: 'Iran', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 8 },
+          ] },
+        ],
       },
       {
         name: 'Group Stage 2',
@@ -974,6 +1216,20 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Netherlands', score: '2–1', away: 'Italy' },
           { home: 'Argentina', score: '0–0', away: 'Brazil' },
           { home: 'Italy', score: '2–1', away: 'Austria' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Netherlands', p: 3, w: 2, d: 1, l: 0, gf: 9, ga: 4 },
+            { team: 'Italy', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'W. Germany', p: 3, w: 0, d: 2, l: 1, gf: 4, ga: 5 },
+            { team: 'Austria', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 8 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Argentina', p: 3, w: 2, d: 1, l: 0, gf: 10, ga: 4 },
+            { team: 'Brazil', p: 3, w: 2, d: 1, l: 0, gf: 6, ga: 1 },
+            { team: 'Poland', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 5 },
+            { team: 'Peru', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 10 },
+          ] },
         ],
       },
       {
@@ -1056,6 +1312,44 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Northern Ireland', score: '1–0', away: 'Spain' },
           { home: 'West Germany', score: '1–0', away: 'Austria', note: 'Night of Shame' },
         ],
+        groups: [
+          { name: 'Group 1', rows: [
+            { team: 'Poland', p: 3, w: 1, d: 2, l: 0, gf: 5, ga: 1 },
+            { team: 'Italy', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 2 },
+            { team: 'Cameroon', p: 3, w: 0, d: 3, l: 0, gf: 1, ga: 1 },
+            { team: 'Peru', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group 2', rows: [
+            { team: 'W. Germany', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 3 },
+            { team: 'Austria', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 1 },
+            { team: 'Algeria', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 5 },
+            { team: 'Chile', p: 3, w: 0, d: 0, l: 3, gf: 3, ga: 8 },
+          ] },
+          { name: 'Group 3', rows: [
+            { team: 'Belgium', p: 3, w: 2, d: 1, l: 0, gf: 3, ga: 1 },
+            { team: 'Argentina', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 2 },
+            { team: 'Hungary', p: 3, w: 1, d: 1, l: 1, gf: 12, ga: 6 },
+            { team: 'El Salvador', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 13 },
+          ] },
+          { name: 'Group 4', rows: [
+            { team: 'England', p: 3, w: 3, d: 0, l: 0, gf: 6, ga: 1 },
+            { team: 'France', p: 3, w: 1, d: 1, l: 1, gf: 6, ga: 5 },
+            { team: 'Czechoslovakia', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 4 },
+            { team: 'Kuwait', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group 5', rows: [
+            { team: 'N. Ireland', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'Spain', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 3 },
+            { team: 'Yugoslavia', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Honduras', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 3 },
+          ] },
+          { name: 'Group 6', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 10, ga: 2 },
+            { team: 'USSR', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 4 },
+            { team: 'Scotland', p: 3, w: 1, d: 1, l: 1, gf: 8, ga: 8 },
+            { team: 'New Zealand', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 12 },
+          ] },
+        ],
       },
       {
         name: 'Group Stage 2',
@@ -1066,6 +1360,28 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'West Germany', score: '2–1', away: 'Spain' },
           { home: 'France', score: '4–1', away: 'Austria' },
           { home: 'Northern Ireland', score: '2–2', away: 'Austria' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Poland', p: 2, w: 1, d: 1, l: 0, gf: 3, ga: 0 },
+            { team: 'USSR', p: 2, w: 1, d: 1, l: 0, gf: 1, ga: 0 },
+            { team: 'Belgium', p: 2, w: 0, d: 0, l: 2, gf: 0, ga: 4 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'W. Germany', p: 2, w: 1, d: 1, l: 0, gf: 2, ga: 1 },
+            { team: 'England', p: 2, w: 0, d: 2, l: 0, gf: 0, ga: 0 },
+            { team: 'Spain', p: 2, w: 0, d: 1, l: 1, gf: 1, ga: 2 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Italy', p: 2, w: 2, d: 0, l: 0, gf: 5, ga: 3 },
+            { team: 'Brazil', p: 2, w: 1, d: 0, l: 1, gf: 5, ga: 4 },
+            { team: 'Argentina', p: 2, w: 0, d: 0, l: 2, gf: 2, ga: 5 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'France', p: 2, w: 2, d: 0, l: 0, gf: 5, ga: 1 },
+            { team: 'Austria', p: 2, w: 0, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'N. Ireland', p: 2, w: 0, d: 1, l: 1, gf: 3, ga: 6 },
+          ] },
         ],
       },
       {
@@ -1150,6 +1466,44 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Mexico', score: '2–1', away: 'Belgium' },
           { home: 'Morocco', score: '3–1', away: 'Portugal' },
           { home: 'England', score: '3–0', away: 'Paraguay' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Argentina', p: 3, w: 2, d: 1, l: 0, gf: 6, ga: 2 },
+            { team: 'Italy', p: 3, w: 1, d: 2, l: 0, gf: 5, ga: 4 },
+            { team: 'Bulgaria', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 4 },
+            { team: 'S. Korea', p: 3, w: 0, d: 1, l: 2, gf: 4, ga: 7 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Mexico', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 2 },
+            { team: 'Paraguay', p: 3, w: 1, d: 2, l: 0, gf: 4, ga: 3 },
+            { team: 'Belgium', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 5 },
+            { team: 'Iraq', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 4 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'USSR', p: 3, w: 2, d: 1, l: 0, gf: 9, ga: 2 },
+            { team: 'France', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 1 },
+            { team: 'Hungary', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 9 },
+            { team: 'Canada', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 5 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 5, ga: 0 },
+            { team: 'Spain', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 2 },
+            { team: 'N. Ireland', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+            { team: 'Algeria', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 5 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Denmark', p: 3, w: 3, d: 0, l: 0, gf: 9, ga: 1 },
+            { team: 'W. Germany', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 4 },
+            { team: 'Uruguay', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 7 },
+            { team: 'Scotland', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 3 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Morocco', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 1 },
+            { team: 'England', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 1 },
+            { team: 'Poland', p: 3, w: 1, d: 1, l: 1, gf: 1, ga: 3 },
+            { team: 'Portugal', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+          ] },
         ],
       },
       {
@@ -1259,6 +1613,44 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'USSR', score: '0–4', away: 'Argentina' },
           { home: 'Costa Rica', score: '2–1', away: 'Sweden' },
           { home: 'Cameroon', score: '2–1', away: 'Romania', note: 'Milla 2 goals' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Italy', p: 3, w: 3, d: 0, l: 0, gf: 4, ga: 0 },
+            { team: 'Czechoslovakia', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 3 },
+            { team: 'Austria', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 3 },
+            { team: 'USA', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 8 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Cameroon', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 5 },
+            { team: 'Romania', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 3 },
+            { team: 'Argentina', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 2 },
+            { team: 'USSR', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 4, ga: 1 },
+            { team: 'Costa Rica', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 2 },
+            { team: 'Scotland', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 3 },
+            { team: 'Sweden', p: 3, w: 0, d: 0, l: 3, gf: 3, ga: 6 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'W. Germany', p: 3, w: 2, d: 1, l: 0, gf: 10, ga: 3 },
+            { team: 'Yugoslavia', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 5 },
+            { team: 'Colombia', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+            { team: 'UAE', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 11 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Spain', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 2 },
+            { team: 'Belgium', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 3 },
+            { team: 'Uruguay', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'S. Korea', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 6 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'England', p: 3, w: 1, d: 2, l: 0, gf: 2, ga: 1 },
+            { team: 'Ireland', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 2 },
+            { team: 'Netherlands', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 2 },
+            { team: 'Egypt', p: 3, w: 0, d: 2, l: 1, gf: 1, ga: 2 },
+          ] },
         ],
       },
       {
@@ -1370,6 +1762,44 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Mexico', score: '1–0', away: 'Ireland' },
           { home: 'Ireland', score: '1–0', away: 'Italy' },
           { home: 'Norway', score: '1–0', away: 'Mexico' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Romania', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 5 },
+            { team: 'Switzerland', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 4 },
+            { team: 'USA', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 3 },
+            { team: 'Colombia', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 5 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 1, l: 0, gf: 6, ga: 1 },
+            { team: 'Sweden', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 4 },
+            { team: 'Russia', p: 3, w: 1, d: 0, l: 2, gf: 7, ga: 6 },
+            { team: 'Cameroon', p: 3, w: 0, d: 1, l: 2, gf: 3, ga: 11 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Germany', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 3 },
+            { team: 'Spain', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 4 },
+            { team: 'S. Korea', p: 3, w: 0, d: 2, l: 1, gf: 4, ga: 5 },
+            { team: 'Bolivia', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 4 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Nigeria', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 2 },
+            { team: 'Bulgaria', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 3 },
+            { team: 'Argentina', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 3 },
+            { team: 'Greece', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 10 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Mexico', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 3 },
+            { team: 'Ireland', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Italy', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Norway', p: 3, w: 1, d: 1, l: 1, gf: 1, ga: 1 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Netherlands', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Saudi Arabia', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Belgium', p: 3, w: 2, d: 0, l: 1, gf: 2, ga: 1 },
+            { team: 'Morocco', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 5 },
+          ] },
         ],
       },
       {
@@ -1486,6 +1916,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Argentina', score: '1–0', away: 'Croatia' },
           { home: 'Brazil', score: '1–2', away: 'Norway' },
           { home: 'Brazil', score: '3–0', away: 'Morocco' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 3 },
+            { team: 'Norway', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 4 },
+            { team: 'Morocco', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 5 },
+            { team: 'Scotland', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Italy', p: 3, w: 2, d: 1, l: 0, gf: 7, ga: 3 },
+            { team: 'Chile', p: 3, w: 0, d: 3, l: 0, gf: 4, ga: 4 },
+            { team: 'Austria', p: 3, w: 0, d: 2, l: 1, gf: 3, ga: 4 },
+            { team: 'Cameroon', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 3 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'France', p: 3, w: 3, d: 0, l: 0, gf: 9, ga: 1 },
+            { team: 'Denmark', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 3 },
+            { team: 'South Africa', p: 3, w: 0, d: 2, l: 1, gf: 3, ga: 6 },
+            { team: 'Saudi Arabia', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 7 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Nigeria', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 5 },
+            { team: 'Paraguay', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 1 },
+            { team: 'Spain', p: 3, w: 1, d: 1, l: 1, gf: 8, ga: 4 },
+            { team: 'Bulgaria', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 7 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Netherlands', p: 3, w: 1, d: 2, l: 0, gf: 7, ga: 4 },
+            { team: 'Mexico', p: 3, w: 1, d: 1, l: 1, gf: 7, ga: 5 },
+            { team: 'Belgium', p: 3, w: 0, d: 3, l: 0, gf: 3, ga: 3 },
+            { team: 'South Korea', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 9 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Germany', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 2 },
+            { team: 'Yugoslavia', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 2 },
+            { team: 'Iran', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+            { team: 'USA', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 5 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Romania', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 2 },
+            { team: 'England', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 2 },
+            { team: 'Colombia', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 5 },
+            { team: 'Tunisia', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 4 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Argentina', p: 3, w: 3, d: 0, l: 0, gf: 7, ga: 0 },
+            { team: 'Croatia', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 2 },
+            { team: 'Jamaica', p: 3, w: 0, d: 1, l: 2, gf: 3, ga: 9 },
+            { team: 'Japan', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 4 },
+          ] },
         ],
       },
       {
@@ -1608,6 +2088,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Senegal', score: '3–3', away: 'Uruguay' },
           { home: 'Denmark', score: '2–1', away: 'Uruguay' },
         ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Denmark', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 2 },
+            { team: 'Senegal', p: 3, w: 1, d: 2, l: 0, gf: 5, ga: 4 },
+            { team: 'Uruguay', p: 3, w: 0, d: 2, l: 1, gf: 4, ga: 5 },
+            { team: 'France', p: 3, w: 0, d: 1, l: 2, gf: 0, ga: 3 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Spain', p: 3, w: 3, d: 0, l: 0, gf: 9, ga: 4 },
+            { team: 'Paraguay', p: 3, w: 1, d: 1, l: 1, gf: 6, ga: 6 },
+            { team: 'South Africa', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 5 },
+            { team: 'Slovenia', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 7 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 11, ga: 3 },
+            { team: 'Turkey', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 3 },
+            { team: 'Costa Rica', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 6 },
+            { team: 'China', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 9 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'South Korea', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 1 },
+            { team: 'USA', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 6 },
+            { team: 'Portugal', p: 3, w: 1, d: 0, l: 2, gf: 6, ga: 4 },
+            { team: 'Poland', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 7 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Germany', p: 3, w: 2, d: 1, l: 0, gf: 11, ga: 1 },
+            { team: 'Ireland', p: 3, w: 1, d: 2, l: 0, gf: 5, ga: 2 },
+            { team: 'Cameroon', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 3 },
+            { team: 'Saudi Arabia', p: 3, w: 0, d: 1, l: 2, gf: 0, ga: 12 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Sweden', p: 3, w: 1, d: 2, l: 0, gf: 4, ga: 3 },
+            { team: 'England', p: 3, w: 1, d: 2, l: 0, gf: 1, ga: 1 },
+            { team: 'Argentina', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Nigeria', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 3 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Mexico', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 2 },
+            { team: 'Croatia', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'Italy', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 3 },
+            { team: 'Ecuador', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Japan', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 2 },
+            { team: 'Belgium', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 5 },
+            { team: 'Russia', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 4 },
+            { team: 'Tunisia', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 5 },
+          ] },
+        ],
       },
       {
         name: 'Round of 16',
@@ -1723,6 +2253,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Spain', score: '1–3', away: 'France' },
           { home: 'South Korea', score: '2–1', away: 'Togo' },
           { home: 'Togo', score: '0–2', away: 'Switzerland' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Germany', p: 3, w: 3, d: 0, l: 0, gf: 8, ga: 2 },
+            { team: 'Ecuador', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 3 },
+            { team: 'Poland', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+            { team: 'Costa Rica', p: 3, w: 0, d: 0, l: 3, gf: 3, ga: 9 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'England', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 2 },
+            { team: 'Sweden', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 2 },
+            { team: 'Paraguay', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 4 },
+            { team: 'Trinidad & Tobago', p: 3, w: 0, d: 2, l: 1, gf: 0, ga: 4 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Argentina', p: 3, w: 2, d: 1, l: 0, gf: 8, ga: 1 },
+            { team: 'Netherlands', p: 3, w: 2, d: 1, l: 0, gf: 3, ga: 1 },
+            { team: 'Ivory Coast', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 6 },
+            { team: 'Serbia & Montenegro', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 10 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Portugal', p: 3, w: 3, d: 0, l: 0, gf: 5, ga: 1 },
+            { team: 'Mexico', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 3 },
+            { team: 'Angola', p: 3, w: 0, d: 2, l: 1, gf: 1, ga: 2 },
+            { team: 'Iran', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Italy', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 1 },
+            { team: 'Ghana', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Czech Republic', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 4 },
+            { team: 'USA', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Brazil', p: 3, w: 3, d: 0, l: 0, gf: 7, ga: 1 },
+            { team: 'Australia', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 5 },
+            { team: 'Croatia', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 3 },
+            { team: 'Japan', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 7 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Switzerland', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 0 },
+            { team: 'France', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 1 },
+            { team: 'South Korea', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 4 },
+            { team: 'Togo', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 6 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Spain', p: 3, w: 3, d: 0, l: 0, gf: 8, ga: 1 },
+            { team: 'Ukraine', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 4 },
+            { team: 'Tunisia', p: 3, w: 0, d: 1, l: 2, gf: 3, ga: 6 },
+            { team: 'Saudi Arabia', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 7 },
+          ] },
         ],
       },
       {
@@ -1840,6 +2420,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Spain', score: '0–1', away: 'Switzerland' },
           { home: 'Chile', score: '1–0', away: 'Honduras' },
         ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Uruguay', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 0 },
+            { team: 'Mexico', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 2 },
+            { team: 'South Africa', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 5 },
+            { team: 'France', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 4 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Argentina', p: 3, w: 3, d: 0, l: 0, gf: 7, ga: 1 },
+            { team: 'South Korea', p: 3, w: 1, d: 1, l: 1, gf: 5, ga: 6 },
+            { team: 'Greece', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 5 },
+            { team: 'Nigeria', p: 3, w: 0, d: 1, l: 2, gf: 3, ga: 5 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'USA', p: 3, w: 1, d: 2, l: 0, gf: 4, ga: 3 },
+            { team: 'England', p: 3, w: 1, d: 2, l: 0, gf: 2, ga: 1 },
+            { team: 'Slovenia', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 3 },
+            { team: 'Algeria', p: 3, w: 0, d: 2, l: 1, gf: 0, ga: 2 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Germany', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 5 },
+            { team: 'Ghana', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Australia', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 6 },
+            { team: 'Serbia', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 3 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Netherlands', p: 3, w: 3, d: 0, l: 0, gf: 5, ga: 1 },
+            { team: 'Japan', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 2 },
+            { team: 'Denmark', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 6 },
+            { team: 'Cameroon', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 5 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Paraguay', p: 3, w: 1, d: 2, l: 0, gf: 3, ga: 1 },
+            { team: 'Slovakia', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 5 },
+            { team: 'Italy', p: 3, w: 0, d: 3, l: 0, gf: 4, ga: 4 },
+            { team: 'New Zealand', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 3 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 2 },
+            { team: 'Portugal', p: 3, w: 1, d: 2, l: 0, gf: 7, ga: 0 },
+            { team: 'Ivory Coast', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 3 },
+            { team: 'North Korea', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 12 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Spain', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 2 },
+            { team: 'Chile', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 2 },
+            { team: 'Switzerland', p: 3, w: 1, d: 0, l: 2, gf: 1, ga: 1 },
+            { team: 'Honduras', p: 3, w: 0, d: 0, l: 3, gf: 0, ga: 3 },
+          ] },
+        ],
       },
       {
         name: 'Round of 16',
@@ -1954,6 +2584,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Germany', score: '2–2', away: 'Ghana' },
           { home: 'Nigeria', score: '2–3', away: 'Argentina' },
           { home: 'Brazil', score: '1–1', away: 'Chile', note: 'aet — Brazil win 3–2 pens' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 1, l: 0, gf: 7, ga: 2 },
+            { team: 'Mexico', p: 3, w: 2, d: 1, l: 0, gf: 4, ga: 1 },
+            { team: 'Croatia', p: 3, w: 1, d: 0, l: 2, gf: 6, ga: 6 },
+            { team: 'Cameroon', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 9 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Netherlands', p: 3, w: 3, d: 0, l: 0, gf: 10, ga: 3 },
+            { team: 'Chile', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 3 },
+            { team: 'Spain', p: 3, w: 0, d: 1, l: 2, gf: 4, ga: 7 },
+            { team: 'Australia', p: 3, w: 0, d: 1, l: 2, gf: 3, ga: 9 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Colombia', p: 3, w: 3, d: 0, l: 0, gf: 9, ga: 2 },
+            { team: 'Greece', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 4 },
+            { team: 'Ivory Coast', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 5 },
+            { team: 'Japan', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Uruguay', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 4 },
+            { team: 'Costa Rica', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 5 },
+            { team: 'England', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 4 },
+            { team: 'Italy', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'France', p: 3, w: 2, d: 1, l: 0, gf: 8, ga: 2 },
+            { team: 'Switzerland', p: 3, w: 2, d: 0, l: 1, gf: 7, ga: 6 },
+            { team: 'Ecuador', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 3 },
+            { team: 'Honduras', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 8 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Argentina', p: 3, w: 3, d: 0, l: 0, gf: 6, ga: 3 },
+            { team: 'Nigeria', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 3 },
+            { team: 'Bosnia', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 4 },
+            { team: 'Iran', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 4 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Germany', p: 3, w: 2, d: 1, l: 0, gf: 7, ga: 2 },
+            { team: 'USA', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+            { team: 'Portugal', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 7 },
+            { team: 'Ghana', p: 3, w: 0, d: 2, l: 1, gf: 4, ga: 4 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Belgium', p: 3, w: 3, d: 0, l: 0, gf: 4, ga: 1 },
+            { team: 'Algeria', p: 3, w: 1, d: 1, l: 1, gf: 6, ga: 5 },
+            { team: 'Russia', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 3 },
+            { team: 'South Korea', p: 3, w: 0, d: 1, l: 2, gf: 3, ga: 6 },
+          ] },
         ],
       },
       {
@@ -2072,6 +2752,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Japan', score: '0–1', away: 'Poland' },
           { home: 'Senegal', score: '0–1', away: 'Colombia' },
         ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Uruguay', p: 3, w: 3, d: 0, l: 0, gf: 5, ga: 0 },
+            { team: 'Russia', p: 3, w: 2, d: 0, l: 1, gf: 8, ga: 4 },
+            { team: 'Saudi Arabia', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 7 },
+            { team: 'Egypt', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'Spain', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 5 },
+            { team: 'Portugal', p: 3, w: 1, d: 2, l: 0, gf: 6, ga: 5 },
+            { team: 'Iran', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Morocco', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 4 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'France', p: 3, w: 2, d: 1, l: 0, gf: 3, ga: 1 },
+            { team: 'Denmark', p: 3, w: 1, d: 2, l: 0, gf: 2, ga: 1 },
+            { team: 'Peru', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 2 },
+            { team: 'Australia', p: 3, w: 0, d: 2, l: 1, gf: 2, ga: 5 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'Croatia', p: 3, w: 3, d: 0, l: 0, gf: 7, ga: 1 },
+            { team: 'Argentina', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 5 },
+            { team: 'Nigeria', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 4 },
+            { team: 'Iceland', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 5 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 1, l: 0, gf: 8, ga: 3 },
+            { team: 'Switzerland', p: 3, w: 1, d: 2, l: 0, gf: 5, ga: 4 },
+            { team: 'Serbia', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+            { team: 'Costa Rica', p: 3, w: 0, d: 1, l: 2, gf: 2, ga: 6 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Sweden', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 2 },
+            { team: 'Mexico', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 4 },
+            { team: 'South Korea', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 3 },
+            { team: 'Germany', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 4 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Belgium', p: 3, w: 3, d: 0, l: 0, gf: 9, ga: 2 },
+            { team: 'England', p: 3, w: 2, d: 0, l: 1, gf: 8, ga: 3 },
+            { team: 'Tunisia', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 8 },
+            { team: 'Panama', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 11 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Colombia', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 2 },
+            { team: 'Japan', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 7 },
+            { team: 'Senegal', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+            { team: 'Poland', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 5 },
+          ] },
+        ],
       },
       {
         name: 'Round of 16',
@@ -2189,6 +2919,56 @@ export const WC_EDITIONS: WCEdition[] = [
           { home: 'Ghana', score: '0–2', away: 'Uruguay' },
           { home: 'Switzerland', score: '3–2', away: 'Serbia' },
           { home: 'Netherlands', score: '3–1', away: 'USA' },
+        ],
+        groups: [
+          { name: 'Group A', rows: [
+            { team: 'Netherlands', p: 3, w: 2, d: 1, l: 0, gf: 5, ga: 1 },
+            { team: 'Senegal', p: 3, w: 1, d: 1, l: 1, gf: 3, ga: 5 },
+            { team: 'Ecuador', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 3 },
+            { team: 'Qatar', p: 3, w: 0, d: 0, l: 3, gf: 1, ga: 7 },
+          ] },
+          { name: 'Group B', rows: [
+            { team: 'England', p: 3, w: 1, d: 2, l: 0, gf: 9, ga: 2 },
+            { team: 'USA', p: 3, w: 0, d: 3, l: 0, gf: 2, ga: 2 },
+            { team: 'Iran', p: 3, w: 1, d: 0, l: 2, gf: 4, ga: 7 },
+            { team: 'Wales', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 5 },
+          ] },
+          { name: 'Group C', rows: [
+            { team: 'Argentina', p: 3, w: 2, d: 0, l: 1, gf: 5, ga: 2 },
+            { team: 'Poland', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 2 },
+            { team: 'Mexico', p: 3, w: 1, d: 0, l: 2, gf: 2, ga: 3 },
+            { team: 'Saudi Arabia', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 5 },
+          ] },
+          { name: 'Group D', rows: [
+            { team: 'France', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 2 },
+            { team: 'Australia', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 4 },
+            { team: 'Tunisia', p: 3, w: 1, d: 1, l: 1, gf: 1, ga: 1 },
+            { team: 'Denmark', p: 3, w: 0, d: 1, l: 2, gf: 1, ga: 3 },
+          ] },
+          { name: 'Group E', rows: [
+            { team: 'Japan', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Spain', p: 3, w: 1, d: 1, l: 1, gf: 9, ga: 3 },
+            { team: 'Germany', p: 3, w: 1, d: 1, l: 1, gf: 6, ga: 5 },
+            { team: 'Costa Rica', p: 3, w: 1, d: 0, l: 2, gf: 3, ga: 11 },
+          ] },
+          { name: 'Group F', rows: [
+            { team: 'Morocco', p: 3, w: 1, d: 2, l: 0, gf: 4, ga: 1 },
+            { team: 'Croatia', p: 3, w: 1, d: 2, l: 0, gf: 4, ga: 1 },
+            { team: 'Belgium', p: 3, w: 1, d: 0, l: 2, gf: 1, ga: 2 },
+            { team: 'Canada', p: 3, w: 0, d: 0, l: 3, gf: 2, ga: 7 },
+          ] },
+          { name: 'Group G', rows: [
+            { team: 'Brazil', p: 3, w: 2, d: 0, l: 1, gf: 3, ga: 3 },
+            { team: 'Switzerland', p: 3, w: 2, d: 0, l: 1, gf: 4, ga: 3 },
+            { team: 'Cameroon', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+            { team: 'Serbia', p: 3, w: 0, d: 1, l: 2, gf: 5, ga: 8 },
+          ] },
+          { name: 'Group H', rows: [
+            { team: 'Portugal', p: 3, w: 2, d: 0, l: 1, gf: 6, ga: 4 },
+            { team: 'South Korea', p: 3, w: 1, d: 1, l: 1, gf: 4, ga: 4 },
+            { team: 'Uruguay', p: 3, w: 1, d: 1, l: 1, gf: 2, ga: 3 },
+            { team: 'Ghana', p: 3, w: 1, d: 0, l: 2, gf: 5, ga: 7 },
+          ] },
         ],
       },
       {
