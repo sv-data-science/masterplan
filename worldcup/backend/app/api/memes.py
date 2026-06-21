@@ -76,9 +76,9 @@ async def upload_meme(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Rough size guard: base64 for 2MB binary ≈ 2.8MB text
-    if len(body.image_data) > 3_000_000:
-        raise HTTPException(status_code=413, detail="Image too large (max ~2 MB)")
+    # Guard: frontend compresses to ~400KB base64; reject clearly oversized payloads
+    if len(body.image_data) > 600_000:
+        raise HTTPException(status_code=413, detail="Image too large — try a smaller photo")
     if not body.image_data.startswith("data:image/"):
         raise HTTPException(status_code=400, detail="Must be a data URL (data:image/...)")
     meme = Meme(id=str(uuid.uuid4()), user_id=current_user.id, image_data=body.image_data)

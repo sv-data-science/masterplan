@@ -17,7 +17,7 @@ interface MemeData {
   my_reactions: string[];
 }
 
-async function compressImage(file: File, maxBytes = 1_800_000): Promise<string> {
+async function compressImage(file: File, maxBytes = 400_000): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
