@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
         log.error("DB init failed: %s", e)
         log.error("DATABASE_URL configured: %s", bool(settings.DATABASE_URL))
 
-    # Add columns to existing deployments that predate them
+    # Add columns / tables to existing deployments that predate them
     from sqlalchemy import text
     for col_sql in [
         "ALTER TABLE users ADD COLUMN kit TEXT",
@@ -62,6 +62,30 @@ async def lifespan(app: FastAPI):
                 await conn.execute(text(col_sql))
         except Exception:
             pass  # column already exists
+
+    # Ensure memes tables exist (create_all may be skipped on existing DBs)
+    for ddl in [
+        """CREATE TABLE IF NOT EXISTS memes (
+            id VARCHAR PRIMARY KEY,
+            user_id VARCHAR NOT NULL REFERENCES users(id),
+            image_data TEXT NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT now()
+        )""",
+        """CREATE TABLE IF NOT EXISTS meme_reactions (
+            id VARCHAR PRIMARY KEY,
+            user_id VARCHAR NOT NULL REFERENCES users(id),
+            meme_id VARCHAR NOT NULL REFERENCES memes(id) ON DELETE CASCADE,
+            emoji VARCHAR(10) NOT NULL,
+            created_at TIMESTAMPTZ DEFAULT now(),
+            CONSTRAINT uq_user_meme_emoji UNIQUE (user_id, meme_id, emoji)
+        )""",
+        "CREATE INDEX IF NOT EXISTS ix_meme_reactions_meme_id ON meme_reactions(meme_id)",
+    ]:
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(ddl))
+        except Exception as e:
+            log.warning("DDL skipped (%s): %s", ddl.split()[2], e)
 
     try:
         from sqlalchemy import select, func
