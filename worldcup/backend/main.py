@@ -1,20 +1,22 @@
 import asyncio
 import logging
 import sys
-from fastapi import FastAPI, Request
+import uuid
+from fastapi import FastAPI, Request, APIRouter, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from contextlib import asynccontextmanager
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
+from sqlalchemy.orm import selectinload
 from app.config import settings
-from app.database import engine, Base, AsyncSessionLocal
+from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.models import user, worldcup  # noqa: register models
+from app.models.user import User
+from app.models.worldcup import Meme, MemeReaction
+from app.auth import get_current_user, get_optional_current_user
 from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia
-try:
-    from app.api import memes as _memes_module
-    _memes_ok = True
-except Exception as _memes_err:
-    _memes_ok = False
-    logging.getLogger("main").error("memes module failed to import: %s", _memes_err, exc_info=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -113,7 +115,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="World Cup 2026 Predictor",
     description="FIFA World Cup 2026 prediction game for friends",
-    version="1.2.0",
+    version="1.3.0",
     lifespan=lifespan,
 )
 
@@ -133,8 +135,94 @@ app.include_router(leaderboard.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(goals.router, prefix="/api/v1")
 app.include_router(trivia.router, prefix="/api/v1")
-if _memes_ok:
-    app.include_router(_memes_module.router, prefix="/api/v1")
+
+# ── Memes (inlined to avoid any module-import issues on Railway) ──────────────
+_ALLOWED_EMOJIS = {"❤️", "😂", "🔥", "🙈", "😮"}
+
+class _MemeCreate(BaseModel):
+    image_data: str
+
+class _ReactionToggle(BaseModel):
+    emoji: str
+
+class _MemeOut(BaseModel):
+    id: str; user_id: str; username: str; display_name: str
+    image_data: str; created_at: str
+    reactions: dict; my_reactions: list
+    class Config: from_attributes = True
+
+def _build_meme_out(meme: Meme, uid: str | None) -> _MemeOut:
+    counts: dict = {}
+    mine: list = []
+    for r in meme.reactions:
+        counts[r.emoji] = counts.get(r.emoji, 0) + 1
+        if uid and r.user_id == uid:
+            mine.append(r.emoji)
+    return _MemeOut(id=meme.id, user_id=meme.user_id, username=meme.user.username,
+                    display_name=meme.user.display_name, image_data=meme.image_data,
+                    created_at=meme.created_at.isoformat(), reactions=counts, my_reactions=mine)
+
+@app.get("/api/v1/memes", response_model=list[_MemeOut])
+async def memes_list(db: AsyncSession = Depends(get_db),
+                     current_user: User | None = Depends(get_optional_current_user)):
+    rows = (await db.execute(
+        select(Meme).options(selectinload(Meme.user), selectinload(Meme.reactions))
+        .order_by(Meme.created_at.desc())
+    )).scalars().all()
+    uid = current_user.id if current_user else None
+    return [_build_meme_out(m, uid) for m in rows]
+
+@app.post("/api/v1/memes", response_model=_MemeOut, status_code=201)
+async def memes_upload(body: _MemeCreate, current_user: User = Depends(get_current_user),
+                       db: AsyncSession = Depends(get_db)):
+    if len(body.image_data) > 600_000:
+        raise HTTPException(status_code=413, detail="Image too large — try a smaller photo")
+    if not body.image_data.startswith("data:image/"):
+        raise HTTPException(status_code=400, detail="Must be a data URL (data:image/...)")
+    meme = Meme(id=str(uuid.uuid4()), user_id=current_user.id, image_data=body.image_data)
+    db.add(meme)
+    await db.flush()
+    loaded = (await db.execute(
+        select(Meme).where(Meme.id == meme.id)
+        .options(selectinload(Meme.user), selectinload(Meme.reactions))
+    )).scalar_one()
+    return _build_meme_out(loaded, current_user.id)
+
+@app.post("/api/v1/memes/{meme_id}/react", response_model=_MemeOut)
+async def memes_react(meme_id: str, body: _ReactionToggle,
+                      current_user: User = Depends(get_current_user),
+                      db: AsyncSession = Depends(get_db)):
+    if body.emoji not in _ALLOWED_EMOJIS:
+        raise HTTPException(status_code=400, detail=f"Emoji not allowed")
+    meme_row = (await db.execute(
+        select(Meme).where(Meme.id == meme_id)
+        .options(selectinload(Meme.user), selectinload(Meme.reactions))
+    )).scalar_one_or_none()
+    if not meme_row:
+        raise HTTPException(status_code=404, detail="Meme not found")
+    existing = (await db.execute(
+        select(MemeReaction).where(MemeReaction.meme_id == meme_id,
+                                   MemeReaction.user_id == current_user.id,
+                                   MemeReaction.emoji == body.emoji)
+    )).scalar_one_or_none()
+    if existing:
+        await db.delete(existing)
+    else:
+        db.add(MemeReaction(id=str(uuid.uuid4()), user_id=current_user.id,
+                            meme_id=meme_id, emoji=body.emoji))
+    await db.flush()
+    await db.refresh(meme_row, ["reactions"])
+    return _build_meme_out(meme_row, current_user.id)
+
+@app.delete("/api/v1/memes/{meme_id}", status_code=204)
+async def memes_delete(meme_id: str, current_user: User = Depends(get_current_user),
+                       db: AsyncSession = Depends(get_db)):
+    meme_row = (await db.execute(select(Meme).where(Meme.id == meme_id))).scalar_one_or_none()
+    if not meme_row:
+        raise HTTPException(status_code=404, detail="Meme not found")
+    if meme_row.user_id != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Not your meme")
+    await db.delete(meme_row)
 
 
 @app.exception_handler(Exception)
@@ -179,4 +267,4 @@ async def health_routes():
         for r in app.routes
         if isinstance(r, APIRoute)
     ]
-    return {"version": "1.2.0", "route_count": len(routes), "routes": sorted(routes, key=lambda r: r["path"])}
+    return {"version": "1.3.0", "route_count": len(routes), "routes": sorted(routes, key=lambda r: r["path"])}
