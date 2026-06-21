@@ -183,8 +183,9 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       {/* ── Shorts — one solid piece with V-cut at bottom ── */}
       <path d="M 20,77 L 60,77 L 60,109 L 44,109 L 40,101 L 36,109 L 20,109 Z"
             fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
-      {/* Horizontal stripe in secondary color spanning both legs */}
-      <rect x="20" y="95" width="40" height="4" fill={kit.shorts.color2} />
+      {/* Hem stripe in secondary color — one band per leg at the bottom */}
+      <rect x="20" y="105" width="16" height="3" fill={kit.shorts.color2} />
+      <rect x="44" y="105" width="16" height="3" fill={kit.shorts.color2} />
 
       {/* ── Socks ── */}
       <rect x="19" y="109" width="16" height="17" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
