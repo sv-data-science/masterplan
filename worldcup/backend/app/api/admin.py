@@ -1,11 +1,15 @@
 import uuid
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.auth import get_current_user, hash_password
 from app.database import get_db
 from app.models.user import User
+from app.models.worldcup import Prediction, Match
 from app.schemas.user import UserCreate, UserPublic
+from app.schemas.worldcup import PredictionOut
+from app.services.scoring import calculate_points
 from app.services.sync import sync_scores, sync_goals_espn, last_sync_result
 from app.config import settings
 
@@ -160,3 +164,58 @@ async def list_users(
 ):
     users = (await db.execute(select(User).order_by(User.created_at))).scalars().all()
     return users
+
+
+class AdminPredictionSet(BaseModel):
+    username: str
+    match_id: str
+    pred_home: int
+    pred_away: int
+
+
+@router.post("/predictions", response_model=PredictionOut, status_code=201)
+async def admin_set_prediction(
+    body: AdminPredictionSet,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Create or overwrite any user's prediction, bypassing the lock. Points are auto-calculated when the match is already completed."""
+    user = (await db.execute(
+        select(User).where(User.username == body.username)
+    )).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User '{body.username}' not found")
+
+    match = (await db.execute(
+        select(Match).where(Match.id == body.match_id)
+    )).scalar_one_or_none()
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+
+    pred = (await db.execute(
+        select(Prediction).where(
+            Prediction.match_id == body.match_id,
+            Prediction.user_id == user.id,
+        )
+    )).scalar_one_or_none()
+
+    if pred:
+        pred.pred_home = body.pred_home
+        pred.pred_away = body.pred_away
+    else:
+        pred = Prediction(
+            id=str(uuid.uuid4()),
+            user_id=user.id,
+            match_id=body.match_id,
+            pred_home=body.pred_home,
+            pred_away=body.pred_away,
+        )
+        db.add(pred)
+
+    if match.status == "completed" and match.home_score is not None and match.away_score is not None:
+        pred.points_earned = calculate_points(
+            body.pred_home, body.pred_away, match.home_score, match.away_score
+        )
+
+    await db.flush()
+    return PredictionOut.model_validate(pred)

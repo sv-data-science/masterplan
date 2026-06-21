@@ -562,13 +562,85 @@ function CreateUserPanel({ onCreated }: { onCreated: () => void }) {
   );
 }
 
-function UsersPanel() {
-  const { data: users = [], refetch } = useQuery<any[]>({
-    queryKey: ['admin-users'],
-    queryFn: () => api.get('/admin/users').then(r => r.data),
-    staleTime: 30_000,
-  });
+function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; users: any[] }) {
+  const completedMatches = matches.filter(m => m.status === 'completed');
+  const [form, setForm] = useState({ username: '', match_id: '', pred_home: '', pred_away: '' });
+  const [saving, setSaving] = useState(false);
 
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const h = parseInt(form.pred_home), a = parseInt(form.pred_away);
+    if (!form.username || !form.match_id || isNaN(h) || isNaN(a)) {
+      toast.error('All fields required'); return;
+    }
+    setSaving(true);
+    try {
+      const r = await api.post('/admin/predictions', {
+        username: form.username,
+        match_id: form.match_id,
+        pred_home: h,
+        pred_away: a,
+      });
+      const pts = r.data.points_earned;
+      const match = completedMatches.find(m => m.id === form.match_id);
+      const matchLabel = match ? `${match.home_team.code} vs ${match.away_team.code}` : 'match';
+      toast.success(`Prediction saved for @${form.username} on ${matchLabel} — ${pts ?? '?'} pts`);
+      setForm(f => ({ ...f, pred_home: '', pred_away: '' }));
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail ?? 'Failed to save prediction');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="card p-4 border-yellow-800/40 bg-yellow-900/10">
+      <h3 className="font-semibold text-white mb-1">📝 Retroactive prediction</h3>
+      <p className="text-xs text-gray-400 mb-3">Assign a missed prediction for any user on any completed match. Points are calculated automatically.</p>
+      <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <select value={form.username} onChange={set('username')} className="input py-1.5 text-sm">
+          <option value="">Select user…</option>
+          {users.map(u => (
+            <option key={u.id} value={u.username}>{u.display_name} (@{u.username})</option>
+          ))}
+        </select>
+        <select value={form.match_id} onChange={set('match_id')} className="input py-1.5 text-sm">
+          <option value="">Select completed match…</option>
+          {completedMatches
+            .sort((a, b) => a.match_number - b.match_number)
+            .map(m => (
+              <option key={m.id} value={m.id}>
+                #{m.match_number} {m.home_team.flag}{m.home_team.code} {m.home_score}–{m.away_score} {m.away_team.code}{m.away_team.flag}
+              </option>
+            ))}
+        </select>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 shrink-0">
+            {form.match_id ? completedMatches.find(m => m.id === form.match_id)?.home_team.code ?? 'Home' : 'Home'}
+          </span>
+          <input type="number" min={0} max={20} placeholder="0" value={form.pred_home}
+            onChange={set('pred_home')} className="input py-1.5 text-sm w-16 text-center" />
+          <span className="text-gray-600">–</span>
+          <input type="number" min={0} max={20} placeholder="0" value={form.pred_away}
+            onChange={set('pred_away')} className="input py-1.5 text-sm w-16 text-center" />
+          <span className="text-xs text-gray-400 shrink-0">
+            {form.match_id ? completedMatches.find(m => m.id === form.match_id)?.away_team.code ?? 'Away' : 'Away'}
+          </span>
+        </div>
+        <div className="flex justify-end">
+          <button type="submit" disabled={saving} className="btn-primary py-1.5 text-sm">
+            {saving ? 'Saving…' : 'Save prediction'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function UsersPanel({ users }: { users: any[] }) {
   return (
     <div className="card p-4">
       <h3 className="font-semibold text-white mb-3">👥 Participants ({users.length})</h3>
@@ -597,6 +669,12 @@ export default function AdminPage() {
     queryKey: ['matches', 'admin'],
     queryFn: () => matchesApi.list().then(r => r.data),
     staleTime: 10_000,
+  });
+
+  const { data: users = [] } = useQuery<any[]>({
+    queryKey: ['admin-users'],
+    queryFn: () => api.get('/admin/users').then(r => r.data),
+    staleTime: 30_000,
   });
 
   const filtered = matches.filter(m =>
@@ -629,9 +707,11 @@ export default function AdminPage() {
 
       <ReseedPanel onReseeded={invalidate} />
 
+      <RetroactivePredictionPanel matches={matches} users={users} />
+
       <CreateUserPanel onCreated={invalidateUsers} />
 
-      <UsersPanel />
+      <UsersPanel users={users} />
 
       <p className="text-sm text-gray-400">
         Update scores manually below. Points auto-recalculate when status is set to <strong>Completed</strong>.
