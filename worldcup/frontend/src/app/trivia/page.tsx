@@ -419,7 +419,7 @@ export default function TriviaPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      {/* Header row: question counter, live score, timer, exit */}
+      {/* Header row: question counter, live score, timer */}
       <div className="flex items-center justify-between text-sm mb-1">
         <span className="text-gray-500">{questionLabel}</span>
         <div className="flex items-center gap-3">
@@ -434,13 +434,6 @@ export default function TriviaPage() {
               {timeLeft}
             </span>
           )}
-          <button
-            onClick={goToStart}
-            className="text-xs text-gray-500 hover:text-gray-300 border border-[#30363d] rounded px-2 py-1 hover:border-gray-500 transition-colors"
-            title={lang === 'es' ? 'Salir — puntuación guardada' : 'Exit — running score saved'}
-          >
-            ✕ {lang === 'es' ? 'Salir' : 'Exit'}
-          </button>
         </div>
       </div>
 
@@ -520,6 +513,12 @@ export default function TriviaPage() {
             : (lang === 'es' ? 'Siguiente pregunta →' : 'Next Question →')}
         </button>
       )}
+      <button
+        onClick={goToStart}
+        className="w-full py-2.5 rounded-lg font-medium bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white transition-colors text-sm"
+      >
+        {lang === 'es' ? '✕ Salir' : '✕ Exit'}
+      </button>
     </div>
   );
 }
