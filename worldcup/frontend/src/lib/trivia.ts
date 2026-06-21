@@ -1062,8 +1062,8 @@ export const ALL_QUESTIONS: TriviaQuestion[] = [
     id: 143,
     question: "Lionel Messi appeared in how many World Cups during his career?",
     options: ['3', '4', '5', '6'],
-    answer: 2,
-    fact: "Messi played in 2006, 2010, 2014, 2018 and 2022 — finally winning in Qatar 2022 at his fifth and last attempt.",
+    answer: 3,
+    fact: "Messi played in 2006, 2010, 2014, 2018, 2022 and 2026 — six World Cups in total, winning in Qatar 2022.",
   },
   {
     id: 144,
