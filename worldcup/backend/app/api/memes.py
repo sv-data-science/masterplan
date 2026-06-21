@@ -84,8 +84,12 @@ async def upload_meme(
     meme = Meme(id=str(uuid.uuid4()), user_id=current_user.id, image_data=body.image_data)
     db.add(meme)
     await db.flush()
-    await db.refresh(meme, ["user", "reactions"])
-    return _build_out(meme, current_user.id)
+    # Reload with relationships via explicit select (avoids async lazy-load issues)
+    loaded = (await db.execute(
+        select(Meme).where(Meme.id == meme.id)
+        .options(selectinload(Meme.user), selectinload(Meme.reactions))
+    )).scalar_one()
+    return _build_out(loaded, current_user.id)
 
 
 @router.post("/{meme_id}/react", response_model=MemeOut)

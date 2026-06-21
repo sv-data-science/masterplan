@@ -90,7 +90,7 @@ export default function MemesPage() {
       await api.post('/memes', { image_data: data });
       qc.invalidateQueries({ queryKey: ['memes'] });
     } catch (err: any) {
-      setUploadError(err?.response?.data?.detail ?? 'Upload failed. Try a smaller image.');
+      setUploadError(err?.response?.data?.detail ?? err?.message ?? 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
