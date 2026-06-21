@@ -8,7 +8,13 @@ from contextlib import asynccontextmanager
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal
 from app.models import user, worldcup  # noqa: register models
-from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia, memes
+from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia
+try:
+    from app.api import memes as _memes_module
+    _memes_ok = True
+except Exception as _memes_err:
+    _memes_ok = False
+    logging.getLogger("main").error("memes module failed to import: %s", _memes_err, exc_info=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -83,7 +89,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="World Cup 2026 Predictor",
     description="FIFA World Cup 2026 prediction game for friends",
-    version="1.1.0",
+    version="1.2.0",
     lifespan=lifespan,
 )
 
@@ -103,7 +109,8 @@ app.include_router(leaderboard.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(goals.router, prefix="/api/v1")
 app.include_router(trivia.router, prefix="/api/v1")
-app.include_router(memes.router, prefix="/api/v1")
+if _memes_ok:
+    app.include_router(_memes_module.router, prefix="/api/v1")
 
 
 @app.exception_handler(Exception)
@@ -137,3 +144,15 @@ async def health_db():
         return {"status": "ok", "db": "connected"}
     except Exception as e:
         return JSONResponse(status_code=503, content={"status": "error", "db": str(e)})
+
+
+@app.get("/health/routes")
+async def health_routes():
+    """List all registered API routes — helps verify which modules loaded successfully."""
+    from fastapi.routing import APIRoute
+    routes = [
+        {"path": r.path, "methods": sorted(r.methods)}
+        for r in app.routes
+        if isinstance(r, APIRoute)
+    ]
+    return {"version": "1.2.0", "route_count": len(routes), "routes": sorted(routes, key=lambda r: r["path"])}
