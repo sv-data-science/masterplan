@@ -180,16 +180,11 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         </>
       )}
 
-      {/* ── Shorts ── */}
-      {/* Waistband in secondary color */}
-      <rect x="20" y="77" width="40" height="5" rx="1" fill={kit.shorts.color2} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
-      {/* Left leg */}
-      <path d="M 20,82 L 20,105 Q 28,108 37,106 L 37,82 Z" fill={sP.fill} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
-      {/* Right leg — 6px gap between legs */}
-      <path d="M 43,82 L 43,106 Q 51,108 60,105 L 60,82 Z" fill={sP.fill} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
-      {/* Hem stripe in secondary color */}
-      <rect x="20" y="100" width="17" height="5" fill={kit.shorts.color2} />
-      <rect x="43" y="100" width="17" height="5" fill={kit.shorts.color2} />
+      {/* ── Shorts — one solid piece with V-cut at bottom ── */}
+      <path d="M 20,77 L 60,77 L 60,109 L 44,109 L 40,101 L 36,109 L 20,109 Z"
+            fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
+      {/* Horizontal stripe in secondary color spanning both legs */}
+      <rect x="20" y="95" width="40" height="4" fill={kit.shorts.color2} />
 
       {/* ── Socks ── */}
       <rect x="19" y="109" width="16" height="17" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
