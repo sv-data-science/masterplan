@@ -24,6 +24,7 @@ export interface WCEdition {
   thirdPlaceFlag?: string;
   thirdPlaceScore?: string;
   stars: string[];
+  venues?: { city: string; stadium: string }[];
 }
 
 export const WC_EDITIONS: WCEdition[] = [
@@ -61,6 +62,12 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇷🇸',
     thirdPlaceScore: 'No playoff (round-robin)',
     stars: ['Guillermo Stábile 🇦🇷', 'Pedro Cea 🇺🇾', 'Bert Patenaude 🇺🇸'],
+    venues: [
+      { city: 'Montevideo', stadium: 'Estadio Centenario' },
+      { city: 'Montevideo', stadium: 'Estadio Gran Parque Central' },
+      { city: 'Montevideo', stadium: 'Estadio Pocitos' },
+      { city: 'Montevideo', stadium: 'Estadio Peñarol' },
+    ],
   },
   {
     year: 1934,
@@ -96,6 +103,16 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇩🇪',
     thirdPlaceScore: '3–2 vs Austria',
     stars: ['Giuseppe Meazza 🇮🇹', 'Oldřich Nejedlý 🇨🇿', 'Edmund Conen 🇩🇪'],
+    venues: [
+      { city: 'Rome', stadium: 'Stadio Nazionale PNF' },
+      { city: 'Turin', stadium: 'Stadio Mussolini' },
+      { city: 'Florence', stadium: 'Stadio Giovanni Berta' },
+      { city: 'Milan', stadium: 'Arena Civica' },
+      { city: 'Genoa', stadium: 'Stadio Luigi Ferraris' },
+      { city: 'Naples', stadium: 'Stadio Ascarelli' },
+      { city: 'Bologna', stadium: 'Stadio Littoriale' },
+      { city: 'Trieste', stadium: 'Stadio Littorio' },
+    ],
   },
   {
     year: 1938,
@@ -131,6 +148,18 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇧🇷',
     thirdPlaceScore: '4–2 vs Sweden',
     stars: ['Leônidas 🇧🇷', 'Silvio Piola 🇮🇹', 'György Sárosi 🇭🇺'],
+    venues: [
+      { city: 'Paris', stadium: 'Stade Olympique de Colombes' },
+      { city: 'Marseille', stadium: 'Stade Vélodrome' },
+      { city: 'Paris', stadium: 'Parc des Princes' },
+      { city: 'Bordeaux', stadium: 'Parc Lescure' },
+      { city: 'Lyon', stadium: 'Stade de Gerland' },
+      { city: 'Strasbourg', stadium: 'Stade de la Meinau' },
+      { city: 'Toulouse', stadium: 'Stadium Municipal' },
+      { city: 'Reims', stadium: 'Stade Vélodrome Municipal' },
+      { city: 'Le Havre', stadium: 'Stade Municipal' },
+      { city: 'Antibes', stadium: 'Stade du Fort Carré' },
+    ],
   },
   {
     year: 1950,
@@ -166,6 +195,14 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇸🇪',
     thirdPlaceScore: 'No playoff (round-robin)',
     stars: ['Ademir 🇧🇷', 'Juan Schiaffino 🇺🇾', 'Zizinho 🇧🇷'],
+    venues: [
+      { city: 'Rio de Janeiro', stadium: 'Estádio do Maracanã' },
+      { city: 'São Paulo', stadium: 'Estádio do Pacaembu' },
+      { city: 'Belo Horizonte', stadium: 'Estádio Independência' },
+      { city: 'Porto Alegre', stadium: 'Estádio dos Eucaliptos' },
+      { city: 'Recife', stadium: 'Estádio Ilha do Retiro' },
+      { city: 'Curitiba', stadium: 'Estádio Durival de Britto' },
+    ],
   },
   {
     year: 1954,
@@ -201,6 +238,14 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇦🇹',
     thirdPlaceScore: '3–1 vs Uruguay',
     stars: ['Sándor Kocsis 🇭🇺', 'Fritz Walter 🇩🇪', 'Nándor Hidegkuti 🇭🇺'],
+    venues: [
+      { city: 'Bern', stadium: 'Wankdorf Stadium' },
+      { city: 'Lausanne', stadium: 'Stade Olympique de la Pontaise' },
+      { city: 'Geneva', stadium: 'Stade des Charmilles' },
+      { city: 'Zurich', stadium: 'Hardturm Stadium' },
+      { city: 'Basel', stadium: 'St. Jakob Stadium' },
+      { city: 'Lugano', stadium: 'Stadio Cornaredo' },
+    ],
   },
   {
     year: 1958,
@@ -236,6 +281,20 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇫🇷',
     thirdPlaceScore: '6–3 vs West Germany',
     stars: ['Pelé 🇧🇷', 'Just Fontaine 🇫🇷', 'Garrincha 🇧🇷', 'Didi 🇧🇷'],
+    venues: [
+      { city: 'Stockholm', stadium: 'Råsunda Stadium' },
+      { city: 'Gothenburg', stadium: 'Ullevi Stadium' },
+      { city: 'Malmö', stadium: 'Malmö Stadion' },
+      { city: 'Norrköping', stadium: 'Idrottsparken' },
+      { city: 'Västerås', stadium: 'Arosvallen' },
+      { city: 'Örebro', stadium: 'Eyravallen' },
+      { city: 'Borås', stadium: 'Ryavallen' },
+      { city: 'Eskilstuna', stadium: 'Tunavallen' },
+      { city: 'Halmstad', stadium: 'Örjans Vall' },
+      { city: 'Helsingborg', stadium: 'Olympia' },
+      { city: 'Sandviken', stadium: 'Jernvallen' },
+      { city: 'Västervik', stadium: 'Slottsvallen' },
+    ],
   },
   {
     year: 1962,
@@ -271,6 +330,12 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇨🇱',
     thirdPlaceScore: '1–0 vs Yugoslavia',
     stars: ['Garrincha 🇧🇷', 'Vavá 🇧🇷', 'Leonel Sánchez 🇨🇱'],
+    venues: [
+      { city: 'Santiago', stadium: 'Estadio Nacional' },
+      { city: 'Viña del Mar', stadium: 'Estadio Sausalito' },
+      { city: 'Rancagua', stadium: 'Estadio Braden Copper' },
+      { city: 'Arica', stadium: 'Estadio Carlos Dittborn' },
+    ],
   },
   {
     year: 1966,
@@ -307,6 +372,16 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇵🇹',
     thirdPlaceScore: '2–1 vs Soviet Union',
     stars: ['Eusébio 🇵🇹', 'Bobby Charlton 🇬🇧', 'Franz Beckenbauer 🇩🇪'],
+    venues: [
+      { city: 'London', stadium: 'Wembley Stadium' },
+      { city: 'Liverpool', stadium: 'Goodison Park' },
+      { city: 'Manchester', stadium: 'Old Trafford' },
+      { city: 'Sheffield', stadium: 'Hillsborough Stadium' },
+      { city: 'Sunderland', stadium: 'Roker Park' },
+      { city: 'Middlesbrough', stadium: 'Ayresome Park' },
+      { city: 'Birmingham', stadium: 'Villa Park' },
+      { city: 'London', stadium: 'White City Stadium' },
+    ],
   },
   {
     year: 1970,
@@ -345,6 +420,13 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇩🇪',
     thirdPlaceScore: '1–0 vs Uruguay',
     stars: ['Pelé 🇧🇷', 'Gerd Müller 🇩🇪', 'Jairzinho 🇧🇷', 'Bobby Moore 🇬🇧'],
+    venues: [
+      { city: 'Mexico City', stadium: 'Estadio Azteca' },
+      { city: 'Guadalajara', stadium: 'Estadio Jalisco' },
+      { city: 'Puebla', stadium: 'Estadio Cuauhtémoc' },
+      { city: 'León', stadium: 'Estadio Nou Camp' },
+      { city: 'Toluca', stadium: 'Estadio Nemesio Díez' },
+    ],
   },
   {
     year: 1974,
@@ -383,6 +465,17 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇵🇱',
     thirdPlaceScore: '1–0 vs Brazil',
     stars: ['Johan Cruyff 🇳🇱', 'Grzegorz Lato 🇵🇱', 'Franz Beckenbauer 🇩🇪'],
+    venues: [
+      { city: 'Munich', stadium: 'Olympiastadion' },
+      { city: 'Dortmund', stadium: 'Westfalenstadion' },
+      { city: 'Frankfurt', stadium: 'Waldstadion' },
+      { city: 'Hamburg', stadium: 'Volksparkstadion' },
+      { city: 'Gelsenkirchen', stadium: 'Parkstadion' },
+      { city: 'Düsseldorf', stadium: 'Rheinstadion' },
+      { city: 'Stuttgart', stadium: 'Neckarstadion' },
+      { city: 'Hannover', stadium: 'Niedersachsenstadion' },
+      { city: 'Berlin', stadium: 'Olympiastadion' },
+    ],
   },
   {
     year: 1978,
@@ -421,6 +514,14 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlaceFlag: '🇧🇷',
     thirdPlaceScore: '2–1 vs Italy',
     stars: ['Mario Kempes 🇦🇷', 'Rob Rensenbrink 🇳🇱', 'Dirceu 🇧🇷'],
+    venues: [
+      { city: 'Buenos Aires', stadium: 'El Monumental (River Plate)' },
+      { city: 'Buenos Aires', stadium: 'La Bombonera (Boca Juniors)' },
+      { city: 'Córdoba', stadium: 'Estadio Chateau Carreras' },
+      { city: 'Rosario', stadium: 'Estadio Gigante de Arroyito' },
+      { city: 'Mar del Plata', stadium: 'Estadio José María Minella' },
+      { city: 'Mendoza', stadium: 'Estadio Malvinas Argentinas' },
+    ],
   },
   {
     year: 1982,
