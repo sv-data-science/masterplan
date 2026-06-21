@@ -180,24 +180,26 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         </>
       )}
 
-      {/* ── Shorts — two close legs, secondary color at hem only ── */}
+      {/* ── Shorts ── */}
+      {/* Waistband in secondary color */}
+      <rect x="20" y="77" width="40" height="5" rx="1" fill={kit.shorts.color2} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
       {/* Left leg */}
-      <path d="M 21,77 L 21,108 Q 29,111 39,109 L 39,77 Z" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
-      {/* Right leg */}
-      <path d="M 41,77 L 41,109 Q 50,111 59,108 L 59,77 Z" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
-      {/* Hem stripe — secondary color at bottom of each leg */}
-      <rect x="21" y="103" width="18" height="6" fill={kit.shorts.color2} />
-      <rect x="41" y="103" width="18" height="6" fill={kit.shorts.color2} />
+      <path d="M 20,82 L 20,105 Q 28,108 37,106 L 37,82 Z" fill={sP.fill} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
+      {/* Right leg — 6px gap between legs */}
+      <path d="M 43,82 L 43,106 Q 51,108 60,105 L 60,82 Z" fill={sP.fill} stroke="rgba(0,0,0,0.2)" strokeWidth="0.6" />
+      {/* Hem stripe in secondary color */}
+      <rect x="20" y="100" width="17" height="5" fill={kit.shorts.color2} />
+      <rect x="43" y="100" width="17" height="5" fill={kit.shorts.color2} />
 
       {/* ── Socks ── */}
-      <rect x="19" y="111" width="16" height="15" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
-      <line x1="19.4" y1="114"   x2="34.6" y2="114"   stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="19.4" y1="116.2" x2="34.6" y2="116.2" stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="19.4" y1="118.4" x2="34.6" y2="118.4" stroke={kit.socks.color2} strokeWidth="1.4" />
-      <rect x="45" y="111" width="16" height="15" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
-      <line x1="45.4" y1="114"   x2="60.6" y2="114"   stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="45.4" y1="116.2" x2="60.6" y2="116.2" stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="45.4" y1="118.4" x2="60.6" y2="118.4" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <rect x="19" y="109" width="16" height="17" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
+      <line x1="19.4" y1="112"   x2="34.6" y2="112"   stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="19.4" y1="114.2" x2="34.6" y2="114.2" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="19.4" y1="116.4" x2="34.6" y2="116.4" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <rect x="45" y="109" width="16" height="17" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
+      <line x1="45.4" y1="112"   x2="60.6" y2="112"   stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="45.4" y1="114.2" x2="60.6" y2="114.2" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="45.4" y1="116.4" x2="60.6" y2="116.4" stroke={kit.socks.color2} strokeWidth="1.4" />
     </svg>
   );
 }
