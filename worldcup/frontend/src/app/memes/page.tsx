@@ -102,7 +102,7 @@ export default function MemesPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-white">😂 Memes</h1>
-          <p className="text-gray-500 text-sm mt-0.5">Upload football memes · React with emoji · No text</p>
+          <p className="text-gray-500 text-sm mt-0.5">Upload football memes</p>
         </div>
         {user && (
           <div>
