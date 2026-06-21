@@ -180,22 +180,22 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
         </>
       )}
 
-      {/* ── Shorts — one solid piece with V-cut at bottom ── */}
-      <path d="M 20,77 L 60,77 L 60,109 L 44,109 L 40,101 L 36,109 L 20,109 Z"
+      {/* ── Shorts — top at y=72 flush with jersey hem, sides at x=20/x=60 ── */}
+      <path d="M 20,72 L 60,72 L 60,109 L 44,109 L 40,101 L 36,109 L 20,109 Z"
             fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
       {/* Hem stripe in secondary color — one band per leg at the bottom */}
       <rect x="20" y="105" width="16" height="3" fill={kit.shorts.color2} />
       <rect x="44" y="105" width="16" height="3" fill={kit.shorts.color2} />
 
-      {/* ── Socks ── */}
-      <rect x="19" y="109" width="16" height="17" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
-      <line x1="19.4" y1="112"   x2="34.6" y2="112"   stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="19.4" y1="114.2" x2="34.6" y2="114.2" stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="19.4" y1="116.4" x2="34.6" y2="116.4" stroke={kit.socks.color2} strokeWidth="1.4" />
-      <rect x="45" y="109" width="16" height="17" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
-      <line x1="45.4" y1="112"   x2="60.6" y2="112"   stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="45.4" y1="114.2" x2="60.6" y2="114.2" stroke={kit.socks.color2} strokeWidth="1.4" />
-      <line x1="45.4" y1="116.4" x2="60.6" y2="116.4" stroke={kit.socks.color2} strokeWidth="1.4" />
+      {/* ── Socks — 4px gap from shorts, outer edges flush with shorts (x=20/x=60) ── */}
+      <rect x="20" y="113" width="16" height="13" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
+      <line x1="20.4" y1="116"   x2="35.6" y2="116"   stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="20.4" y1="118.2" x2="35.6" y2="118.2" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="20.4" y1="120.4" x2="35.6" y2="120.4" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <rect x="44" y="113" width="16" height="13" rx="2" fill={kP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
+      <line x1="44.4" y1="116"   x2="59.6" y2="116"   stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="44.4" y1="118.2" x2="59.6" y2="118.2" stroke={kit.socks.color2} strokeWidth="1.4" />
+      <line x1="44.4" y1="120.4" x2="59.6" y2="120.4" stroke={kit.socks.color2} strokeWidth="1.4" />
     </svg>
   );
 }
