@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, func
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, func, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 import uuid
 from app.database import Base
@@ -94,3 +94,25 @@ class TriviaScore(Base):
     played_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User")
+
+
+class Meme(Base):
+    __tablename__ = "memes"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    image_data = Column(Text, nullable=False)   # base64 data URL (compressed JPEG)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user = relationship("User")
+    reactions = relationship("MemeReaction", back_populates="meme", cascade="all, delete-orphan")
+
+
+class MemeReaction(Base):
+    __tablename__ = "meme_reactions"
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    meme_id = Column(String, ForeignKey("memes.id", ondelete="CASCADE"), nullable=False, index=True)
+    emoji = Column(String(10), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    user = relationship("User")
+    meme = relationship("Meme", back_populates="reactions")
+    __table_args__ = (UniqueConstraint("user_id", "meme_id", "emoji", name="uq_user_meme_emoji"),)

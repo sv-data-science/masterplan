@@ -61,3 +61,16 @@ async def get_optional_user(
         return await get_current_user(credentials, db)
     except HTTPException:
         return None
+
+
+async def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
+    db: AsyncSession = Depends(get_db),
+) -> Optional[User]:
+    """Alias for get_optional_user — returns current user or None if no/invalid token."""
+    if not credentials:
+        return None
+    try:
+        return await get_current_user(credentials, db)
+    except HTTPException:
+        return None
