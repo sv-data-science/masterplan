@@ -1136,6 +1136,63 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Irapuato', stadium: 'Estadio Sergio León Chávez' },
       { city: 'Toluca', stadium: 'Estadio Nemesio Díez' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Argentina', score: '3–1', away: 'South Korea' },
+          { home: 'Denmark', score: '6–1', away: 'Uruguay' },
+          { home: 'Brazil', score: '1–0', away: 'Spain' },
+          { home: 'USSR', score: '6–0', away: 'Hungary' },
+          { home: 'France', score: '1–0', away: 'Canada' },
+          { home: 'Belgium', score: '2–1', away: 'Iraq' },
+          { home: 'Mexico', score: '2–1', away: 'Belgium' },
+          { home: 'Morocco', score: '3–1', away: 'Portugal' },
+          { home: 'England', score: '3–0', away: 'Paraguay' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Mexico', score: '2–0', away: 'Bulgaria' },
+          { home: 'Belgium', score: '4–3', away: 'USSR', note: 'aet' },
+          { home: 'Brazil', score: '4–0', away: 'Poland' },
+          { home: 'Argentina', score: '1–0', away: 'Uruguay' },
+          { home: 'France', score: '2–0', away: 'Italy' },
+          { home: 'West Germany', score: '1–0', away: 'Morocco' },
+          { home: 'England', score: '3–0', away: 'Paraguay' },
+          { home: 'Spain', score: '5–1', away: 'Denmark' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'France', score: '1–1', away: 'Brazil', note: 'aet — France win 4–3 pens' },
+          { home: 'West Germany', score: '0–0', away: 'Mexico', note: 'aet — WG win 4–1 pens' },
+          { home: 'Argentina', score: '2–1', away: 'England', note: 'Hand of God + Goal of the Century' },
+          { home: 'Belgium', score: '1–1', away: 'Spain', note: 'aet — Belgium win 5–4 pens' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Argentina', score: '2–0', away: 'Belgium' },
+          { home: 'West Germany', score: '2–0', away: 'France' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'France', score: '4–2', away: 'Belgium' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Argentina', score: '3–2', away: 'West Germany' },
+        ],
+      },
+    ],
   },
   {
     year: 1990,
@@ -1189,6 +1246,62 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Palermo', stadium: 'Stadio La Favorita' },
       { city: 'Cagliari', stadium: "Stadio Sant'Elia" },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Cameroon', score: '1–0', away: 'Argentina', note: 'Roger Milla impact — 38 years old' },
+          { home: 'West Germany', score: '4–1', away: 'Yugoslavia' },
+          { home: 'Brazil', score: '2–1', away: 'Sweden' },
+          { home: 'Costa Rica', score: '1–0', away: 'Scotland' },
+          { home: 'England', score: '1–1', away: 'Rep Ireland' },
+          { home: 'USSR', score: '0–4', away: 'Argentina' },
+          { home: 'Costa Rica', score: '2–1', away: 'Sweden' },
+          { home: 'Cameroon', score: '2–1', away: 'Romania', note: 'Milla 2 goals' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Cameroon', score: '2–1', away: 'Colombia', note: 'aet — Milla 2' },
+          { home: 'Czechoslovakia', score: '4–1', away: 'Costa Rica' },
+          { home: 'Argentina', score: '1–0', away: 'Brazil' },
+          { home: 'West Germany', score: '2–1', away: 'Netherlands' },
+          { home: 'Rep Ireland', score: '0–0', away: 'Romania', note: 'aet — Ireland win 5–4 pens' },
+          { home: 'Italy', score: '2–0', away: 'Uruguay' },
+          { home: 'Yugoslavia', score: '2–1', away: 'Spain' },
+          { home: 'England', score: '1–0', away: 'Belgium', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Argentina', score: '0–0', away: 'Yugoslavia', note: 'aet — Argentina win 3–2 pens' },
+          { home: 'Italy', score: '1–0', away: 'Rep Ireland' },
+          { home: 'West Germany', score: '1–0', away: 'Czechoslovakia' },
+          { home: 'England', score: '3–2', away: 'Cameroon', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Argentina', score: '1–1', away: 'Italy', note: 'aet — Argentina win 4–3 pens' },
+          { home: 'West Germany', score: '1–1', away: 'England', note: 'aet — WG win 4–3 pens' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Italy', score: '2–1', away: 'England' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'West Germany', score: '1–0', away: 'Argentina', note: 'Brehme penalty' },
+        ],
+      },
+    ],
   },
   {
     year: 1994,
@@ -1238,6 +1351,67 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Washington D.C.', stadium: 'RFK Stadium' },
       { city: 'Boston', stadium: 'Foxboro Stadium' },
       { city: 'Orlando', stadium: 'Citrus Bowl' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Colombia', score: '0–3', away: 'Romania', note: 'Hagi masterclass' },
+          { home: 'Russia', score: '6–1', away: 'Cameroon', note: 'Salenko 5 goals — WC record' },
+          { home: 'Nigeria', score: '3–0', away: 'Bulgaria' },
+          { home: 'Argentina', score: '4–0', away: 'Greece' },
+          { home: 'Bulgaria', score: '4–0', away: 'Argentina' },
+          { home: 'USA', score: '2–1', away: 'Colombia' },
+          { home: 'Brazil', score: '2–0', away: 'Russia' },
+          { home: 'Brazil', score: '3–0', away: 'Cameroon' },
+          { home: 'Sweden', score: '2–2', away: 'Cameroon' },
+          { home: 'Saudi Arabia', score: '2–1', away: 'Morocco' },
+          { home: 'Mexico', score: '1–0', away: 'Ireland' },
+          { home: 'Ireland', score: '1–0', away: 'Italy' },
+          { home: 'Norway', score: '1–0', away: 'Mexico' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Germany', score: '3–2', away: 'Belgium' },
+          { home: 'Spain', score: '3–0', away: 'Switzerland' },
+          { home: 'Sweden', score: '3–1', away: 'Saudi Arabia' },
+          { home: 'Romania', score: '3–2', away: 'Argentina', note: 'aet' },
+          { home: 'Netherlands', score: '2–0', away: 'Ireland' },
+          { home: 'Brazil', score: '1–0', away: 'USA' },
+          { home: 'Italy', score: '1–0', away: 'Nigeria', note: 'aet' },
+          { home: 'Bulgaria', score: '1–1', away: 'Mexico', note: 'aet — Bulgaria win 3–1 pens' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Italy', score: '2–1', away: 'Spain' },
+          { home: 'Netherlands', score: '2–3', away: 'Brazil' },
+          { home: 'Sweden', score: '2–2', away: 'Romania', note: 'aet — Sweden win 5–4 pens' },
+          { home: 'Bulgaria', score: '1–2', away: 'Germany' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Brazil', score: '1–0', away: 'Sweden' },
+          { home: 'Italy', score: '2–1', away: 'Bulgaria' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Sweden', score: '4–0', away: 'Bulgaria' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Brazil', score: '0–0', away: 'Italy', note: 'aet — Brazil win 3–2 pens (Baggio misses)' },
+        ],
+      },
     ],
   },
   {
@@ -1289,6 +1463,71 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Saint-Étienne', stadium: 'Stade Geoffroy-Guichard' },
       { city: 'Montpellier', stadium: 'Stade de la Mosson' },
       { city: 'Paris', stadium: 'Parc des Princes' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Brazil', score: '2–1', away: 'Scotland' },
+          { home: 'France', score: '3–0', away: 'South Africa' },
+          { home: 'France', score: '4–0', away: 'Saudi Arabia' },
+          { home: 'France', score: '2–1', away: 'Denmark' },
+          { home: 'Spain', score: '2–3', away: 'Nigeria' },
+          { home: 'Nigeria', score: '1–0', away: 'Bulgaria' },
+          { home: 'Spain', score: '6–1', away: 'Bulgaria' },
+          { home: 'Germany', score: '2–0', away: 'USA' },
+          { home: 'Romania', score: '1–0', away: 'Colombia' },
+          { home: 'England', score: '2–0', away: 'Tunisia' },
+          { home: 'Romania', score: '2–1', away: 'England' },
+          { home: 'England', score: '2–2', away: 'Romania' },
+          { home: 'Argentina', score: '1–0', away: 'Japan' },
+          { home: 'Argentina', score: '5–0', away: 'Jamaica' },
+          { home: 'Argentina', score: '1–0', away: 'Croatia' },
+          { home: 'Brazil', score: '1–2', away: 'Norway' },
+          { home: 'Brazil', score: '3–0', away: 'Morocco' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Brazil', score: '4–1', away: 'Chile' },
+          { home: 'Nigeria', score: '1–4', away: 'Denmark' },
+          { home: 'France', score: '1–0', away: 'Paraguay', note: 'aet — Blanc golden goal' },
+          { home: 'Germany', score: '2–1', away: 'Mexico' },
+          { home: 'Netherlands', score: '2–1', away: 'Yugoslavia' },
+          { home: 'Romania', score: '0–1', away: 'Croatia' },
+          { home: 'Italy', score: '1–0', away: 'Norway' },
+          { home: 'England', score: '2–2', away: 'Argentina', note: 'aet — Argentina win 4–3 pens (Owen wonder goal)' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'France', score: '0–0', away: 'Italy', note: 'aet — France win 4–3 pens' },
+          { home: 'Brazil', score: '3–2', away: 'Denmark' },
+          { home: 'Netherlands', score: '2–1', away: 'Argentina' },
+          { home: 'Germany', score: '0–3', away: 'Croatia' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Brazil', score: '1–1', away: 'Netherlands', note: 'aet — Brazil win 4–2 pens' },
+          { home: 'France', score: '2–1', away: 'Croatia', note: 'Thuram 2 goals' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Croatia', score: '2–1', away: 'Netherlands' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'France', score: '3–0', away: 'Brazil', note: 'Zidane 2 headers, Petit' },
+        ],
+      },
     ],
   },
   {
@@ -1349,6 +1588,68 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Ulsan', stadium: 'Ulsan Munsu Football Stadium' },
       { city: 'Suwon', stadium: 'Suwon World Cup Stadium' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Senegal', score: '1–0', away: 'France', note: 'Holders eliminated in groups' },
+          { home: 'Germany', score: '8–0', away: 'Saudi Arabia' },
+          { home: 'USA', score: '3–2', away: 'Portugal' },
+          { home: 'South Korea', score: '2–0', away: 'Poland' },
+          { home: 'Japan', score: '2–1', away: 'Belgium' },
+          { home: 'Argentina', score: '1–0', away: 'Nigeria' },
+          { home: 'England', score: '1–1', away: 'Sweden' },
+          { home: 'Argentina', score: '0–1', away: 'England', note: 'Beckham pen' },
+          { home: 'Sweden', score: '1–2', away: 'Argentina', note: 'Argentina eliminated' },
+          { home: 'Mexico', score: '1–0', away: 'Croatia' },
+          { home: 'Mexico', score: '2–1', away: 'Italy' },
+          { home: 'South Korea', score: '1–0', away: 'Portugal', note: 'Group stage shock' },
+          { home: 'Senegal', score: '3–3', away: 'Uruguay' },
+          { home: 'Denmark', score: '2–1', away: 'Uruguay' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Germany', score: '1–0', away: 'Paraguay' },
+          { home: 'England', score: '3–0', away: 'Denmark' },
+          { home: 'Senegal', score: '2–1', away: 'Sweden', note: 'aet' },
+          { home: 'Spain', score: '1–1', away: 'Rep Ireland', note: 'aet — Spain win 3–2 pens' },
+          { home: 'USA', score: '2–0', away: 'Mexico' },
+          { home: 'Brazil', score: '2–0', away: 'Belgium' },
+          { home: 'Japan', score: '0–1', away: 'Turkey' },
+          { home: 'South Korea', score: '2–1', away: 'Italy', note: 'aet — controversial' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Germany', score: '1–0', away: 'USA' },
+          { home: 'South Korea', score: '0–0', away: 'Spain', note: 'aet — South Korea win 5–3 pens' },
+          { home: 'Brazil', score: '2–1', away: 'England' },
+          { home: 'Turkey', score: '1–0', away: 'Senegal', note: 'aet — golden goal' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Germany', score: '1–0', away: 'South Korea' },
+          { home: 'Brazil', score: '1–0', away: 'Turkey' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'South Korea', score: '2–3', away: 'Turkey' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Brazil', score: '2–0', away: 'Germany', note: 'Ronaldo 2 goals' },
+        ],
+      },
+    ],
   },
   {
     year: 2006,
@@ -1402,6 +1703,69 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Nuremberg', stadium: 'Frankenstadion' },
       { city: 'Kaiserslautern', stadium: 'Fritz Walter Stadion' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Germany', score: '4–2', away: 'Costa Rica' },
+          { home: 'Argentina', score: '6–0', away: 'Serbia & Montenegro' },
+          { home: 'Netherlands', score: '2–1', away: 'Ivory Coast' },
+          { home: 'Italy', score: '2–0', away: 'Ghana' },
+          { home: 'USA', score: '0–3', away: 'Czech Republic' },
+          { home: 'Mexico', score: '1–1', away: 'Portugal' },
+          { home: 'Spain', score: '4–0', away: 'Ukraine' },
+          { home: 'France', score: '0–0', away: 'Switzerland' },
+          { home: 'England', score: '1–0', away: 'Paraguay' },
+          { home: 'Portugal', score: '1–0', away: 'Netherlands', note: 'Battle of Nuremberg' },
+          { home: 'Brazil', score: '1–0', away: 'Croatia' },
+          { home: 'Japan', score: '2–1', away: 'Australia' },
+          { home: 'Spain', score: '1–3', away: 'France' },
+          { home: 'South Korea', score: '2–1', away: 'Togo' },
+          { home: 'Togo', score: '0–2', away: 'Switzerland' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Germany', score: '2–0', away: 'Sweden' },
+          { home: 'Argentina', score: '2–1', away: 'Mexico' },
+          { home: 'England', score: '1–0', away: 'Ecuador' },
+          { home: 'Portugal', score: '1–0', away: 'Netherlands', note: 'Battle of Nuremberg — 4 red cards 16 yellows' },
+          { home: 'Italy', score: '1–0', away: 'Australia' },
+          { home: 'Switzerland', score: '0–0', away: 'Ukraine', note: 'aet — Ukraine win 3–0 pens' },
+          { home: 'Brazil', score: '3–0', away: 'Ghana' },
+          { home: 'Spain', score: '1–3', away: 'France' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Germany', score: '1–1', away: 'Argentina', note: 'aet — Germany win 4–2 pens' },
+          { home: 'Italy', score: '3–0', away: 'Ukraine' },
+          { home: 'England', score: '0–0', away: 'Portugal', note: 'aet — Portugal win 3–1 pens' },
+          { home: 'France', score: '1–0', away: 'Brazil', note: 'Zidane masterclass' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Germany', score: '0–2', away: 'Italy', note: 'aet — Grosso + Del Piero' },
+          { home: 'France', score: '2–0', away: 'Portugal' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Germany', score: '3–1', away: 'Portugal' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Italy', score: '1–1', away: 'France', note: 'aet — Italy win 5–3 pens (Zidane headbutt Materazzi)' },
+        ],
+      },
+    ],
   },
   {
     year: 2010,
@@ -1452,6 +1816,71 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Rustenburg', stadium: 'Royal Bafokeng Stadium' },
       { city: 'Polokwane', stadium: 'Peter Mokaba Stadium' },
       { city: 'Nelspruit', stadium: 'Mbombela Stadium' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'South Africa', score: '1–1', away: 'Mexico' },
+          { home: 'Uruguay', score: '0–0', away: 'France' },
+          { home: 'South Africa', score: '0–3', away: 'Uruguay' },
+          { home: 'France', score: '0–2', away: 'Mexico' },
+          { home: 'England', score: '1–1', away: 'USA' },
+          { home: 'Germany', score: '4–0', away: 'Australia' },
+          { home: 'Ghana', score: '1–0', away: 'Serbia' },
+          { home: 'Germany', score: '0–1', away: 'Serbia' },
+          { home: 'Netherlands', score: '2–0', away: 'Denmark' },
+          { home: 'Japan', score: '1–0', away: 'Cameroon' },
+          { home: 'Argentina', score: '1–0', away: 'Nigeria' },
+          { home: 'South Korea', score: '2–0', away: 'Greece' },
+          { home: 'Portugal', score: '7–0', away: 'North Korea' },
+          { home: 'Brazil', score: '2–1', away: 'North Korea' },
+          { home: 'Ivory Coast', score: '0–0', away: 'Portugal' },
+          { home: 'Spain', score: '0–1', away: 'Switzerland' },
+          { home: 'Chile', score: '1–0', away: 'Honduras' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Uruguay', score: '2–1', away: 'South Korea' },
+          { home: 'USA', score: '1–2', away: 'Ghana', note: 'aet — Black Stars golden goal' },
+          { home: 'Germany', score: '4–1', away: 'England', note: 'Lampard disallowed goal' },
+          { home: 'Argentina', score: '3–1', away: 'Mexico' },
+          { home: 'Netherlands', score: '2–1', away: 'Slovakia' },
+          { home: 'Brazil', score: '3–0', away: 'Chile' },
+          { home: 'Paraguay', score: '0–0', away: 'Japan', note: 'aet — Paraguay win 5–3 pens' },
+          { home: 'Spain', score: '1–0', away: 'Portugal' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Uruguay', score: '1–1', away: 'Ghana', note: 'aet — Uruguay win 4–2 pens (Suárez handball)' },
+          { home: 'Netherlands', score: '2–1', away: 'Brazil' },
+          { home: 'Argentina', score: '0–4', away: 'Germany' },
+          { home: 'Paraguay', score: '0–1', away: 'Spain' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Uruguay', score: '2–3', away: 'Netherlands' },
+          { home: 'Germany', score: '0–1', away: 'Spain', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Uruguay', score: '2–3', away: 'Germany' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Spain', score: '1–0', away: 'Netherlands', note: 'aet — Iniesta 116\'' },
+        ],
+      },
     ],
   },
   {
@@ -1506,6 +1935,68 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Cuiabá', stadium: 'Arena Pantanal' },
       { city: 'Curitiba', stadium: 'Arena da Baixada' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Brazil', score: '3–1', away: 'Croatia', note: 'Neymar 2' },
+          { home: 'Spain', score: '1–5', away: 'Netherlands', note: 'Robben 2, van Persie header' },
+          { home: 'Chile', score: '3–1', away: 'Australia' },
+          { home: 'Colombia', score: '3–0', away: 'Greece' },
+          { home: 'Costa Rica', score: '1–3', away: 'Uruguay' },
+          { home: 'England', score: '1–2', away: 'Italy' },
+          { home: 'Switzerland', score: '2–5', away: 'France' },
+          { home: 'Honduras', score: '0–3', away: 'Switzerland' },
+          { home: 'Argentina', score: '2–1', away: 'Bosnia' },
+          { home: 'Germany', score: '4–0', away: 'Portugal' },
+          { home: 'Ghana', score: '1–2', away: 'USA' },
+          { home: 'Germany', score: '2–2', away: 'Ghana' },
+          { home: 'Nigeria', score: '2–3', away: 'Argentina' },
+          { home: 'Brazil', score: '1–1', away: 'Chile', note: 'aet — Brazil win 3–2 pens' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Brazil', score: '1–1', away: 'Chile', note: 'aet — Brazil win 3–2 pens' },
+          { home: 'Colombia', score: '2–0', away: 'Uruguay', note: 'James goal of tournament' },
+          { home: 'Netherlands', score: '2–1', away: 'Mexico', note: 'aet' },
+          { home: 'Costa Rica', score: '1–1', away: 'Greece', note: 'aet — Costa Rica win 5–3 pens' },
+          { home: 'France', score: '2–0', away: 'Nigeria' },
+          { home: 'Germany', score: '2–1', away: 'Algeria', note: 'aet' },
+          { home: 'Argentina', score: '1–0', away: 'Switzerland', note: 'aet' },
+          { home: 'Belgium', score: '2–1', away: 'USA', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'France', score: '0–1', away: 'Germany' },
+          { home: 'Brazil', score: '2–1', away: 'Colombia', note: 'James scores, Neymar injured' },
+          { home: 'Argentina', score: '1–0', away: 'Belgium' },
+          { home: 'Netherlands', score: '0–0', away: 'Costa Rica', note: 'aet — Netherlands win 4–3 pens' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Brazil', score: '1–7', away: 'Germany', note: 'Mineirazo — 5 goals in 18 mins' },
+          { home: 'Netherlands', score: '0–0', away: 'Argentina', note: 'aet — Argentina win 4–2 pens' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Brazil', score: '0–3', away: 'Netherlands' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Germany', score: '1–0', away: 'Argentina', note: 'aet — Götze 113\'' },
+        ],
+      },
+    ],
   },
   {
     year: 2018,
@@ -1559,6 +2050,70 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Kaliningrad', stadium: 'Kaliningrad Stadium' },
       { city: 'Samara', stadium: 'Samara Arena' },
     ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Russia', score: '5–0', away: 'Saudi Arabia' },
+          { home: 'Portugal', score: '3–3', away: 'Spain', note: 'Ronaldo hat-trick' },
+          { home: 'France', score: '2–1', away: 'Australia' },
+          { home: 'Argentina', score: '1–1', away: 'Iceland' },
+          { home: 'Croatia', score: '2–0', away: 'Nigeria' },
+          { home: 'Argentina', score: '0–3', away: 'Croatia' },
+          { home: 'Germany', score: '0–1', away: 'Mexico' },
+          { home: 'Germany', score: '2–1', away: 'Sweden' },
+          { home: 'Germany', score: '0–2', away: 'South Korea', note: 'Holders eliminated' },
+          { home: 'Belgium', score: '3–0', away: 'Panama' },
+          { home: 'Belgium', score: '5–2', away: 'Tunisia' },
+          { home: 'England', score: '6–1', away: 'Panama' },
+          { home: 'Japan', score: '2–2', away: 'Senegal' },
+          { home: 'Colombia', score: '1–2', away: 'Japan', note: 'Japan upset Colombia' },
+          { home: 'Japan', score: '0–1', away: 'Poland' },
+          { home: 'Senegal', score: '0–1', away: 'Colombia' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'France', score: '4–3', away: 'Argentina' },
+          { home: 'Uruguay', score: '2–1', away: 'Portugal' },
+          { home: 'Russia', score: '1–1', away: 'Spain', note: 'aet — Russia win 4–3 pens' },
+          { home: 'Croatia', score: '1–1', away: 'Denmark', note: 'aet — Croatia win 3–2 pens' },
+          { home: 'Brazil', score: '2–0', away: 'Mexico' },
+          { home: 'Japan', score: '2–3', away: 'Belgium', note: 'Belgium comeback from 2-0 down' },
+          { home: 'Sweden', score: '1–0', away: 'Switzerland' },
+          { home: 'Colombia', score: '1–1', away: 'England', note: 'aet — England win 4–3 pens' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Uruguay', score: '0–2', away: 'France' },
+          { home: 'Brazil', score: '1–2', away: 'Belgium' },
+          { home: 'Sweden', score: '0–2', away: 'England' },
+          { home: 'Russia', score: '2–2', away: 'Croatia', note: 'aet — Croatia win 4–3 pens' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'France', score: '1–0', away: 'Belgium' },
+          { home: 'Croatia', score: '2–1', away: 'England', note: 'aet' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Belgium', score: '2–0', away: 'England' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'France', score: '4–2', away: 'Croatia', note: 'OG Mandžukić, Griezmann pen, Pogba, Mbappé' },
+        ],
+      },
+    ],
   },
   {
     year: 2022,
@@ -1607,6 +2162,75 @@ export const WC_EDITIONS: WCEdition[] = [
       { city: 'Doha', stadium: 'Khalifa International Stadium' },
       { city: 'Al Rayyan', stadium: 'Ahmad Bin Ali Stadium' },
       { city: 'Al Rayyan', stadium: 'Al Thumama Stadium' },
+    ],
+    rounds: [
+      {
+        name: 'Group Stage',
+        matches: [
+          { home: 'Qatar', score: '0–2', away: 'Ecuador' },
+          { home: 'England', score: '6–2', away: 'Iran' },
+          { home: 'Argentina', score: '1–2', away: 'Saudi Arabia', note: 'Huge upset' },
+          { home: 'Japan', score: '0–1', away: 'Costa Rica' },
+          { home: 'Germany', score: '1–2', away: 'Japan', note: 'Comeback upset' },
+          { home: 'Spain', score: '7–0', away: 'Costa Rica' },
+          { home: 'Morocco', score: '0–0', away: 'Croatia' },
+          { home: 'Belgium', score: '1–0', away: 'Canada' },
+          { home: 'Morocco', score: '2–0', away: 'Belgium' },
+          { home: 'Japan', score: '1–0', away: 'Spain', note: 'Group stage shock' },
+          { home: 'Costa Rica', score: '2–4', away: 'Germany' },
+          { home: 'Australia', score: '1–0', away: 'Denmark' },
+          { home: 'France', score: '4–1', away: 'Australia' },
+          { home: 'France', score: '2–1', away: 'Denmark' },
+          { home: 'Portugal', score: '3–2', away: 'Ghana' },
+          { home: 'Brazil', score: '2–0', away: 'Serbia' },
+          { home: 'Cameroon', score: '1–0', away: 'Brazil' },
+          { home: 'South Korea', score: '2–1', away: 'Portugal', note: 'Korea qualify' },
+          { home: 'Ghana', score: '0–2', away: 'Uruguay' },
+          { home: 'Switzerland', score: '3–2', away: 'Serbia' },
+          { home: 'Netherlands', score: '3–1', away: 'USA' },
+        ],
+      },
+      {
+        name: 'Round of 16',
+        matches: [
+          { home: 'Netherlands', score: '3–1', away: 'USA' },
+          { home: 'Argentina', score: '2–1', away: 'Australia' },
+          { home: 'France', score: '3–1', away: 'Poland' },
+          { home: 'England', score: '3–0', away: 'Senegal' },
+          { home: 'Japan', score: '1–1', away: 'Croatia', note: 'aet — Croatia win 3–1 pens' },
+          { home: 'Brazil', score: '4–1', away: 'South Korea' },
+          { home: 'Morocco', score: '0–0', away: 'Spain', note: 'aet — Morocco win 3–0 pens (huge upset)' },
+          { home: 'Portugal', score: '6–1', away: 'Switzerland', note: 'Ramos hat-trick as sub' },
+        ],
+      },
+      {
+        name: 'Quarter-finals',
+        matches: [
+          { home: 'Croatia', score: '1–1', away: 'Brazil', note: 'aet — Croatia win 4–2 pens' },
+          { home: 'Netherlands', score: '2–2', away: 'Argentina', note: 'aet — Argentina win 4–3 pens' },
+          { home: 'Morocco', score: '1–0', away: 'Portugal' },
+          { home: 'France', score: '2–1', away: 'England' },
+        ],
+      },
+      {
+        name: 'Semi-finals',
+        matches: [
+          { home: 'Argentina', score: '3–0', away: 'Croatia', note: 'Messi 2, Álvarez' },
+          { home: 'France', score: '2–0', away: 'Morocco' },
+        ],
+      },
+      {
+        name: 'Third Place',
+        matches: [
+          { home: 'Croatia', score: '2–1', away: 'Morocco' },
+        ],
+      },
+      {
+        name: 'Final',
+        matches: [
+          { home: 'Argentina', score: '3–3', away: 'France', note: 'aet — Argentina win 4–2 pens (Mbappé hat-trick vs Messi)' },
+        ],
+      },
     ],
   },
 ];
