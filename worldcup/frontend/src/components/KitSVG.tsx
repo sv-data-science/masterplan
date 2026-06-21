@@ -207,12 +207,15 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       )}
 
       {/* ── Shorts: waistband + two legs with visible gap ── */}
-      <rect x="20" y="77" width="40" height="6" rx="1" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
+      {/* Waistband secondary color stripe at top */}
+      <rect x="20" y="77" width="40" height="6" rx="1" fill={kit.shorts.color2} />
+      <rect x="20" y="79" width="40" height="4" fill={sP.fill} />
+      <rect x="20" y="77" width="40" height="6" rx="1" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
       <path d="M 20,83 L 20,104 Q 29,107 37,105 L 37,83 Z" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
       <path d="M 43,83 L 43,105 Q 51,107 60,104 L 60,83 Z" fill={sP.fill} stroke="rgba(0,0,0,0.25)" strokeWidth="0.7" />
-      {/* Hem stripe on each leg */}
-      <rect x="20" y="101" width="17" height="3" fill={kit.shorts.color2} />
-      <rect x="43" y="101" width="17" height="3" fill={kit.shorts.color2} />
+      {/* Hem stripe on each leg — tall enough to show at small sizes */}
+      <rect x="20" y="98" width="17" height="6" fill={kit.shorts.color2} />
+      <rect x="43" y="98" width="17" height="6" fill={kit.shorts.color2} />
 
       {/* ── Socks (centered under each leg, start just below shorts hem) ── */}
       {/* Left sock — under left leg (x≈18–36) */}
