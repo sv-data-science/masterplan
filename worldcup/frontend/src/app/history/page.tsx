@@ -50,6 +50,71 @@ const tx = {
   },
 };
 
+function parseScore(score: string): [number, number] | null {
+  const m = score.match(/^(\d+)[–\-](\d+)/);
+  if (!m) return null;
+  return [parseInt(m[1]), parseInt(m[2])];
+}
+
+interface Standing { team: string; p: number; w: number; d: number; l: number; gf: number; ga: number; }
+
+function computeStandings(matches: { home: string; score: string; away: string }[]): Standing[] {
+  const map = new Map<string, Standing>();
+  const get = (t: string) => { if (!map.has(t)) map.set(t, { team: t, p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 }); return map.get(t)!; };
+  for (const m of matches) {
+    const s = parseScore(m.score);
+    if (!s) continue;
+    const [hg, ag] = s;
+    const h = get(m.home), a = get(m.away);
+    h.p++; a.p++;
+    h.gf += hg; h.ga += ag;
+    a.gf += ag; a.ga += hg;
+    if (hg > ag) { h.w++; a.l++; } else if (hg < ag) { a.w++; h.l++; } else { h.d++; a.d++; }
+  }
+  return Array.from(map.values()).sort((a, b) => {
+    const pts = (x: Standing) => x.w * 3 + x.d;
+    const gd = (x: Standing) => x.gf - x.ga;
+    return pts(b) - pts(a) || gd(b) - gd(a) || b.gf - a.gf;
+  });
+}
+
+function GroupTable({ standings }: { standings: Standing[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-gray-500 uppercase tracking-wider border-b border-[#21262d]">
+            <th className="text-left py-2 px-3 font-medium">Team</th>
+            <th className="text-center py-2 px-2 font-medium">P</th>
+            <th className="text-center py-2 px-2 font-medium">W</th>
+            <th className="text-center py-2 px-2 font-medium">D</th>
+            <th className="text-center py-2 px-2 font-medium">L</th>
+            <th className="text-center py-2 px-2 font-medium">GD</th>
+            <th className="text-center py-2 px-2 font-medium text-green-400">Pts</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[#21262d]">
+          {standings.map((s, i) => {
+            const pts = s.w * 3 + s.d;
+            const gd = s.gf - s.ga;
+            return (
+              <tr key={s.team} className={i < 2 ? 'bg-green-900/10' : ''}>
+                <td className="py-2 px-3 text-gray-200 font-medium">{s.team}</td>
+                <td className="py-2 px-2 text-center text-gray-400">{s.p}</td>
+                <td className="py-2 px-2 text-center text-gray-300">{s.w}</td>
+                <td className="py-2 px-2 text-center text-gray-400">{s.d}</td>
+                <td className="py-2 px-2 text-center text-gray-400">{s.l}</td>
+                <td className="py-2 px-2 text-center text-gray-400">{gd > 0 ? `+${gd}` : gd}</td>
+                <td className="py-2 px-2 text-center font-bold text-white">{pts}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="text-center">
@@ -217,21 +282,31 @@ export default function WCHistoryPage() {
             <div className="card p-5">
               <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{l.results}</h3>
               <div className="space-y-4">
-                {edition.rounds.map((round, ri) => (
-                  <div key={ri}>
-                    <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{round.name}</div>
-                    <div className="space-y-1">
-                      {round.matches.map((m, mi) => (
-                        <div key={mi} className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-3 py-2 text-sm">
-                          <span className="flex-1 text-right text-gray-300 font-medium text-xs">{m.home}</span>
-                          <span className="shrink-0 font-bold text-green-400 text-xs w-14 text-center">{m.score}</span>
-                          <span className="flex-1 text-gray-300 font-medium text-xs">{m.away}</span>
-                          {m.note && <span className="text-xs text-gray-600 italic ml-1 hidden sm:inline">— {m.note}</span>}
+                {edition.rounds.map((round, ri) => {
+                  const isGroup = round.name.toLowerCase().includes('group');
+                  const standings = isGroup ? computeStandings(round.matches) : [];
+                  return (
+                    <div key={ri}>
+                      <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{round.name}</div>
+                      {isGroup ? (
+                        <div className="bg-[#0d1117] rounded-lg overflow-hidden">
+                          <GroupTable standings={standings} />
                         </div>
-                      ))}
+                      ) : (
+                        <div className="space-y-1">
+                          {round.matches.map((m, mi) => (
+                            <div key={mi} className="flex items-center gap-2 bg-[#0d1117] rounded-lg px-3 py-2 text-sm">
+                              <span className="flex-1 text-right text-gray-300 font-medium text-xs">{m.home}</span>
+                              <span className="shrink-0 font-bold text-green-400 text-xs w-14 text-center">{m.score}</span>
+                              <span className="flex-1 text-gray-300 font-medium text-xs">{m.away}</span>
+                              {m.note && <span className="text-xs text-gray-600 italic ml-1 hidden sm:inline">— {m.note}</span>}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
