@@ -563,7 +563,7 @@ function CreateUserPanel({ onCreated }: { onCreated: () => void }) {
 }
 
 function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; users: any[] }) {
-  const completedMatches = matches.filter(m => m.status === 'completed');
+  const completedMatches = matches.filter(m => m.status === 'completed' || m.status === 'live');
   const [form, setForm] = useState({ username: '', match_id: '', pred_home: '', pred_away: '' });
   const [saving, setSaving] = useState(false);
 
@@ -599,7 +599,7 @@ function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; user
   return (
     <div className="card p-4 border-yellow-800/40 bg-yellow-900/10">
       <h3 className="font-semibold text-white mb-1">📝 Retroactive prediction</h3>
-      <p className="text-xs text-gray-400 mb-3">Assign a missed prediction for any user on any completed match. Points are calculated automatically.</p>
+      <p className="text-xs text-gray-400 mb-3">Assign a missed prediction for any user on any live or completed match. Points are calculated automatically once the match is completed.</p>
       <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <select value={form.username} onChange={set('username')} className="input py-1.5 text-sm">
           <option value="">Select user…</option>
@@ -608,12 +608,12 @@ function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; user
           ))}
         </select>
         <select value={form.match_id} onChange={set('match_id')} className="input py-1.5 text-sm">
-          <option value="">Select completed match…</option>
+          <option value="">Select live or completed match…</option>
           {completedMatches
             .sort((a, b) => a.match_number - b.match_number)
             .map(m => (
               <option key={m.id} value={m.id}>
-                #{m.match_number} {m.home_team.flag}{m.home_team.code} {m.home_score}–{m.away_score} {m.away_team.code}{m.away_team.flag}
+                {m.status === 'live' ? '🔴 ' : ''}#{m.match_number} {m.home_team.flag}{m.home_team.code} {m.home_score ?? '?'}–{m.away_score ?? '?'} {m.away_team.code}{m.away_team.flag}
               </option>
             ))}
         </select>
