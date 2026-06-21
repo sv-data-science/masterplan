@@ -23,6 +23,7 @@ const tx = {
     officialBall: 'Official Ball',
     facts: 'Fun Facts & Story',
     goals_label: 'goals',
+    venues: 'Host Cities & Stadiums',
   },
   es: {
     title: '📖 Historia del Mundial',
@@ -43,6 +44,7 @@ const tx = {
     officialBall: 'Balón oficial',
     facts: 'Curiosidades e historia',
     goals_label: 'goles',
+    venues: 'Ciudades y estadios anfitriones',
   },
 };
 
@@ -189,6 +191,24 @@ export default function WCHistoryPage() {
               <StatCard label={l.attendance} value={edition.attendance} />
             </div>
           </div>
+
+          {/* Venues */}
+          {edition.venues && edition.venues.length > 0 && (
+            <div className="card p-5">
+              <h3 className="text-xs text-gray-500 uppercase tracking-widest mb-4">{l.venues}</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {edition.venues.map((v, i) => (
+                  <div key={i} className="flex items-start gap-2.5 bg-[#0d1117] rounded-lg px-3 py-2.5">
+                    <span className="text-gray-500 text-base mt-0.5 shrink-0">🏟️</span>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-white truncate">{v.stadium}</div>
+                      <div className="text-xs text-gray-500">{v.city}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Awards */}
           <div className="card p-5">
