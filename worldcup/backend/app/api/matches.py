@@ -23,6 +23,7 @@ _MATCH_OPTIONS = [
 async def list_matches(
     group: Optional[str] = None,
     matchday: Optional[int] = None,
+    stage: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
@@ -31,6 +32,8 @@ async def list_matches(
         q = q.where(Match.group_letter == group.upper())
     if matchday:
         q = q.where(Match.matchday == matchday)
+    if stage:
+        q = q.where(Match.stage == stage)
 
     result = await db.execute(q)
     matches = result.scalars().all()

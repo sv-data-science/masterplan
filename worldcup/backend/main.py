@@ -58,6 +58,7 @@ async def lifespan(app: FastAPI):
         "ALTER TABLE users ADD COLUMN fav_wc_year INTEGER",
         "ALTER TABLE users ADD COLUMN fav_national_team TEXT",
         "ALTER TABLE users ADD COLUMN fav_player TEXT",
+        "ALTER TABLE matches ADD COLUMN stage VARCHAR(10)",
     ]:
         try:
             async with engine.begin() as conn:

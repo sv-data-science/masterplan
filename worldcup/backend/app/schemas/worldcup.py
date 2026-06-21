@@ -54,6 +54,7 @@ class MatchOut(BaseModel):
     home_score: Optional[int] = None
     away_score: Optional[int] = None
     status: str
+    stage: Optional[str] = None
     my_prediction: Optional[PredictionOut] = None
     goals: List[GoalEventOut] = []
     model_config = {"from_attributes": True}

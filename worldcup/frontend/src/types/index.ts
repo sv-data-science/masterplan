@@ -84,6 +84,7 @@ export interface Match {
   home_score: number | null;
   away_score: number | null;
   status: MatchStatus;
+  stage?: string | null;
   my_prediction: Prediction | null;
   goals: GoalEvent[];
 }

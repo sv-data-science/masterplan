@@ -99,7 +99,7 @@ function PredictionsReveal({ matchId, matchStatus }: { matchId: string; matchSta
   );
 }
 
-export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[] }) {
+export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: string[]; label?: string }) {
   const { user } = useAuthStore();
   const qc = useQueryClient();
   const [home, setHome] = useState<string | number>(match.my_prediction?.pred_home ?? '');
@@ -124,7 +124,7 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-gray-500 font-medium">Group {match.group_letter} · MD{match.matchday}</span>
+        <span className="text-xs text-gray-500 font-medium">{label ?? `Group ${match.group_letter} · MD${match.matchday}`}</span>
         {match.status === 'live' ? (
           <span className="flex items-center gap-1 text-xs text-red-400">🔴 Live</span>
         ) : match.status === 'completed' ? (

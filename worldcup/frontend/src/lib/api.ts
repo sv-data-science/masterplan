@@ -37,7 +37,7 @@ export const authApi = {
 };
 
 export const matchesApi = {
-  list: (params?: { group?: string; matchday?: number }) =>
+  list: (params?: { group?: string; matchday?: number; stage?: string }) =>
     api.get('/matches', { params }),
   get: (id: string) => api.get(`/matches/${id}`),
   predictions: (id: string) => api.get(`/matches/${id}/predictions`),

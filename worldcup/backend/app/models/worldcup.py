@@ -33,6 +33,8 @@ class Match(Base):
     away_score = Column(Integer, nullable=True)
     # scheduled | live | completed
     status = Column(String(20), nullable=False, default="scheduled")
+    # group | r32 | r16 | qf | sf | 3rd | final
+    stage = Column(String(10), nullable=True)
     external_id = Column(Integer, nullable=True, unique=True, index=True)  # football-data.org match id
 
     home_team = relationship("Team", foreign_keys=[home_team_id], back_populates="home_matches")
