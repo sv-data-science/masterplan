@@ -156,10 +156,14 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       )}
       {collarStyle === 'polo' && (
         <>
-          <rect x="32" y="12.5" width="16" height="2" rx="0.5" fill={collarColor} />
-          <path d="M 29,13 L 40,15 L 37,24 L 24,18 Z" fill={collarColor} />
-          <path d="M 51,13 L 40,15 L 43,24 L 56,18 Z" fill={collarColor} />
-          <line x1="40" y1="14" x2="40" y2="23" stroke="rgba(0,0,0,0.2)" strokeWidth="0.8" />
+          {/* Collar stand band along neckline */}
+          <rect x="33" y="11.5" width="14" height="3" rx="0.5" fill={collarColor} />
+          {/* Left collar point — compact, stays within neckline area */}
+          <path d="M 33,12 L 40,14 L 38,18 L 30,14 Z" fill={collarColor} />
+          {/* Right collar point — mirror */}
+          <path d="M 47,12 L 40,14 L 42,18 L 50,14 Z" fill={collarColor} />
+          {/* Short placket */}
+          <line x1="40" y1="13" x2="40" y2="18" stroke="rgba(0,0,0,0.25)" strokeWidth="0.8" />
         </>
       )}
 
