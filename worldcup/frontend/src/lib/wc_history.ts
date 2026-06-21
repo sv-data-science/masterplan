@@ -28,6 +28,7 @@ export interface WCEdition {
   rounds?: {
     name: string;
     matches: { home: string; score: string; away: string; note?: string }[];
+    groups?: { name: string; rows: { team: string; p: number; w: number; d: number; l: number; gf: number; ga: number }[] }[];
   }[];
 }
 

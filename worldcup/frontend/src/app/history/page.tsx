@@ -78,7 +78,7 @@ function computeStandings(matches: { home: string; score: string; away: string }
   });
 }
 
-function GroupTable({ standings }: { standings: Standing[] }) {
+function GroupTable({ standings, winPts = 3 }: { standings: Standing[]; winPts?: number }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-xs">
@@ -95,7 +95,7 @@ function GroupTable({ standings }: { standings: Standing[] }) {
         </thead>
         <tbody className="divide-y divide-[#21262d]">
           {standings.map((s, i) => {
-            const pts = s.w * 3 + s.d;
+            const pts = s.w * winPts + s.d;
             const gd = s.gf - s.ga;
             return (
               <tr key={s.team} className={i < 2 ? 'bg-green-900/10' : ''}>
@@ -284,13 +284,22 @@ export default function WCHistoryPage() {
               <div className="space-y-4">
                 {edition.rounds.map((round, ri) => {
                   const isGroup = round.name.toLowerCase().includes('group');
-                  const standings = isGroup ? computeStandings(round.matches) : [];
+                  const winPts = edition.year >= 1994 ? 3 : 2;
                   return (
                     <div key={ri}>
                       <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{round.name}</div>
-                      {isGroup ? (
+                      {isGroup && round.groups ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {round.groups.map((g, gi) => (
+                            <div key={gi} className="bg-[#0d1117] rounded-lg overflow-hidden">
+                              <div className="text-xs font-semibold text-green-400 px-3 pt-2 pb-1">{g.name}</div>
+                              <GroupTable standings={g.rows} winPts={winPts} />
+                            </div>
+                          ))}
+                        </div>
+                      ) : isGroup ? (
                         <div className="bg-[#0d1117] rounded-lg overflow-hidden">
-                          <GroupTable standings={standings} />
+                          <GroupTable standings={computeStandings(round.matches)} winPts={winPts} />
                         </div>
                       ) : (
                         <div className="space-y-1">
