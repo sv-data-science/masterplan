@@ -52,33 +52,29 @@ function mkPattern(id: string, c1: string, c2: string, pat: KitPattern, cell: nu
 }
 
 // ── Geometry (viewBox 0 0 80 130) ─────────────────────────────────────────────
-// Body:          x 22–58  (36 px wide), shoulder seam y=20
-// Short sleeve:  x 11/69  →  11 px wide, cuff y=40 (armhole gap = natural separation)
-// Long sleeve:   x 8/72   →  14 px wide, wrist y=72 (body+sleeve SEPARATE paths → seam always visible)
+// Body:          x 22–58  (36 px wide), shoulder seam y=20/22
+// Short sleeve:  x 11/69  →  11 px wide, cuff y=40
+// Long sleeve:   x 5/75   →  17 px wide, wrist y=73  (one continuous T-shape path)
 
-// Short sleeve: single combined path (armhole gap creates natural sleeve/body separation)
+// Short sleeve: single combined path
 const JERSEY_PATH: Record<CollarStyle, string> = {
   vneck: 'M 30,14 L 11,20 L 11,40 L 22,40 L 22,72 Q 40,76 58,72 L 58,40 L 69,40 L 69,20 L 50,14 L 46,22 L 40,28 L 34,22 Z',
   round: 'M 30,12 L 11,20 L 11,40 L 22,40 L 22,72 Q 40,76 58,72 L 58,40 L 69,40 L 69,20 L 50,12 C 47,15 43,16 40,16 C 37,16 33,15 30,12 Z',
   polo:  'M 29,13 L 11,20 L 11,40 L 22,40 L 22,72 Q 40,76 58,72 L 58,40 L 69,40 L 69,20 L 51,13 Z',
 };
 
-// Long sleeve body only (no sleeves) — drawn as a separate filled path
-const JERSEY_BODY_LONG: Record<CollarStyle, string> = {
-  vneck: 'M 30,14 L 22,20 L 22,72 Q 40,76 58,72 L 58,20 L 50,14 L 46,22 L 40,28 L 34,22 Z',
-  round: 'M 30,12 L 22,20 L 22,72 Q 40,76 58,72 L 58,20 L 50,12 C 47,15 43,16 40,16 C 37,16 33,15 30,12 Z',
-  polo:  'M 29,13 L 22,20 L 22,72 Q 40,76 58,72 L 58,20 L 51,13 Z',
+// Long sleeve: one continuous T-shape path — no separate sleeve pieces, no hourglass
+const JERSEY_PATH_LONG: Record<CollarStyle, string> = {
+  vneck: 'M 30,14 L 8,22 L 5,73 L 22,73 Q 40,77 58,73 L 75,73 L 72,22 L 50,14 L 46,22 L 40,28 L 34,22 Z',
+  round: 'M 31,12 L 8,22 L 5,73 L 22,73 Q 40,77 58,73 L 75,73 L 72,22 L 49,12 C 46,15 43,16 40,16 C 37,16 33,15 31,12 Z',
+  polo:  'M 30,13 L 8,22 L 5,73 L 22,73 Q 40,77 58,73 L 75,73 L 72,22 L 50,13 Z',
 };
-
-// Collar points where sleeve path connects to body
-const COLLAR_L: Record<CollarStyle, string> = { vneck: '30,14', round: '30,12', polo: '29,13' };
-const COLLAR_R: Record<CollarStyle, string> = { vneck: '50,14', round: '50,12', polo: '51,13' };
 
 // Clip polygons for shoulder stripe lines
 const L_CLIP_SHORT = '11,20 11,40 22,40 22,20';
 const R_CLIP_SHORT = '69,20 69,40 58,40 58,20';
-const L_CLIP_LONG  = '8,20 8,72 22,72 22,20';
-const R_CLIP_LONG  = '72,20 72,72 58,72 58,20';
+const L_CLIP_LONG  = '8,22 5,73 22,73 22,22';
+const R_CLIP_LONG  = '72,22 75,73 58,73 58,22';
 
 export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) {
   const uid = useId().replace(/:/g, '');
@@ -91,17 +87,14 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
   const { collarStyle, collarColor, sleeveAccentColor, shoulderStripes } = kit.jersey;
   const isLong = kit.jersey.sleeveLength === 'long';
 
-  const jerseyPath = JERSEY_PATH[collarStyle] ?? JERSEY_PATH.vneck;
-  const bodyPathLong = JERSEY_BODY_LONG[collarStyle] ?? JERSEY_BODY_LONG.vneck;
-  // Long sleeve: each sleeve is a pentagon: collar-point → outer-shoulder → outer-wrist → inner-wrist → inner-shoulder
-  const lSleevePath = `M ${COLLAR_L[collarStyle] ?? COLLAR_L.vneck} L 8,20 L 8,72 L 22,72 L 22,20 Z`;
-  const rSleevePath = `M ${COLLAR_R[collarStyle] ?? COLLAR_R.vneck} L 72,20 L 72,72 L 58,72 L 58,20 Z`;
+  const jerseyPath     = JERSEY_PATH[collarStyle]      ?? JERSEY_PATH.vneck;
+  const jerseyPathLong = JERSEY_PATH_LONG[collarStyle] ?? JERSEY_PATH_LONG.vneck;
 
-  const lClip = isLong ? L_CLIP_LONG : L_CLIP_SHORT;
-  const rClip = isLong ? R_CLIP_LONG : R_CLIP_SHORT;
-  const cuffY = isLong ? 72 : 40;
-  const sleeveXL = isLong ? 8 : 11;
-  const sleeveXR = isLong ? 72 : 69;
+  const lClip   = isLong ? L_CLIP_LONG : L_CLIP_SHORT;
+  const rClip   = isLong ? R_CLIP_LONG : R_CLIP_SHORT;
+  const cuffY   = isLong ? 73 : 40;
+  const sleeveXL = isLong ? 5  : 11;
+  const sleeveXR = isLong ? 75 : 69;
 
   return (
     <svg width={width} height={height} viewBox="0 0 80 130" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
@@ -112,34 +105,21 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       </defs>
 
       {/* ── Jersey fill ── */}
-      {isLong ? (
-        // Body and sleeves are separate filled shapes — their shared borders are
-        // double-stroked, creating clearly visible seam lines regardless of pattern.
-        <>
-          <path d={bodyPathLong} fill={jP.fill} />
-          <path d={lSleevePath} fill={jP.fill} />
-          <path d={rSleevePath} fill={jP.fill} />
-          {/* Dimming overlay on sleeves so they read as distinct panels (solid jerseys) */}
-          <path d={lSleevePath} fill="rgba(0,0,0,0.14)" />
-          <path d={rSleevePath} fill="rgba(0,0,0,0.14)" />
-        </>
-      ) : (
-        <path d={jerseyPath} fill={jP.fill} />
-      )}
+      <path d={isLong ? jerseyPathLong : jerseyPath} fill={jP.fill} />
 
       {/* ── Shoulder stripes ── */}
       {shoulderStripes && (
         <g strokeLinecap="butt">
           <g clipPath={`url(#${uid}-lsl)`}>
             {isLong ? (
-              // 14 px sleeve — 3 stripes at 1.5 px each
+              // Long sleeve — 3 stripes running outer-to-inner across the sleeve width
               <>
-                <line x1="11" y1="20" x2="11" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="1.5" />
-                <line x1="15" y1="20" x2="15" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="1.5" />
-                <line x1="19" y1="20" x2="19" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="1.5" />
+                <line x1="10" y1="22" x2="7"  y2="73" stroke={sleeveAccentColor} strokeWidth="2.5" />
+                <line x1="13" y1="22" x2="10" y2="73" stroke={sleeveAccentColor} strokeWidth="2.5" />
+                <line x1="16" y1="22" x2="13" y2="73" stroke={sleeveAccentColor} strokeWidth="2.5" />
               </>
             ) : (
-              // 11 px sleeve — 3 stripes with slight angle
+              // Short sleeve — 3 stripes with slight angle
               <>
                 <line x1="14" y1="20" x2="13" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="2" />
                 <line x1="17" y1="20" x2="16" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="2" />
@@ -150,9 +130,9 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
           <g clipPath={`url(#${uid}-rsl)`}>
             {isLong ? (
               <>
-                <line x1="69" y1="20" x2="69" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="1.5" />
-                <line x1="65" y1="20" x2="65" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="1.5" />
-                <line x1="61" y1="20" x2="61" y2={cuffY} stroke={sleeveAccentColor} strokeWidth="1.5" />
+                <line x1="70" y1="22" x2="73" y2="73" stroke={sleeveAccentColor} strokeWidth="2.5" />
+                <line x1="67" y1="22" x2="70" y2="73" stroke={sleeveAccentColor} strokeWidth="2.5" />
+                <line x1="64" y1="22" x2="67" y2="73" stroke={sleeveAccentColor} strokeWidth="2.5" />
               </>
             ) : (
               <>
@@ -166,8 +146,8 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       )}
 
       {/* ── Sleeve cuff accent ── */}
-      <line x1={sleeveXL} y1={cuffY} x2="22" y2={cuffY} stroke={sleeveAccentColor} strokeWidth={isLong ? 2 : 3.5} strokeLinecap="butt" />
-      <line x1={sleeveXR} y1={cuffY} x2="58" y2={cuffY} stroke={sleeveAccentColor} strokeWidth={isLong ? 2 : 3.5} strokeLinecap="butt" />
+      <line x1={sleeveXL} y1={cuffY} x2="22" y2={cuffY} stroke={sleeveAccentColor} strokeWidth={isLong ? 4 : 3.5} strokeLinecap="butt" />
+      <line x1={sleeveXR} y1={cuffY} x2="58" y2={cuffY} stroke={sleeveAccentColor} strokeWidth={isLong ? 4 : 3.5} strokeLinecap="butt" />
 
       {/* ── Collar overlays ── */}
       {collarStyle === 'vneck' && (
@@ -178,8 +158,8 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       )}
       {collarStyle === 'polo' && (
         <>
-          {/* Collar stand — thin band at neckline */}
-          <rect x="32" y="11.5" width="16" height="3" rx="0.5" fill={collarColor} />
+          {/* Collar stand — flat strip at neckline (no element goes above y=12.5) */}
+          <rect x="32" y="12.5" width="16" height="2" rx="0.5" fill={collarColor} />
           {/* Left collar leaf */}
           <path d="M 29,13 L 40,15 L 37,24 L 24,18 Z" fill={collarColor} />
           {/* Right collar leaf */}
@@ -190,17 +170,18 @@ export function KitSVG({ kit, width = 80 }: { kit: KitConfig; width?: number }) 
       )}
 
       {/* ── Jersey outline ── */}
+      <path d={isLong ? jerseyPathLong : jerseyPath} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
       {isLong ? (
-        // Separate outlines → double-stroke at seams = clearly visible seam line
+        // Sleeve-body seam lines + outer sleeve detail stroke
         <>
-          <path d={bodyPathLong} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-          <path d={lSleevePath} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-          <path d={rSleevePath} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
+          <path d="M 8,22 L 5,73 L 22,73" fill="none" stroke="rgba(0,0,0,0.18)" strokeWidth="0.75" />
+          <path d="M 72,22 L 75,73 L 58,73" fill="none" stroke="rgba(0,0,0,0.18)" strokeWidth="0.75" />
+          <line x1="22" y1="22" x2="22" y2="73" stroke="rgba(0,0,0,0.12)" strokeWidth="0.6" />
+          <line x1="58" y1="22" x2="58" y2="73" stroke="rgba(0,0,0,0.12)" strokeWidth="0.6" />
         </>
       ) : (
+        // Shoulder seam lines for short sleeve
         <>
-          <path d={jerseyPath} fill="none" stroke="rgba(0,0,0,0.3)" strokeWidth="0.8" />
-          {/* Shoulder seam (short sleeve only — long sleeve seam comes from double-stroke above) */}
           <line x1="11" y1="20" x2="22" y2="20" stroke="rgba(0,0,0,0.4)" strokeWidth="1.2" />
           <line x1="69" y1="20" x2="58" y2="20" stroke="rgba(0,0,0,0.4)" strokeWidth="1.2" />
         </>
