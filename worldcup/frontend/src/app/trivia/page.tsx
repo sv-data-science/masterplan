@@ -8,7 +8,7 @@ import { api, triviaApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
-const TIMER_SECONDS = 15;
+const TIMER_SECONDS = 20;
 
 type Phase = 'start' | 'question' | 'result';
 
@@ -152,7 +152,7 @@ export default function TriviaPage() {
   const startGame = (overrideLang?: TriviaLang) => {
     const activeLang = overrideLang ?? lang;
     const pool = activeLang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
-    const qs = getQuestionsForQuiz(pool).slice(0, 10);
+    const qs = getQuestionsForQuiz(pool);
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
@@ -168,8 +168,8 @@ export default function TriviaPage() {
     p >= 80 ? 'text-green-400' : p >= 60 ? 'text-yellow-400' : 'text-red-400';
   const accuracyBarColor = (p: number) =>
     p >= 80 ? 'bg-green-500' : p >= 60 ? 'bg-yellow-500' : 'bg-red-500';
-  const timerColor = timeLeft > 10 ? 'text-green-400' : timeLeft > 5 ? 'text-yellow-400' : 'text-red-400';
-  const timerBarColor = timeLeft > 10 ? 'bg-green-500' : timeLeft > 5 ? 'bg-yellow-500' : 'bg-red-500';
+  const timerColor = timeLeft > 13 ? 'text-green-400' : timeLeft > 7 ? 'text-yellow-400' : 'text-red-400';
+  const timerBarColor = timeLeft > 13 ? 'bg-green-500' : timeLeft > 7 ? 'bg-yellow-500' : 'bg-red-500';
 
   const pick = (idx: number) => {
     if (selected !== null) return;
@@ -268,8 +268,8 @@ export default function TriviaPage() {
 
           <p className="text-xs text-gray-600">
             {lang === 'es'
-              ? `10 preguntas por partida · ${remaining} nuevas de ${totalPool} en total · ⏱ 15 seg`
-              : `10 questions per game · ${remaining} new of ${totalPool} total · ⏱ 15 sec each`}
+              ? `Continuo · ${remaining} nuevas de ${totalPool} en total · ⏱ 20 seg`
+              : `Continuous · ${remaining} new of ${totalPool} total · ⏱ 20 sec each`}
           </p>
 
           {user && myStats && myStats.games_played > 0 && (
