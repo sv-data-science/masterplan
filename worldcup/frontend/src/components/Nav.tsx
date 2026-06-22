@@ -21,7 +21,7 @@ export function Nav() {
   const baseLinks = [
     { href: '/', label: 'Dashboard' },
     { href: '/leaderboard', label: 'Leaderboard' },
-    { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
+    { href: '/trivia', label: '🧠 Trivia' },
     { href: '/memes', label: '😂 Memes', badge: 'New' },
     { href: '/history', label: '📖 WC History', badge: 'New' },
     { href: '/brackets', label: '🏆 Bracket', badge: 'New' },
@@ -33,9 +33,9 @@ export function Nav() {
     ? [
         { href: '/', label: 'Dashboard' },
         { href: '/leaderboard', label: 'Leaderboard' },
-        { href: '/trivia', label: '🧠 Trivia', badge: 'New' },
+        { href: '/trivia', label: '🧠 Trivia' },
         { href: '/memes', label: '😂 Memes', badge: 'New' },
-        { href: '/kit', label: '🎽 My Uniform', badge: 'New' },
+        { href: '/kit', label: '🎽 My Uniform' },
         { href: '/history', label: '📖 WC History', badge: 'New' },
         { href: '/brackets', label: '🏆 Bracket', badge: 'New' },
         { href: '/profile', label: '👤 Profile', badge: 'New' },
