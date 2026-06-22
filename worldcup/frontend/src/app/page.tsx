@@ -19,6 +19,33 @@ export default function HomePage() {
   const top5 = leaderboard?.slice(0,5)??[];
   const myRank = leaderboard?.find(e => e.user_id === user?.id);
 
+  // Prediction nudge: find scheduled matches kicking off today or tomorrow
+  const nudge = (() => {
+    if (!user || !matches?.length) return null;
+    const now = new Date();
+    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const tomorrowStart = new Date(todayStart); tomorrowStart.setUTCDate(todayStart.getUTCDate() + 1);
+    const dayAfterStart = new Date(tomorrowStart); dayAfterStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
+
+    const todayMs = matches.filter(m => {
+      if (!m.kickoff_utc || m.status !== 'scheduled') return false;
+      const k = new Date(m.kickoff_utc).getTime();
+      return k >= todayStart.getTime() && k < tomorrowStart.getTime() && k > now.getTime();
+    });
+    const tomorrowMs = matches.filter(m => {
+      if (!m.kickoff_utc || m.status !== 'scheduled') return false;
+      const k = new Date(m.kickoff_utc).getTime();
+      return k >= tomorrowStart.getTime() && k < dayAfterStart.getTime();
+    });
+
+    const target = todayMs.length > 0 ? todayMs : tomorrowMs;
+    if (!target.length) return null;
+    const label = todayMs.length > 0 ? 'today' : 'tomorrow';
+    const predicted = target.filter(m => m.my_prediction !== null).length;
+    const total = target.length;
+    return { total, predicted, label, allDone: predicted === total };
+  })();
+
   return (
     <div className="space-y-8">
       <div className="card p-6 bg-gradient-to-br from-green-900/30 to-[#161b22] border-green-800/50 text-center">
@@ -37,6 +64,26 @@ export default function HomePage() {
           <div className="mt-4"><Link href="/register" className="btn-primary mr-2">Get started</Link><Link href="/login" className="btn-secondary">Log in</Link></div>
         ) : null}
       </div>
+      {nudge && (
+        <Link href="/my-predictions" className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium transition-colors ${
+          nudge.allDone
+            ? 'bg-green-900/20 border-green-700/50 text-green-300 hover:bg-green-900/30'
+            : nudge.predicted === 0
+            ? 'bg-yellow-900/20 border-yellow-700/50 text-yellow-300 hover:bg-yellow-900/30'
+            : 'bg-blue-900/20 border-blue-700/50 text-blue-300 hover:bg-blue-900/30'
+        }`}>
+          <span className="text-xl shrink-0">{nudge.allDone ? '✅' : '⚡'}</span>
+          <span className="flex-1">
+            {nudge.allDone
+              ? `You've predicted all ${nudge.total} match${nudge.total > 1 ? 'es' : ''} kicking off ${nudge.label} — you're all set!`
+              : nudge.predicted === 0
+              ? `${nudge.total} match${nudge.total > 1 ? 'es' : ''} kick${nudge.total === 1 ? 's' : ''} off ${nudge.label} — you haven't predicted any yet`
+              : `⚡ ${nudge.total} match${nudge.total > 1 ? 'es' : ''} kick${nudge.total === 1 ? 's' : ''} off ${nudge.label} — you've predicted ${nudge.predicted} of them`
+            }
+          </span>
+          <span className="shrink-0 text-xs opacity-70">My Picks →</span>
+        </Link>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {recent.length > 0 && (
