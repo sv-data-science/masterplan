@@ -1398,8 +1398,8 @@ export const ALL_QUESTIONS: TriviaQuestion[] = [
   },
   {
     id: 189,
-    question: "Which South American team surprised everyone by reaching the semi-finals in both 2018 and 2022?",
-    options: ['Colombia', 'Ecuador', 'Uruguay', 'Croatia'],
+    question: "Which small European nation (population ~4 million) surprised everyone by reaching the semi-finals in both 2018 and 2022?",
+    options: ['Slovenia', 'Slovakia', 'North Macedonia', 'Croatia'],
     answer: 3,
     fact: "Croatia reached the 2018 final (lost to France 4–2) and the 2022 semi-finals (lost to Argentina) — remarkable for a country of 4 million.",
   },
