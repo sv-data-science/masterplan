@@ -63,7 +63,7 @@ async def my_stats(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Best game by accuracy ratio (score/total), ties broken by more questions answered
+    # Best single game by accuracy ratio, ties broken by more questions answered
     best_row = (await db.execute(
         select(TriviaScore)
         .where(TriviaScore.user_id == current_user.id, TriviaScore.total > 0)
@@ -71,67 +71,78 @@ async def my_stats(
         .limit(1)
     )).scalar_one_or_none()
 
+    # Cumulative running total across ALL saved games
+    cum = (await db.execute(
+        select(func.sum(TriviaScore.score), func.sum(TriviaScore.total))
+        .where(TriviaScore.user_id == current_user.id, TriviaScore.total > 0)
+    )).one()
+    cum_score, cum_total = (int(cum[0]) if cum[0] else None), (int(cum[1]) if cum[1] else None)
+
     games_played = (await db.execute(
         select(func.count(TriviaScore.id)).where(TriviaScore.user_id == current_user.id)
     )).scalar() or 0
-
-    live = (await db.execute(
-        select(TriviaLiveScore).where(TriviaLiveScore.user_id == current_user.id)
-    )).scalar_one_or_none()
 
     return {
         "best_score": best_row.score if best_row else None,
         "best_total": best_row.total if best_row else None,
         "games_played": int(games_played),
-        "live_score": live.score if live else None,
-        "live_total": live.total if live else None,
+        "live_score": cum_score,
+        "live_total": cum_total,
     }
 
 
 @router.get("/leaderboard")
 async def trivia_leaderboard(db: AsyncSession = Depends(get_db)):
-    # Pick the best game per user by accuracy ratio using a window function,
-    # then join to users for display names
-    rows = (await db.execute(text("""
-        WITH ranked AS (
-            SELECT
-                user_id,
-                score,
-                total,
-                ROW_NUMBER() OVER (
-                    PARTITION BY user_id
-                    ORDER BY (score::float / total) DESC, total DESC
-                ) AS rn,
-                COUNT(*) OVER (PARTITION BY user_id) AS games_played
-            FROM trivia_scores
-            WHERE total > 0
+    # Cumulative accuracy per user: SUM(score) / SUM(total) across all games
+    subq = (
+        select(
+            TriviaScore.user_id,
+            func.sum(TriviaScore.score).label("cum_score"),
+            func.sum(TriviaScore.total).label("cum_total"),
+            func.count(TriviaScore.id).label("games_played"),
         )
-        SELECT
-            u.display_name,
-            u.username,
-            r.score  AS best_score,
-            r.total  AS best_total,
-            r.games_played
-        FROM ranked r
-        JOIN users u ON u.id = r.user_id
-        WHERE r.rn = 1
-        ORDER BY (r.score::float / r.total) DESC, r.total DESC
-    """))).mappings().all()
+        .where(TriviaScore.total > 0)
+        .group_by(TriviaScore.user_id)
+        .subquery()
+    )
+
+    rows = (
+        await db.execute(
+            select(
+                User.display_name,
+                User.username,
+                subq.c.cum_score,
+                subq.c.cum_total,
+                subq.c.games_played,
+            )
+            .join(subq, subq.c.user_id == User.id)
+            .order_by(
+                (cast(subq.c.cum_score, Float) / subq.c.cum_total).desc(),
+                subq.c.cum_total.desc(),
+            )
+        )
+    ).all()
 
     result = []
     for i, r in enumerate(rows):
+        prev_pct = result[-1]["_pct"] if result else None
+        cur_pct = round(r.cum_score / r.cum_total * 100, 2) if r.cum_total else 0
         if i == 0:
             rank = 1
-        elif r["best_score"] == result[-1]["best_score"] and r["best_total"] == result[-1]["best_total"]:
+        elif cur_pct == prev_pct:
             rank = result[-1]["rank"]
         else:
             rank = i + 1
         result.append({
             "rank": rank,
-            "display_name": r["display_name"],
-            "username": r["username"],
-            "best_score": int(r["best_score"]),
-            "best_total": int(r["best_total"]),
-            "games_played": int(r["games_played"]),
+            "display_name": r.display_name,
+            "username": r.username,
+            "best_score": int(r.cum_score),
+            "best_total": int(r.cum_total),
+            "games_played": int(r.games_played),
+            "_pct": cur_pct,
         })
+    # strip internal field
+    for r in result:
+        r.pop("_pct", None)
     return result

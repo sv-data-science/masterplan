@@ -177,9 +177,7 @@ export default function TriviaPage() {
     setSelected(idx);
     const correct = idx === questions[current].answer;
     const newScore = score + (correct ? 1 : 0);
-    const answered = current + 1;
     if (correct) setScore(newScore);
-    if (user) triviaApi.saveLive(newScore, answered).catch(() => {});
     setAnswers(prev => {
       const next = [...prev];
       next[current] = idx;
@@ -291,7 +289,7 @@ export default function TriviaPage() {
                   <div className={`text-2xl font-bold ${livePct != null ? accuracyColor(livePct) : 'text-gray-500'}`}>
                     {livePct != null ? `${livePct}%` : '—'}
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Puntuación en vivo' : 'Live score'}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Total histórico' : 'All-time'}</div>
                   {myStats.live_total > 0 && (
                     <div className="text-xs text-gray-600">{myStats.live_score}/{myStats.live_total} Q</div>
                   )}
