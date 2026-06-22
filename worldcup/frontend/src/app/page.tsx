@@ -168,7 +168,7 @@ export default function HomePage() {
                       {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : `#${row.rank}`}
                     </span>
                     <span className="flex-1 truncate text-white">{row.display_name}</span>
-                    <span className="text-green-400 font-bold text-xs">{row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span></span>
+                    <span className="text-green-400 font-bold text-xs">{row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span><span className="text-gray-400 font-normal ml-1">({Math.round(row.best_score / row.best_total * 100)}%)</span></span>
                   </div>
                 ))}
               </div>
