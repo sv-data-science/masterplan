@@ -138,7 +138,7 @@ app.include_router(goals.router, prefix="/api/v1")
 app.include_router(trivia.router, prefix="/api/v1")
 
 # ── Memes (inlined to avoid any module-import issues on Railway) ──────────────
-_ALLOWED_EMOJIS = {"❤️", "😂", "🔥", "🙈", "😮", "👏", "😭", "🤣", "💀", "🫡"}
+_ALLOWED_EMOJIS = {"👍", "❤️", "😂", "🔥", "🙈", "😮", "👏", "😭", "🤣", "😡"}
 
 class _MemeCreate(BaseModel):
     image_data: str
