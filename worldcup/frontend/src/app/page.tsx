@@ -14,7 +14,23 @@ export default function HomePage() {
   const { data: triviaStats } = useQuery({ queryKey: ['trivia-my-stats'], queryFn: () => triviaApi.myStats().then(r => r.data), enabled: !!user, staleTime: 60_000 });
   const { data: triviaLeaderboard } = useQuery({ queryKey: ['trivia-leaderboard'], queryFn: () => api.get('/trivia/leaderboard').then(r => r.data), staleTime: 60_000 });
 
-  const upcoming = matches?.filter(m => m.status === 'scheduled').sort((a,b) => new Date(a.kickoff_utc??0).getTime()-new Date(b.kickoff_utc??0).getTime()).slice(0,4)??[];
+  // All scheduled matches on the nearest upcoming match day (no cap — show full day's slate)
+  const { upcoming, upcomingDayLabel } = (() => {
+    const scheduled = (matches ?? [])
+      .filter(m => m.status === 'scheduled' && m.kickoff_utc)
+      .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime());
+    if (!scheduled.length) return { upcoming: [], upcomingDayLabel: '' };
+    const first = new Date(scheduled[0].kickoff_utc!);
+    const dayKey = `${first.getUTCFullYear()}-${first.getUTCMonth()}-${first.getUTCDate()}`;
+    const day = scheduled.filter(m => {
+      const d = new Date(m.kickoff_utc!);
+      return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}` === dayKey;
+    });
+    const now = new Date();
+    const isToday = first.getUTCFullYear() === now.getUTCFullYear() && first.getUTCMonth() === now.getUTCMonth() && first.getUTCDate() === now.getUTCDate();
+    const label = isToday ? "Today's Matches" : `Matches · ${first.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
+    return { upcoming: day, upcomingDayLabel: label };
+  })();
   const recent = matches?.filter(m => m.status !== 'scheduled').sort((a,b) => new Date(b.kickoff_utc??0).getTime()-new Date(a.kickoff_utc??0).getTime()).slice(0,4)??[];
   const top5 = leaderboard?.slice(0,5)??[];
   const myRank = leaderboard?.find(e => e.user_id === user?.id);
@@ -94,7 +110,7 @@ export default function HomePage() {
           )}
           {upcoming.length > 0 && (
             <section>
-              <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">Upcoming Matches</h2><Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link></div>
+              <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">{upcomingDayLabel}</h2><Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link></div>
               <div className="grid sm:grid-cols-2 gap-3">{upcoming.map(m => <MatchCard key={m.id} match={m} queryKey={['matches','home']} />)}</div>
             </section>
           )}
