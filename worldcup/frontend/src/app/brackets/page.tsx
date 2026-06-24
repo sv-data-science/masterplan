@@ -50,38 +50,52 @@ function resolveSlot(groupMatches: Match[], pos: 0 | 1): { team: Team | null; co
 }
 
 // ── WC 2026 R32 bracket definition ─────────────────────────────────────────
-// 12 winner/runner-up pairings + 4 best-3rd slots (TBD until all groups done)
+// Official bracket: 8 group-winner vs best-3rd, 4 winner vs runner-up, 4 runner-up vs runner-up
 type FixedSlot = { kind: 'fixed'; pos: 1 | 2; group: string };
 type BestThirdSlot = { kind: 'best3rd' };
 type SlotDef = FixedSlot | BestThirdSlot;
 
-interface R32Entry { home: SlotDef; away: SlotDef; kickoff_utc: string; venue: string; city: string }
+interface R32Entry { matchNumber: number; home: SlotDef; away: SlotDef; kickoff_utc: string; venue: string; city: string }
 
 const R32: R32Entry[] = [
-  // ── Jun 28 ──────────────────────────────────────────────────────────────────
-  { home: { kind: 'fixed', pos: 1, group: 'A' }, away: { kind: 'fixed', pos: 2, group: 'B' }, kickoff_utc: '2026-06-28T18:00:00Z', venue: 'MetLife Stadium',        city: 'East Rutherford, USA' },
-  { home: { kind: 'fixed', pos: 1, group: 'C' }, away: { kind: 'fixed', pos: 2, group: 'D' }, kickoff_utc: '2026-06-28T22:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
-  // ── Jun 29 ──────────────────────────────────────────────────────────────────
-  { home: { kind: 'fixed', pos: 1, group: 'E' }, away: { kind: 'fixed', pos: 2, group: 'F' }, kickoff_utc: '2026-06-29T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  { home: { kind: 'fixed', pos: 1, group: 'G' }, away: { kind: 'fixed', pos: 2, group: 'H' }, kickoff_utc: '2026-06-29T22:00:00Z', venue: 'Allegiant Stadium',       city: 'Las Vegas, USA' },
-  // ── Jun 30 ──────────────────────────────────────────────────────────────────
-  { home: { kind: 'fixed', pos: 1, group: 'I' }, away: { kind: 'fixed', pos: 2, group: 'J' }, kickoff_utc: '2026-06-30T18:00:00Z', venue: 'Hard Rock Stadium',       city: 'Miami Gardens, USA' },
-  { home: { kind: 'fixed', pos: 1, group: 'K' }, away: { kind: 'fixed', pos: 2, group: 'L' }, kickoff_utc: '2026-06-30T22:00:00Z', venue: 'SoFi Stadium',            city: 'Inglewood, USA' },
-  // ── Jul 1 ───────────────────────────────────────────────────────────────────
-  { home: { kind: 'fixed', pos: 1, group: 'B' }, away: { kind: 'fixed', pos: 2, group: 'A' }, kickoff_utc: '2026-07-01T18:00:00Z', venue: 'BC Place',               city: 'Vancouver, Canada' },
-  { home: { kind: 'fixed', pos: 1, group: 'D' }, away: { kind: 'fixed', pos: 2, group: 'C' }, kickoff_utc: '2026-07-01T22:00:00Z', venue: 'Mercedes-Benz Stadium',  city: 'Atlanta, USA' },
-  // ── Jul 2 ───────────────────────────────────────────────────────────────────
-  { home: { kind: 'fixed', pos: 1, group: 'F' }, away: { kind: 'fixed', pos: 2, group: 'E' }, kickoff_utc: '2026-07-02T18:00:00Z', venue: 'Gillette Stadium',        city: 'Foxborough, USA' },
-  { home: { kind: 'fixed', pos: 1, group: 'H' }, away: { kind: 'fixed', pos: 2, group: 'G' }, kickoff_utc: '2026-07-02T22:00:00Z', venue: 'Estadio Azteca',          city: 'Mexico City, Mexico' },
-  // ── Jul 3 ───────────────────────────────────────────────────────────────────
-  { home: { kind: 'fixed', pos: 1, group: 'J' }, away: { kind: 'fixed', pos: 2, group: 'I' }, kickoff_utc: '2026-07-03T18:00:00Z', venue: "Levi's Stadium",          city: 'Santa Clara, USA' },
-  { home: { kind: 'fixed', pos: 1, group: 'L' }, away: { kind: 'fixed', pos: 2, group: 'K' }, kickoff_utc: '2026-07-03T22:00:00Z', venue: 'BMO Field',               city: 'Toronto, Canada' },
-  // ── Jul 4 ───────────────────────────────────────────────────────────────────
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-04T16:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-04T20:00:00Z', venue: 'MetLife Stadium',         city: 'East Rutherford, USA' },
-  // ── Jul 5 ───────────────────────────────────────────────────────────────────
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-05T00:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-05T03:00:00Z', venue: 'Arrowhead Stadium',       city: 'Kansas City, USA' },
+  // ── Jun 28 (local) ──────────────────────────────────────────────────────────
+  // M74: 9:30 PM EDT / Foxborough → 01:30 UTC Jun 29
+  { matchNumber: 74, home: { kind: 'fixed', pos: 1, group: 'E' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-06-29T01:30:00Z', venue: 'Gillette Stadium',       city: 'Foxborough, USA' },
+  // M73: 8 PM PDT / Los Angeles → 03:00 UTC Jun 29
+  { matchNumber: 73, home: { kind: 'fixed', pos: 2, group: 'A' }, away: { kind: 'fixed', pos: 2, group: 'B' },        kickoff_utc: '2026-06-29T03:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
+  // ── Jun 29 (local) ──────────────────────────────────────────────────────────
+  // M76: 6 PM CDT / Houston → 23:00 UTC Jun 29
+  { matchNumber: 76, home: { kind: 'fixed', pos: 1, group: 'C' }, away: { kind: 'fixed', pos: 2, group: 'F' },        kickoff_utc: '2026-06-29T23:00:00Z', venue: 'NRG Stadium',             city: 'Houston, USA' },
+  // M75: 8 PM CST / Monterrey → 02:00 UTC Jun 30
+  { matchNumber: 75, home: { kind: 'fixed', pos: 1, group: 'F' }, away: { kind: 'fixed', pos: 2, group: 'C' },        kickoff_utc: '2026-06-30T02:00:00Z', venue: 'Estadio BBVA',            city: 'Monterrey, Mexico' },
+  // ── Jun 30 (local) ──────────────────────────────────────────────────────────
+  // M78: 1 PM CDT / Arlington → 18:00 UTC
+  { matchNumber: 78, home: { kind: 'fixed', pos: 2, group: 'E' }, away: { kind: 'fixed', pos: 2, group: 'I' },        kickoff_utc: '2026-06-30T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
+  // M77: 5 PM EDT / East Rutherford → 21:00 UTC
+  { matchNumber: 77, home: { kind: 'fixed', pos: 1, group: 'I' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-06-30T21:00:00Z', venue: 'MetLife Stadium',         city: 'East Rutherford, USA' },
+  // M79: 8 PM CST / Mexico City → 02:00 UTC Jul 1
+  { matchNumber: 79, home: { kind: 'fixed', pos: 1, group: 'A' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-01T02:00:00Z', venue: 'Estadio Azteca',          city: 'Mexico City, Mexico' },
+  // ── Jul 1 (local) ───────────────────────────────────────────────────────────
+  // M80: 12 PM EDT / Atlanta → 16:00 UTC
+  { matchNumber: 80, home: { kind: 'fixed', pos: 1, group: 'L' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-01T16:00:00Z', venue: 'Mercedes-Benz Stadium',  city: 'Atlanta, USA' },
+  // M82: 9 PM PDT / Seattle → 04:00 UTC Jul 2
+  { matchNumber: 82, home: { kind: 'fixed', pos: 1, group: 'G' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-02T04:00:00Z', venue: 'Lumen Field',             city: 'Seattle, USA' },
+  // ── Jul 2 (local) ───────────────────────────────────────────────────────────
+  // M84: 3 PM PDT / Inglewood → 22:00 UTC
+  { matchNumber: 84, home: { kind: 'fixed', pos: 1, group: 'H' }, away: { kind: 'fixed', pos: 2, group: 'J' },        kickoff_utc: '2026-07-02T22:00:00Z', venue: 'SoFi Stadium',            city: 'Inglewood, USA' },
+  // M83: 7 PM EDT / Toronto → 23:00 UTC
+  { matchNumber: 83, home: { kind: 'fixed', pos: 2, group: 'K' }, away: { kind: 'fixed', pos: 2, group: 'L' },        kickoff_utc: '2026-07-02T23:00:00Z', venue: 'BMO Field',               city: 'Toronto, Canada' },
+  // M81: 8 PM PDT / Santa Clara → 03:00 UTC Jul 3
+  { matchNumber: 81, home: { kind: 'fixed', pos: 1, group: 'D' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-03T03:00:00Z', venue: "Levi's Stadium",          city: 'Santa Clara, USA' },
+  // M85: 8 PM PDT / Vancouver → 03:00 UTC Jul 3
+  { matchNumber: 85, home: { kind: 'fixed', pos: 1, group: 'B' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-03T03:00:00Z', venue: 'BC Place',                city: 'Vancouver, Canada' },
+  // ── Jul 3 (local) ───────────────────────────────────────────────────────────
+  // M88: 2 PM EDT / Arlington → 18:00 UTC
+  { matchNumber: 88, home: { kind: 'fixed', pos: 2, group: 'D' }, away: { kind: 'fixed', pos: 2, group: 'G' },        kickoff_utc: '2026-07-03T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
+  // M86: 6 PM EDT / Miami → 22:00 UTC
+  { matchNumber: 86, home: { kind: 'fixed', pos: 1, group: 'J' }, away: { kind: 'fixed', pos: 2, group: 'H' },        kickoff_utc: '2026-07-03T22:00:00Z', venue: 'Hard Rock Stadium',       city: 'Miami Gardens, USA' },
+  // M87: 9:30 PM CDT / Kansas City → 02:30 UTC Jul 4
+  { matchNumber: 87, home: { kind: 'fixed', pos: 1, group: 'K' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-04T02:30:00Z', venue: 'Arrowhead Stadium',       city: 'Kansas City, USA' },
 ];
 
 // ── Slot display component ──────────────────────────────────────────────────
@@ -122,8 +136,8 @@ function SlotDisplay({ slot, groupMatchMap }: {
   );
 }
 
-function R32Card({ idx, home, away, kickoff_utc, venue, city, groupMatchMap }: {
-  idx: number;
+function R32Card({ matchNumber, home, away, kickoff_utc, venue, city, groupMatchMap }: {
+  matchNumber: number;
   home: SlotDef;
   away: SlotDef;
   kickoff_utc: string;
@@ -133,7 +147,7 @@ function R32Card({ idx, home, away, kickoff_utc, venue, city, groupMatchMap }: {
 }) {
   return (
     <div className="card p-4">
-      <div className="text-xs text-gray-500 font-medium mb-3">R32 · Match {idx + 1}</div>
+      <div className="text-xs text-gray-500 font-medium mb-3">R32 · Match {matchNumber}</div>
       <div className="flex items-center gap-3">
         <SlotDisplay slot={home} groupMatchMap={groupMatchMap} />
         <div className="text-gray-600 font-bold shrink-0">vs</div>
@@ -223,7 +237,8 @@ export default function BracketsPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {R32.map((pair, i) => (
-              <R32Card key={i} idx={i} home={pair.home} away={pair.away}
+              <R32Card key={pair.matchNumber} matchNumber={pair.matchNumber}
+                home={pair.home} away={pair.away}
                 kickoff_utc={pair.kickoff_utc} venue={pair.venue} city={pair.city}
                 groupMatchMap={groupMatchMap} />
             ))}
