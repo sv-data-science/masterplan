@@ -30,27 +30,21 @@ function buildStandings(matches: Match[]): Stats[] {
   return Array.from(s.values()).sort((a, b) => b.points - a.points || (b.gf - b.ga) - (a.gf - a.ga) || b.gf - a.gf);
 }
 
-// Returns the resolved team for a position, plus whether it's confirmed
 function resolveSlot(groupMatches: Match[], pos: 0 | 1): { team: Team | null; confirmed: boolean } {
   if (!groupMatches.length) return { team: null, confirmed: false };
   const standings = buildStandings(groupMatches);
   const completed = groupMatches.filter(m => m.status === 'completed').length;
-  // Group of 4 teams has 6 matches (full round-robin)
   if (completed >= 6) return { team: standings[pos]?.team ?? null, confirmed: true };
-  // Mathematical clinch: pos=0 team can't be caught
   const t = standings[pos];
   if (pos === 0 && t) {
-    const gamesLeft = 3 - t.played;
     const maxChaser = Math.max(0, ...standings.slice(1).map(s => s.points + (3 - s.played) * 3));
     if (maxChaser < t.points) return { team: t.team, confirmed: true };
   }
-  // Current leader/2nd but not yet confirmed
   if (standings[pos]) return { team: standings[pos].team, confirmed: false };
   return { team: null, confirmed: false };
 }
 
 // ── WC 2026 R32 bracket definition ─────────────────────────────────────────
-// Official bracket: 8 group-winner vs best-3rd, 4 winner vs runner-up, 4 runner-up vs runner-up
 type FixedSlot = { kind: 'fixed'; pos: 1 | 2; group: string };
 type BestThirdSlot = { kind: 'best3rd' };
 type SlotDef = FixedSlot | BestThirdSlot;
@@ -58,51 +52,257 @@ type SlotDef = FixedSlot | BestThirdSlot;
 interface R32Entry { matchNumber: number; home: SlotDef; away: SlotDef; kickoff_utc: string; venue: string; city: string }
 
 const R32: R32Entry[] = [
-  // ── Jun 28 (local) ──────────────────────────────────────────────────────────
-  // M74: 9:30 PM EDT / Foxborough → 01:30 UTC Jun 29
   { matchNumber: 74, home: { kind: 'fixed', pos: 1, group: 'E' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-06-29T01:30:00Z', venue: 'Gillette Stadium',       city: 'Foxborough, USA' },
-  // M73: 8 PM PDT / Los Angeles → 03:00 UTC Jun 29
   { matchNumber: 73, home: { kind: 'fixed', pos: 2, group: 'A' }, away: { kind: 'fixed', pos: 2, group: 'B' },        kickoff_utc: '2026-06-29T03:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
-  // ── Jun 29 (local) ──────────────────────────────────────────────────────────
-  // M76: 6 PM CDT / Houston → 23:00 UTC Jun 29
   { matchNumber: 76, home: { kind: 'fixed', pos: 1, group: 'C' }, away: { kind: 'fixed', pos: 2, group: 'F' },        kickoff_utc: '2026-06-29T23:00:00Z', venue: 'NRG Stadium',             city: 'Houston, USA' },
-  // M75: 8 PM CST / Monterrey → 02:00 UTC Jun 30
   { matchNumber: 75, home: { kind: 'fixed', pos: 1, group: 'F' }, away: { kind: 'fixed', pos: 2, group: 'C' },        kickoff_utc: '2026-06-30T02:00:00Z', venue: 'Estadio BBVA',            city: 'Monterrey, Mexico' },
-  // ── Jun 30 (local) ──────────────────────────────────────────────────────────
-  // M78: 1 PM CDT / Arlington → 18:00 UTC
   { matchNumber: 78, home: { kind: 'fixed', pos: 2, group: 'E' }, away: { kind: 'fixed', pos: 2, group: 'I' },        kickoff_utc: '2026-06-30T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  // M77: 5 PM EDT / East Rutherford → 21:00 UTC
   { matchNumber: 77, home: { kind: 'fixed', pos: 1, group: 'I' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-06-30T21:00:00Z', venue: 'MetLife Stadium',         city: 'East Rutherford, USA' },
-  // M79: 8 PM CST / Mexico City → 02:00 UTC Jul 1
   { matchNumber: 79, home: { kind: 'fixed', pos: 1, group: 'A' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-01T02:00:00Z', venue: 'Estadio Azteca',          city: 'Mexico City, Mexico' },
-  // ── Jul 1 (local) ───────────────────────────────────────────────────────────
-  // M80: 12 PM EDT / Atlanta → 16:00 UTC
   { matchNumber: 80, home: { kind: 'fixed', pos: 1, group: 'L' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-01T16:00:00Z', venue: 'Mercedes-Benz Stadium',  city: 'Atlanta, USA' },
-  // M82: 9 PM PDT / Seattle → 04:00 UTC Jul 2
   { matchNumber: 82, home: { kind: 'fixed', pos: 1, group: 'G' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-02T04:00:00Z', venue: 'Lumen Field',             city: 'Seattle, USA' },
-  // ── Jul 2 (local) ───────────────────────────────────────────────────────────
-  // M84: 3 PM PDT / Inglewood → 22:00 UTC
   { matchNumber: 84, home: { kind: 'fixed', pos: 1, group: 'H' }, away: { kind: 'fixed', pos: 2, group: 'J' },        kickoff_utc: '2026-07-02T22:00:00Z', venue: 'SoFi Stadium',            city: 'Inglewood, USA' },
-  // M83: 7 PM EDT / Toronto → 23:00 UTC
   { matchNumber: 83, home: { kind: 'fixed', pos: 2, group: 'K' }, away: { kind: 'fixed', pos: 2, group: 'L' },        kickoff_utc: '2026-07-02T23:00:00Z', venue: 'BMO Field',               city: 'Toronto, Canada' },
-  // M81: 8 PM PDT / Santa Clara → 03:00 UTC Jul 3
   { matchNumber: 81, home: { kind: 'fixed', pos: 1, group: 'D' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-03T03:00:00Z', venue: "Levi's Stadium",          city: 'Santa Clara, USA' },
-  // M85: 8 PM PDT / Vancouver → 03:00 UTC Jul 3
   { matchNumber: 85, home: { kind: 'fixed', pos: 1, group: 'B' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-03T03:00:00Z', venue: 'BC Place',                city: 'Vancouver, Canada' },
-  // ── Jul 3 (local) ───────────────────────────────────────────────────────────
-  // M88: 2 PM EDT / Arlington → 18:00 UTC
   { matchNumber: 88, home: { kind: 'fixed', pos: 2, group: 'D' }, away: { kind: 'fixed', pos: 2, group: 'G' },        kickoff_utc: '2026-07-03T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  // M86: 6 PM EDT / Miami → 22:00 UTC
   { matchNumber: 86, home: { kind: 'fixed', pos: 1, group: 'J' }, away: { kind: 'fixed', pos: 2, group: 'H' },        kickoff_utc: '2026-07-03T22:00:00Z', venue: 'Hard Rock Stadium',       city: 'Miami Gardens, USA' },
-  // M87: 9:30 PM CDT / Kansas City → 02:30 UTC Jul 4
   { matchNumber: 87, home: { kind: 'fixed', pos: 1, group: 'K' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-04T02:30:00Z', venue: 'Arrowhead Stadium',       city: 'Kansas City, USA' },
 ];
 
-// ── Slot display component ──────────────────────────────────────────────────
-function SlotDisplay({ slot, groupMatchMap }: {
-  slot: SlotDef;
-  groupMatchMap: Map<string, Match[]>;
+// ── Bracket tree order ──────────────────────────────────────────────────────
+// Pairs of R32 match numbers whose winners meet in each R16 match
+const R32_PAIRS: [number, number][] = [
+  [74, 77],
+  [73, 75],
+  [76, 78],
+  [79, 80],
+  [82, 84],
+  [83, 81],
+  [85, 87],
+  [86, 88],
+];
+
+// ── Bracket tree geometry ───────────────────────────────────────────────────
+const BK = {
+  cardH:    82,
+  pairGap:   3,
+  groupGap: 14,
+  connW:    36,
+  r32W:    196,
+  r16W:    168,
+  qfW:     148,
+  sfW:     136,
+  finW:    136,
+} as const;
+
+const PAIR_H  = BK.cardH * 2 + BK.pairGap;       // height of one R32 pair
+const SLOT_H  = PAIR_H + BK.groupGap;             // one slot unit (pair + gap)
+const TOTAL_H = 8 * PAIR_H + 7 * BK.groupGap;    // total bracket height
+
+// y-center of a span covering `n` consecutive pairs starting at pair index `start`
+function spanCenter(start: number, n: number): number {
+  const top    = start * SLOT_H;
+  const bottom = (start + n - 1) * SLOT_H + PAIR_H;
+  return (top + bottom) / 2;
+}
+
+// ── Slot info resolution ────────────────────────────────────────────────────
+interface SlotInfo { flag: string; name: string; sub: string; confirmed: boolean }
+
+function slotInfo(slot: SlotDef, groupMatchMap: Map<string, Match[]>): SlotInfo {
+  if (slot.kind === 'best3rd') return { flag: '🏳️', name: 'Best 3rd', sub: 'TBD', confirmed: false };
+  const gMatches = groupMatchMap.get(slot.group) ?? [];
+  const { team, confirmed } = resolveSlot(gMatches, (slot.pos - 1) as 0 | 1);
+  const ord = slot.pos === 1 ? '1st' : '2nd';
+  if (team) return { flag: team.flag, name: team.name, sub: `${ord} Grp ${slot.group}`, confirmed };
+  return { flag: '', name: `${ord} Group ${slot.group}`, sub: 'TBD', confirmed: false };
+}
+
+// ── Bracket card components ─────────────────────────────────────────────────
+function TeamRow({ info, border }: { info: SlotInfo; border?: boolean }) {
+  return (
+    <div className={`flex items-center gap-1.5 px-2 py-1 min-w-0 ${border ? 'border-t border-[#21262d]' : ''}`}>
+      {info.flag
+        ? <span className="text-sm leading-none shrink-0 w-5 text-center">{info.flag}</span>
+        : <span className="w-5 h-5 rounded shrink-0 bg-[#30363d] flex items-center justify-center text-[9px] text-gray-600">?</span>
+      }
+      <div className={`flex-1 min-w-0 ${info.confirmed ? '' : 'opacity-60'}`}>
+        <div className="text-xs font-semibold text-white truncate leading-tight">{info.name}</div>
+        {!info.confirmed && <div className="text-[9px] text-gray-600 leading-tight truncate">{info.sub}</div>}
+      </div>
+    </div>
+  );
+}
+
+function BracketMatchCard({ entry, groupMatchMap, w, h }: {
+  entry: R32Entry; groupMatchMap: Map<string, Match[]>; w: number; h: number;
 }) {
+  const home = slotInfo(entry.home, groupMatchMap);
+  const away = slotInfo(entry.away, groupMatchMap);
+  return (
+    <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
+      <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
+        <span className="text-[9px] text-gray-600 font-medium">M{entry.matchNumber}</span>
+        <span className="text-[9px] text-gray-600">{fmtDate(entry.kickoff_utc)}</span>
+      </div>
+      <div className="flex-1 flex flex-col justify-around">
+        <TeamRow info={home} />
+        <div className="border-t border-[#21262d] mx-1.5" />
+        <TeamRow info={away} border={false} />
+      </div>
+      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
+    </div>
+  );
+}
+
+function TBDCard({ label, w, h }: { label: string; w: number; h: number }) {
+  return (
+    <div className="bg-[#0d1117] border border-[#21262d] rounded-lg flex flex-col items-center justify-center gap-0.5" style={{ width: w, height: h }}>
+      <span className="text-[9px] text-gray-600 font-medium">{label}</span>
+      <div className="flex flex-col items-center gap-0.5">
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-sm bg-[#21262d]" />
+          <span className="text-[10px] text-gray-700">TBD</span>
+        </div>
+        <div className="border-t border-[#1a1f27] w-full mx-2" />
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded-sm bg-[#21262d]" />
+          <span className="text-[10px] text-gray-700">TBD</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Connector SVG lines ─────────────────────────────────────────────────────
+function Connectors({ fromCenters, toCenters, w, h }: {
+  fromCenters: number[]; toCenters: number[]; w: number; h: number;
+}) {
+  const mid = w / 2;
+  const color = '#30363d';
+  const sw = 1.5;
+  return (
+    <svg width={w} height={h} style={{ display: 'block', flexShrink: 0, overflow: 'visible' }}>
+      {toCenters.map((toY, i) => {
+        const y1 = fromCenters[i * 2];
+        const y2 = fromCenters[i * 2 + 1];
+        const midY = (y1 + y2) / 2;
+        return (
+          <g key={i}>
+            <line x1={0} y1={y1}  x2={mid} y2={y1}  stroke={color} strokeWidth={sw} />
+            <line x1={0} y1={y2}  x2={mid} y2={y2}  stroke={color} strokeWidth={sw} />
+            <line x1={mid} y1={y1} x2={mid} y2={y2} stroke={color} strokeWidth={sw} />
+            <line x1={mid} y1={midY} x2={w} y2={toY} stroke={color} strokeWidth={sw} />
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ── Full bracket tree ───────────────────────────────────────────────────────
+function BracketTreeView({ groupMatchMap }: { groupMatchMap: Map<string, Match[]> }) {
+  const r32Map = new Map(R32.map(e => [e.matchNumber, e]));
+
+  // Pre-compute y-centers for each round
+  const r32Centers = R32_PAIRS.flatMap((_, i) => [
+    i * SLOT_H + BK.cardH / 2,
+    i * SLOT_H + BK.cardH + BK.pairGap + BK.cardH / 2,
+  ]); // 16 values
+
+  const r16Centers = R32_PAIRS.map((_, i) => spanCenter(i, 1));      // 8 values
+  const qfCenters  = [0, 1, 2, 3].map(i => spanCenter(i * 2, 2));   // 4 values
+  const sfCenters  = [0, 1].map(i => spanCenter(i * 4, 4));         // 2 values
+  const finCenter  = spanCenter(0, 8);                               // 1 value
+
+  const colH = TOTAL_H;
+
+  const LABELS = ['Round of 32', '', 'Round of 16', '', 'Quarterfinals', '', 'Semifinals', '', 'Final'];
+  const WIDTHS  = [BK.r32W, BK.connW, BK.r16W, BK.connW, BK.qfW, BK.connW, BK.sfW, BK.connW, BK.finW];
+  const totalW  = WIDTHS.reduce((a, b) => a + b, 0);
+
+  return (
+    <div className="overflow-x-auto pb-4">
+      {/* Round header labels */}
+      <div className="flex mb-2" style={{ width: totalW }}>
+        {LABELS.map((lbl, i) => (
+          <div key={i} className="text-center shrink-0" style={{ width: WIDTHS[i] }}>
+            {lbl && <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wide">{lbl}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Bracket body */}
+      <div className="relative" style={{ width: totalW, height: colH }}>
+
+        {/* R32 cards */}
+        {R32_PAIRS.flatMap((pair, gi) =>
+          pair.map((matchNum, ci) => {
+            const entry = r32Map.get(matchNum);
+            if (!entry) return null;
+            const top = gi * SLOT_H + ci * (BK.cardH + BK.pairGap);
+            return (
+              <div key={matchNum} className="absolute" style={{ top, left: 0, width: BK.r32W, height: BK.cardH }}>
+                <BracketMatchCard entry={entry} groupMatchMap={groupMatchMap} w={BK.r32W} h={BK.cardH} />
+              </div>
+            );
+          })
+        )}
+
+        {/* R32 → R16 connector */}
+        <div className="absolute" style={{ top: 0, left: BK.r32W, height: colH }}>
+          <Connectors fromCenters={r32Centers} toCenters={r16Centers} w={BK.connW} h={colH} />
+        </div>
+
+        {/* R16 cards */}
+        {r16Centers.map((cy, i) => (
+          <div key={i} className="absolute" style={{ top: cy - BK.cardH / 2, left: BK.r32W + BK.connW, width: BK.r16W, height: BK.cardH }}>
+            <TBDCard label={`R16 · #${i + 1}`} w={BK.r16W} h={BK.cardH} />
+          </div>
+        ))}
+
+        {/* R16 → QF connector */}
+        <div className="absolute" style={{ top: 0, left: BK.r32W + BK.connW + BK.r16W, height: colH }}>
+          <Connectors fromCenters={r16Centers} toCenters={qfCenters} w={BK.connW} h={colH} />
+        </div>
+
+        {/* QF cards */}
+        {qfCenters.map((cy, i) => (
+          <div key={i} className="absolute" style={{ top: cy - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW, width: BK.qfW, height: BK.cardH }}>
+            <TBDCard label={`QF · #${i + 1}`} w={BK.qfW} h={BK.cardH} />
+          </div>
+        ))}
+
+        {/* QF → SF connector */}
+        <div className="absolute" style={{ top: 0, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW, height: colH }}>
+          <Connectors fromCenters={qfCenters} toCenters={sfCenters} w={BK.connW} h={colH} />
+        </div>
+
+        {/* SF cards */}
+        {sfCenters.map((cy, i) => (
+          <div key={i} className="absolute" style={{ top: cy - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW + BK.connW, width: BK.sfW, height: BK.cardH }}>
+            <TBDCard label={`Semifinal · #${i + 1}`} w={BK.sfW} h={BK.cardH} />
+          </div>
+        ))}
+
+        {/* SF → Final connector */}
+        <div className="absolute" style={{ top: 0, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW + BK.connW + BK.sfW, height: colH }}>
+          <Connectors fromCenters={sfCenters} toCenters={[finCenter]} w={BK.connW} h={colH} />
+        </div>
+
+        {/* Final card */}
+        <div className="absolute" style={{ top: finCenter - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW + BK.connW + BK.sfW + BK.connW, width: BK.finW, height: BK.cardH }}>
+          <TBDCard label="Final" w={BK.finW} h={BK.cardH} />
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ── List view: existing R32 card grid ───────────────────────────────────────
+function SlotDisplay({ slot, groupMatchMap }: { slot: SlotDef; groupMatchMap: Map<string, Match[]> }) {
   if (slot.kind === 'best3rd') {
     return (
       <div className="flex-1 text-center px-1">
@@ -115,7 +315,6 @@ function SlotDisplay({ slot, groupMatchMap }: {
   const gMatches = groupMatchMap.get(slot.group) ?? [];
   const { team, confirmed } = resolveSlot(gMatches, (slot.pos - 1) as 0 | 1);
   const ordinal = slot.pos === 1 ? '1st' : '2nd';
-
   if (team) {
     return (
       <div className={`flex-1 text-center px-1 ${confirmed ? '' : 'opacity-70'}`}>
@@ -137,12 +336,7 @@ function SlotDisplay({ slot, groupMatchMap }: {
 }
 
 function R32Card({ matchNumber, home, away, kickoff_utc, venue, city, groupMatchMap }: {
-  matchNumber: number;
-  home: SlotDef;
-  away: SlotDef;
-  kickoff_utc: string;
-  venue: string;
-  city: string;
+  matchNumber: number; home: SlotDef; away: SlotDef; kickoff_utc: string; venue: string; city: string;
   groupMatchMap: Map<string, Match[]>;
 }) {
   return (
@@ -163,7 +357,7 @@ function R32Card({ matchNumber, home, away, kickoff_utc, venue, city, groupMatch
   );
 }
 
-// ── Round definitions ───────────────────────────────────────────────────────
+// ── Round definitions (for list view tabs) ──────────────────────────────────
 const ROUNDS = [
   { key: 'r32',   label: 'Round of 32',    short: 'R32',   count: 16 },
   { key: 'r16',   label: 'Round of 16',    short: 'R16',   count: 8  },
@@ -173,26 +367,25 @@ const ROUNDS = [
   { key: 'final', label: 'Final',          short: 'Final', count: 1  },
 ];
 
-// ── Page ───────────────────────────────────────────────────────────────────
+// ── Page ─────────────────────────────────────────────────────────────────────
 export default function BracketsPage() {
+  const [view, setView] = useState<'bracket' | 'list'>('bracket');
   const [activeRound, setActiveRound] = useState('r32');
   const active = ROUNDS.find(r => r.key === activeRound)!;
 
-  // Group stage matches (for standings computation)
   const { data: allMatches = [] } = useQuery<Match[]>({
     queryKey: ['matches', 'all'],
     queryFn: () => matchesApi.list().then(r => r.data),
     staleTime: 60_000,
   });
 
-  // Knockout stage matches (once they exist in DB)
   const { data: knockoutMatches = [], isLoading } = useQuery<Match[]>({
     queryKey: ['brackets', activeRound],
     queryFn: () => matchesApi.list({ stage: activeRound }).then(r => r.data),
     staleTime: 30_000,
+    enabled: view === 'list',
   });
 
-  // Build group → matches map for bracket slot resolution
   const groupMatchMap = new Map<string, Match[]>();
   for (const m of allMatches) {
     if (!m.group_letter) continue;
@@ -201,79 +394,112 @@ export default function BracketsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <h1 className="text-2xl font-bold text-white">🏆 Knockout Bracket</h1>
-        <span className="text-xs text-gray-500 sm:ml-2">WC 2026 · same scoring: 3/2/1/0 pts</span>
-      </div>
-
-      {/* Round tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {ROUNDS.map(r => (
+    <div className="space-y-4">
+      {/* Header + view toggle */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-white">🏆 Knockout Bracket</h1>
+          <p className="text-xs text-gray-500 mt-0.5">WC 2026 · same scoring: 3/2/1/0 pts</p>
+        </div>
+        <div className="flex gap-1.5 sm:ml-auto">
           <button
-            key={r.key}
-            onClick={() => setActiveRound(r.key)}
-            className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors border shrink-0 ${
-              activeRound === r.key
-                ? 'bg-green-600 border-green-600 text-white'
-                : 'border-[#30363d] text-gray-400 hover:text-white hover:border-gray-500'
+            onClick={() => setView('bracket')}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+              view === 'bracket' ? 'bg-green-600 border-green-600 text-white' : 'border-[#30363d] text-gray-400 hover:text-white'
             }`}
           >
-            <span className="hidden sm:inline">{r.label}</span>
-            <span className="sm:hidden">{r.short}</span>
+            🌲 Bracket
           </button>
-        ))}
+          <button
+            onClick={() => setView('list')}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+              view === 'list' ? 'bg-green-600 border-green-600 text-white' : 'border-[#30363d] text-gray-400 hover:text-white'
+            }`}
+          >
+            📋 List
+          </button>
+        </div>
       </div>
 
-      {isLoading && <div className="text-center py-12 text-gray-500">Loading…</div>}
-
-      {/* R32: always show the bracket structure with resolved slots */}
-      {!isLoading && activeRound === 'r32' && knockoutMatches.length === 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-3 text-xs text-gray-500 px-1">
-            <span className="text-green-500 font-medium">✓ Confirmed</span>
-            <span className="text-yellow-500 font-medium">~ Current leader (not yet final)</span>
-            <span className="text-gray-600">TBD</span>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {R32.map((pair, i) => (
-              <R32Card key={pair.matchNumber} matchNumber={pair.matchNumber}
-                home={pair.home} away={pair.away}
-                kickoff_utc={pair.kickoff_utc} venue={pair.venue} city={pair.city}
-                groupMatchMap={groupMatchMap} />
-            ))}
-          </div>
+      {/* Legend (bracket view) */}
+      {view === 'bracket' && (
+        <div className="flex items-center gap-4 text-xs text-gray-500 px-1">
+          <span className="text-gray-400 font-medium">Scroll right →</span>
+          <span className="text-green-500">✓ Confirmed</span>
+          <span className="text-yellow-500 opacity-60">~ Current leader</span>
         </div>
       )}
 
-      {/* Other rounds: show placeholder until knockout matches exist */}
-      {!isLoading && activeRound !== 'r32' && knockoutMatches.length === 0 && (
-        <div className="text-center py-12 bg-[#161b22] rounded-xl border border-[#30363d]">
-          <div className="text-4xl mb-3">⏳</div>
-          <p className="text-white font-semibold">Not yet determined</p>
-          <p className="text-gray-400 text-sm mt-1">
-            The {active.label} bracket will fill in as earlier rounds are played.
-          </p>
-          <p className="text-gray-600 text-xs mt-1">
-            {active.count} match{active.count > 1 ? 'es' : ''} · predictions open before each kick-off
-          </p>
-        </div>
+      {/* ── Bracket view ── */}
+      {view === 'bracket' && (
+        <BracketTreeView groupMatchMap={groupMatchMap} />
       )}
 
-      {/* Live knockout matches (when they exist in DB) */}
-      {knockoutMatches.length > 0 && (
-        <div className="grid sm:grid-cols-2 gap-3">
-          {knockoutMatches
-            .sort((a, b) => a.match_number - b.match_number)
-            .map(m => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                queryKey={['brackets', activeRound]}
-                label={`${active.short} · Match ${m.match_number}`}
-              />
+      {/* ── List view ── */}
+      {view === 'list' && (
+        <>
+          {/* Round tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {ROUNDS.map(r => (
+              <button
+                key={r.key}
+                onClick={() => setActiveRound(r.key)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap transition-colors border shrink-0 ${
+                  activeRound === r.key
+                    ? 'bg-green-600 border-green-600 text-white'
+                    : 'border-[#30363d] text-gray-400 hover:text-white hover:border-gray-500'
+                }`}
+              >
+                <span className="hidden sm:inline">{r.label}</span>
+                <span className="sm:hidden">{r.short}</span>
+              </button>
             ))}
-        </div>
+          </div>
+
+          {isLoading && <div className="text-center py-12 text-gray-500">Loading…</div>}
+
+          {!isLoading && activeRound === 'r32' && knockoutMatches.length === 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-xs text-gray-500 px-1">
+                <span className="text-green-500 font-medium">✓ Confirmed</span>
+                <span className="text-yellow-500 font-medium">~ Current leader</span>
+                <span className="text-gray-600">TBD</span>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {R32.map(pair => (
+                  <R32Card key={pair.matchNumber} matchNumber={pair.matchNumber}
+                    home={pair.home} away={pair.away}
+                    kickoff_utc={pair.kickoff_utc} venue={pair.venue} city={pair.city}
+                    groupMatchMap={groupMatchMap} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!isLoading && activeRound !== 'r32' && knockoutMatches.length === 0 && (
+            <div className="text-center py-12 bg-[#161b22] rounded-xl border border-[#30363d]">
+              <div className="text-4xl mb-3">⏳</div>
+              <p className="text-white font-semibold">Not yet determined</p>
+              <p className="text-gray-400 text-sm mt-1">
+                The {active.label} bracket will fill in as earlier rounds are played.
+              </p>
+              <p className="text-gray-600 text-xs mt-1">
+                {active.count} match{active.count > 1 ? 'es' : ''} · predictions open before each kick-off
+              </p>
+            </div>
+          )}
+
+          {knockoutMatches.length > 0 && (
+            <div className="grid sm:grid-cols-2 gap-3">
+              {knockoutMatches
+                .sort((a, b) => a.match_number - b.match_number)
+                .map(m => (
+                  <MatchCard key={m.id} match={m} queryKey={['brackets', activeRound]}
+                    label={`${active.short} · Match ${m.match_number}`} />
+                ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
