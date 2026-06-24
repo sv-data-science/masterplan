@@ -5,6 +5,16 @@ import { matchesApi } from '@/lib/api';
 import { Match, Team } from '@/types';
 import { MatchCard } from '@/components/MatchCard';
 
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
+}
+function fmtEST(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York', timeZoneName: 'short' });
+}
+function fmtCDT(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City', timeZoneName: 'short' });
+}
+
 // ── Standings helpers ───────────────────────────────────────────────────────
 interface Stats { team: Team; played: number; points: number; gf: number; ga: number; }
 
@@ -45,23 +55,33 @@ type FixedSlot = { kind: 'fixed'; pos: 1 | 2; group: string };
 type BestThirdSlot = { kind: 'best3rd' };
 type SlotDef = FixedSlot | BestThirdSlot;
 
-const R32: Array<{ home: SlotDef; away: SlotDef }> = [
-  { home: { kind: 'fixed', pos: 1, group: 'A' }, away: { kind: 'fixed', pos: 2, group: 'B' } },
-  { home: { kind: 'fixed', pos: 1, group: 'C' }, away: { kind: 'fixed', pos: 2, group: 'D' } },
-  { home: { kind: 'fixed', pos: 1, group: 'E' }, away: { kind: 'fixed', pos: 2, group: 'F' } },
-  { home: { kind: 'fixed', pos: 1, group: 'G' }, away: { kind: 'fixed', pos: 2, group: 'H' } },
-  { home: { kind: 'fixed', pos: 1, group: 'I' }, away: { kind: 'fixed', pos: 2, group: 'J' } },
-  { home: { kind: 'fixed', pos: 1, group: 'K' }, away: { kind: 'fixed', pos: 2, group: 'L' } },
-  { home: { kind: 'fixed', pos: 1, group: 'B' }, away: { kind: 'fixed', pos: 2, group: 'A' } },
-  { home: { kind: 'fixed', pos: 1, group: 'D' }, away: { kind: 'fixed', pos: 2, group: 'C' } },
-  { home: { kind: 'fixed', pos: 1, group: 'F' }, away: { kind: 'fixed', pos: 2, group: 'E' } },
-  { home: { kind: 'fixed', pos: 1, group: 'H' }, away: { kind: 'fixed', pos: 2, group: 'G' } },
-  { home: { kind: 'fixed', pos: 1, group: 'J' }, away: { kind: 'fixed', pos: 2, group: 'I' } },
-  { home: { kind: 'fixed', pos: 1, group: 'L' }, away: { kind: 'fixed', pos: 2, group: 'K' } },
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' } },
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' } },
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' } },
-  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' } },
+interface R32Entry { home: SlotDef; away: SlotDef; kickoff_utc: string; venue: string; city: string }
+
+const R32: R32Entry[] = [
+  // ── Jun 28 ──────────────────────────────────────────────────────────────────
+  { home: { kind: 'fixed', pos: 1, group: 'A' }, away: { kind: 'fixed', pos: 2, group: 'B' }, kickoff_utc: '2026-06-28T18:00:00Z', venue: 'MetLife Stadium',        city: 'East Rutherford, USA' },
+  { home: { kind: 'fixed', pos: 1, group: 'C' }, away: { kind: 'fixed', pos: 2, group: 'D' }, kickoff_utc: '2026-06-28T22:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
+  // ── Jun 29 ──────────────────────────────────────────────────────────────────
+  { home: { kind: 'fixed', pos: 1, group: 'E' }, away: { kind: 'fixed', pos: 2, group: 'F' }, kickoff_utc: '2026-06-29T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
+  { home: { kind: 'fixed', pos: 1, group: 'G' }, away: { kind: 'fixed', pos: 2, group: 'H' }, kickoff_utc: '2026-06-29T22:00:00Z', venue: 'Allegiant Stadium',       city: 'Las Vegas, USA' },
+  // ── Jun 30 ──────────────────────────────────────────────────────────────────
+  { home: { kind: 'fixed', pos: 1, group: 'I' }, away: { kind: 'fixed', pos: 2, group: 'J' }, kickoff_utc: '2026-06-30T18:00:00Z', venue: 'Hard Rock Stadium',       city: 'Miami Gardens, USA' },
+  { home: { kind: 'fixed', pos: 1, group: 'K' }, away: { kind: 'fixed', pos: 2, group: 'L' }, kickoff_utc: '2026-06-30T22:00:00Z', venue: 'SoFi Stadium',            city: 'Inglewood, USA' },
+  // ── Jul 1 ───────────────────────────────────────────────────────────────────
+  { home: { kind: 'fixed', pos: 1, group: 'B' }, away: { kind: 'fixed', pos: 2, group: 'A' }, kickoff_utc: '2026-07-01T18:00:00Z', venue: 'BC Place',               city: 'Vancouver, Canada' },
+  { home: { kind: 'fixed', pos: 1, group: 'D' }, away: { kind: 'fixed', pos: 2, group: 'C' }, kickoff_utc: '2026-07-01T22:00:00Z', venue: 'Mercedes-Benz Stadium',  city: 'Atlanta, USA' },
+  // ── Jul 2 ───────────────────────────────────────────────────────────────────
+  { home: { kind: 'fixed', pos: 1, group: 'F' }, away: { kind: 'fixed', pos: 2, group: 'E' }, kickoff_utc: '2026-07-02T18:00:00Z', venue: 'Gillette Stadium',        city: 'Foxborough, USA' },
+  { home: { kind: 'fixed', pos: 1, group: 'H' }, away: { kind: 'fixed', pos: 2, group: 'G' }, kickoff_utc: '2026-07-02T22:00:00Z', venue: 'Estadio Azteca',          city: 'Mexico City, Mexico' },
+  // ── Jul 3 ───────────────────────────────────────────────────────────────────
+  { home: { kind: 'fixed', pos: 1, group: 'J' }, away: { kind: 'fixed', pos: 2, group: 'I' }, kickoff_utc: '2026-07-03T18:00:00Z', venue: "Levi's Stadium",          city: 'Santa Clara, USA' },
+  { home: { kind: 'fixed', pos: 1, group: 'L' }, away: { kind: 'fixed', pos: 2, group: 'K' }, kickoff_utc: '2026-07-03T22:00:00Z', venue: 'BMO Field',               city: 'Toronto, Canada' },
+  // ── Jul 4 ───────────────────────────────────────────────────────────────────
+  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-04T16:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
+  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-04T20:00:00Z', venue: 'MetLife Stadium',         city: 'East Rutherford, USA' },
+  // ── Jul 5 ───────────────────────────────────────────────────────────────────
+  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-05T00:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
+  { home: { kind: 'best3rd' }, away: { kind: 'best3rd' }, kickoff_utc: '2026-07-05T03:00:00Z', venue: 'Arrowhead Stadium',       city: 'Kansas City, USA' },
 ];
 
 // ── Slot display component ──────────────────────────────────────────────────
@@ -102,10 +122,13 @@ function SlotDisplay({ slot, groupMatchMap }: {
   );
 }
 
-function R32Card({ idx, home, away, groupMatchMap }: {
+function R32Card({ idx, home, away, kickoff_utc, venue, city, groupMatchMap }: {
   idx: number;
   home: SlotDef;
   away: SlotDef;
+  kickoff_utc: string;
+  venue: string;
+  city: string;
   groupMatchMap: Map<string, Match[]>;
 }) {
   return (
@@ -115,6 +138,12 @@ function R32Card({ idx, home, away, groupMatchMap }: {
         <SlotDisplay slot={home} groupMatchMap={groupMatchMap} />
         <div className="text-gray-600 font-bold shrink-0">vs</div>
         <SlotDisplay slot={away} groupMatchMap={groupMatchMap} />
+      </div>
+      <div className="text-center mt-2 space-y-0.5">
+        <p className="text-xs text-gray-400">
+          {fmtDate(kickoff_utc)} · {fmtEST(kickoff_utc)} / {fmtCDT(kickoff_utc)}
+        </p>
+        <p className="text-xs text-gray-500">📍 {city} · {venue}</p>
       </div>
     </div>
   );
@@ -194,7 +223,9 @@ export default function BracketsPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-3">
             {R32.map((pair, i) => (
-              <R32Card key={i} idx={i} home={pair.home} away={pair.away} groupMatchMap={groupMatchMap} />
+              <R32Card key={i} idx={i} home={pair.home} away={pair.away}
+                kickoff_utc={pair.kickoff_utc} venue={pair.venue} city={pair.city}
+                groupMatchMap={groupMatchMap} />
             ))}
           </div>
         </div>
