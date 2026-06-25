@@ -15,43 +15,46 @@ export default function HomePage() {
   const { data: triviaLeaderboard } = useQuery({ queryKey: ['trivia-leaderboard'], queryFn: () => api.get('/trivia/leaderboard').then(r => r.data), staleTime: 60_000 });
 
   // All scheduled matches on the nearest upcoming match day (no cap — show full day's slate)
+  // Day grouping uses America/New_York so late-night UTC matches (e.g. 02:00 UTC = 10 PM EDT)
+  // stay on the correct local calendar date instead of rolling to the next UTC day.
+  const TZ = 'America/New_York';
   const { upcoming, upcomingDayLabel } = (() => {
     const scheduled = (matches ?? [])
       .filter(m => m.status === 'scheduled' && m.kickoff_utc)
       .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime());
     if (!scheduled.length) return { upcoming: [], upcomingDayLabel: '' };
-    const first = new Date(scheduled[0].kickoff_utc!);
-    const dayKey = `${first.getUTCFullYear()}-${first.getUTCMonth()}-${first.getUTCDate()}`;
-    const day = scheduled.filter(m => {
-      const d = new Date(m.kickoff_utc!);
-      return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}` === dayKey;
-    });
-    const now = new Date();
-    const isToday = first.getUTCFullYear() === now.getUTCFullYear() && first.getUTCMonth() === now.getUTCMonth() && first.getUTCDate() === now.getUTCDate();
-    const label = isToday ? "Today's Matches" : `Matches · ${first.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}`;
+    const first = scheduled[0].kickoff_utc!;
+    // en-CA gives YYYY-MM-DD — reliable key without locale quirks
+    const dayKey = new Date(first).toLocaleDateString('en-CA', { timeZone: TZ });
+    const day = scheduled.filter(m =>
+      new Date(m.kickoff_utc!).toLocaleDateString('en-CA', { timeZone: TZ }) === dayKey
+    );
+    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: TZ });
+    const isToday = dayKey === todayKey;
+    const label = isToday
+      ? "Today's Matches"
+      : `Matches · ${new Date(first).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: TZ })}`;
     return { upcoming: day, upcomingDayLabel: label };
   })();
   const recent = matches?.filter(m => m.status !== 'scheduled').sort((a,b) => new Date(b.kickoff_utc??0).getTime()-new Date(a.kickoff_utc??0).getTime()).slice(0,4)??[];
   const top5 = leaderboard?.slice(0,5)??[];
   const myRank = leaderboard?.find(e => e.user_id === user?.id);
 
-  // Prediction nudge: find scheduled matches kicking off today or tomorrow
+  // Prediction nudge: find scheduled matches kicking off today or tomorrow (Eastern time)
   const nudge = (() => {
     if (!user || !matches?.length) return null;
     const now = new Date();
-    const todayStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const tomorrowStart = new Date(todayStart); tomorrowStart.setUTCDate(todayStart.getUTCDate() + 1);
-    const dayAfterStart = new Date(tomorrowStart); dayAfterStart.setUTCDate(tomorrowStart.getUTCDate() + 1);
+    const todayKey    = now.toLocaleDateString('en-CA', { timeZone: TZ });
+    const tomorrowKey = new Date(now.getTime() + 86_400_000).toLocaleDateString('en-CA', { timeZone: TZ });
 
     const todayMs = matches.filter(m => {
       if (!m.kickoff_utc || m.status !== 'scheduled') return false;
-      const k = new Date(m.kickoff_utc).getTime();
-      return k >= todayStart.getTime() && k < tomorrowStart.getTime() && k > now.getTime();
+      const k = new Date(m.kickoff_utc);
+      return k > now && k.toLocaleDateString('en-CA', { timeZone: TZ }) === todayKey;
     });
     const tomorrowMs = matches.filter(m => {
       if (!m.kickoff_utc || m.status !== 'scheduled') return false;
-      const k = new Date(m.kickoff_utc).getTime();
-      return k >= tomorrowStart.getTime() && k < dayAfterStart.getTime();
+      return new Date(m.kickoff_utc).toLocaleDateString('en-CA', { timeZone: TZ }) === tomorrowKey;
     });
 
     const target = todayMs.length > 0 ? todayMs : tomorrowMs;
