@@ -96,7 +96,9 @@ async def match_predictions(
     match = result.scalar_one_or_none()
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
-    if match.status == "scheduled":
+    from datetime import datetime, timezone
+    kickoff_passed = match.kickoff_utc and match.kickoff_utc <= datetime.now(timezone.utc)
+    if match.status == "scheduled" and not kickoff_passed:
         raise HTTPException(status_code=403, detail="Predictions hidden until match starts")
 
     preds = (await db.execute(
