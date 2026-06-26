@@ -52,17 +52,17 @@ function outcomeLabel(points: number | null) {
   return <span className="badge-wrong">✗ Wrong</span>;
 }
 
-function PredictionsReveal({ matchId, matchStatus }: { matchId: string; matchStatus: string }) {
+function PredictionsReveal({ matchId, locked }: { matchId: string; locked: boolean }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuthStore();
   const { data: entries = [], isLoading } = useQuery<MatchPredictionEntry[]>({
     queryKey: ['match-predictions', matchId],
     queryFn: () => matchesApi.predictions(matchId).then(r => r.data),
-    enabled: open && matchStatus !== 'scheduled' && !!user,
+    enabled: open && locked && !!user,
     staleTime: 60_000,
   });
 
-  if (!user || matchStatus === 'scheduled') return null;
+  if (!user || !locked) return null;
 
   return (
     <div className="mt-2">
@@ -213,7 +213,7 @@ export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: 
           <p className="text-xs text-gray-600 text-center"><a href="/login" className="underline hover:text-green-400">Log in</a> to predict</p>
         )}
       </div>
-      <PredictionsReveal matchId={match.id} matchStatus={match.status} />
+      <PredictionsReveal matchId={match.id} locked={locked} />
     </div>
   );
 }
