@@ -217,6 +217,70 @@ async def score_audit_log(
     ]
 
 
+@router.post("/seed-r32")
+async def seed_r32_matches(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Create TBD placeholder team + 16 R32 match records if not already present."""
+    from sqlalchemy import func
+    from app.models.worldcup import Team, Match
+    from datetime import datetime
+
+    r32_count = (await db.execute(
+        select(func.count()).select_from(Match).where(Match.stage == 'r32')
+    )).scalar() or 0
+    if r32_count >= 16:
+        return {"status": "already_exists", "matches": r32_count}
+
+    tbd_team = (await db.execute(select(Team).where(Team.code == 'TBD'))).scalar_one_or_none()
+    if not tbd_team:
+        tbd_team = Team(id=str(uuid.uuid4()), name='TBD', code='TBD', group_letter='?', flag='🏳️')
+        db.add(tbd_team)
+        await db.flush()
+
+    r32_data = [
+        (74, '2026-06-29T01:30:00+00:00', 'Gillette Stadium',       'Foxborough, USA'),
+        (73, '2026-06-29T03:00:00+00:00', 'Rose Bowl Stadium',       'Pasadena, USA'),
+        (76, '2026-06-29T23:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
+        (75, '2026-06-30T02:00:00+00:00', 'Estadio BBVA',            'Monterrey, Mexico'),
+        (78, '2026-06-30T18:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
+        (77, '2026-06-30T21:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
+        (79, '2026-07-01T02:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
+        (80, '2026-07-01T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
+        (82, '2026-07-02T04:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
+        (84, '2026-07-02T22:00:00+00:00', 'SoFi Stadium',            'Inglewood, USA'),
+        (83, '2026-07-02T23:00:00+00:00', 'BMO Field',               'Toronto, Canada'),
+        (81, '2026-07-03T03:00:00+00:00', "Levi's Stadium",          'Santa Clara, USA'),
+        (85, '2026-07-03T03:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
+        (88, '2026-07-03T18:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
+        (86, '2026-07-03T22:00:00+00:00', 'Hard Rock Stadium',       'Miami Gardens, USA'),
+        (87, '2026-07-04T02:30:00+00:00', 'Arrowhead Stadium',       'Kansas City, USA'),
+    ]
+
+    created = 0
+    for match_number, kickoff_str, venue, city in r32_data:
+        existing = (await db.execute(
+            select(Match).where(Match.match_number == match_number)
+        )).scalar_one_or_none()
+        if not existing:
+            m = Match(
+                id=str(uuid.uuid4()),
+                match_number=match_number,
+                group_letter='?',
+                matchday=4,
+                home_team_id=tbd_team.id,
+                away_team_id=tbd_team.id,
+                kickoff_utc=datetime.fromisoformat(kickoff_str),
+                venue=venue,
+                city=city,
+                status='scheduled',
+                stage='r32',
+            )
+            db.add(m)
+            created += 1
+
+    await db.flush()
+    return {"status": "seeded", "created": created}
+
+
 @router.post("/predictions", response_model=PredictionOut, status_code=201)
 async def admin_set_prediction(
     body: AdminPredictionSet,

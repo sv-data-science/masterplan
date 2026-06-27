@@ -365,6 +365,39 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
+  const [seeding, setSeeding] = useState(false);
+
+  const seed = async () => {
+    setSeeding(true);
+    try {
+      const r = await api.post('/admin/seed-r32');
+      if (r.data.status === 'already_exists') toast(`R32 matches already present (${r.data.matches} found)`);
+      else toast.success(`R32 seeded — ${r.data.created} matches created`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Seed R32 failed');
+    } finally { setSeeding(false); }
+  };
+
+  return (
+    <div className="card p-4 border-purple-800/40 bg-purple-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">🏆 Seed Round of 32</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Creates 16 R32 match records (matches 73–88) with TBD teams so users can make knockout predictions.
+            Safe to run multiple times — skips matches that already exist.
+          </p>
+        </div>
+        <button onClick={seed} disabled={seeding} className="btn-primary py-1.5 text-sm">
+          {seeding ? '⏳ Seeding…' : '🏆 Seed R32'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PatchSchedulePanel({ onPatched }: { onPatched: () => void }) {
   const [patching, setPatching] = useState(false);
 
@@ -772,6 +805,8 @@ export default function AdminPage() {
       </div>
 
       <SeedPanel onSeeded={invalidate} />
+
+      <SeedR32Panel onSeeded={invalidate} />
 
       <EspnGoalSyncPanel onSynced={invalidate} />
 

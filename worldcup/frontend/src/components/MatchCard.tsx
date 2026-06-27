@@ -99,7 +99,9 @@ function PredictionsReveal({ matchId, locked }: { matchId: string; locked: boole
   );
 }
 
-export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: string[]; label?: string }) {
+export function MatchCard({ match, queryKey, label, homeLabel, awayLabel }: {
+  match: Match; queryKey: string[]; label?: string; homeLabel?: string; awayLabel?: string;
+}) {
   const { user } = useAuthStore();
   const qc = useQueryClient();
   const [home, setHome] = useState<string | number>(match.my_prediction?.pred_home ?? '');
@@ -124,7 +126,9 @@ export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: 
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-gray-500 font-medium">{label ?? `Group ${match.group_letter} · MD${match.matchday}`}</span>
+        <span className="text-xs text-gray-500 font-medium">
+          {label ?? (match.stage === 'r32' ? `R32 · Match ${match.match_number}` : `Group ${match.group_letter} · MD${match.matchday}`)}
+        </span>
         {match.status === 'live' ? (
           <span className="flex items-center gap-1 text-xs text-red-400">🔴 Live</span>
         ) : match.status === 'completed' ? (
@@ -136,8 +140,14 @@ export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: 
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 text-right">
           <p className="text-lg">{match.home_team.flag}</p>
-          <p className="font-semibold text-sm">{match.home_team.name}</p>
-          <p className="text-xs text-gray-500">{match.home_team.code}</p>
+          {homeLabel ? (
+            <p className="font-semibold text-sm text-gray-300 leading-tight">{homeLabel}</p>
+          ) : (
+            <>
+              <p className="font-semibold text-sm">{match.home_team.name}</p>
+              <p className="text-xs text-gray-500">{match.home_team.code}</p>
+            </>
+          )}
         </div>
         <div className="flex flex-col items-center gap-0.5">
           {match.status !== 'scheduled' ? (
@@ -153,8 +163,14 @@ export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: 
         </div>
         <div className="flex-1 text-left">
           <p className="text-lg">{match.away_team.flag}</p>
-          <p className="font-semibold text-sm">{match.away_team.name}</p>
-          <p className="text-xs text-gray-500">{match.away_team.code}</p>
+          {awayLabel ? (
+            <p className="font-semibold text-sm text-gray-300 leading-tight">{awayLabel}</p>
+          ) : (
+            <>
+              <p className="font-semibold text-sm">{match.away_team.name}</p>
+              <p className="text-xs text-gray-500">{match.away_team.code}</p>
+            </>
+          )}
         </div>
       </div>
       {match.kickoff_utc && (

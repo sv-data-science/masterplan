@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { matchesApi } from '@/lib/api';
 import { Match, Team } from '@/types';
 import { MatchCard } from '@/components/MatchCard';
+import { R32, R32Entry, R32_BY_MATCH_NUMBER, SlotDef, slotLabel } from '@/lib/r32Data';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
@@ -45,30 +46,7 @@ function resolveSlot(groupMatches: Match[], pos: 0 | 1): { team: Team | null; co
 }
 
 // ── WC 2026 R32 bracket definition ─────────────────────────────────────────
-type FixedSlot = { kind: 'fixed'; pos: 1 | 2; group: string };
-type BestThirdSlot = { kind: 'best3rd' };
-type SlotDef = FixedSlot | BestThirdSlot;
-
-interface R32Entry { matchNumber: number; home: SlotDef; away: SlotDef; kickoff_utc: string; venue: string; city: string }
-
-const R32: R32Entry[] = [
-  { matchNumber: 74, home: { kind: 'fixed', pos: 1, group: 'E' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-06-29T01:30:00Z', venue: 'Gillette Stadium',       city: 'Foxborough, USA' },
-  { matchNumber: 73, home: { kind: 'fixed', pos: 2, group: 'A' }, away: { kind: 'fixed', pos: 2, group: 'B' },        kickoff_utc: '2026-06-29T03:00:00Z', venue: 'Rose Bowl Stadium',       city: 'Pasadena, USA' },
-  { matchNumber: 76, home: { kind: 'fixed', pos: 1, group: 'C' }, away: { kind: 'fixed', pos: 2, group: 'F' },        kickoff_utc: '2026-06-29T23:00:00Z', venue: 'NRG Stadium',             city: 'Houston, USA' },
-  { matchNumber: 75, home: { kind: 'fixed', pos: 1, group: 'F' }, away: { kind: 'fixed', pos: 2, group: 'C' },        kickoff_utc: '2026-06-30T02:00:00Z', venue: 'Estadio BBVA',            city: 'Monterrey, Mexico' },
-  { matchNumber: 78, home: { kind: 'fixed', pos: 2, group: 'E' }, away: { kind: 'fixed', pos: 2, group: 'I' },        kickoff_utc: '2026-06-30T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  { matchNumber: 77, home: { kind: 'fixed', pos: 1, group: 'I' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-06-30T21:00:00Z', venue: 'MetLife Stadium',         city: 'East Rutherford, USA' },
-  { matchNumber: 79, home: { kind: 'fixed', pos: 1, group: 'A' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-01T02:00:00Z', venue: 'Estadio Azteca',          city: 'Mexico City, Mexico' },
-  { matchNumber: 80, home: { kind: 'fixed', pos: 1, group: 'L' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-01T16:00:00Z', venue: 'Mercedes-Benz Stadium',  city: 'Atlanta, USA' },
-  { matchNumber: 82, home: { kind: 'fixed', pos: 1, group: 'G' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-02T04:00:00Z', venue: 'Lumen Field',             city: 'Seattle, USA' },
-  { matchNumber: 84, home: { kind: 'fixed', pos: 1, group: 'H' }, away: { kind: 'fixed', pos: 2, group: 'J' },        kickoff_utc: '2026-07-02T22:00:00Z', venue: 'SoFi Stadium',            city: 'Inglewood, USA' },
-  { matchNumber: 83, home: { kind: 'fixed', pos: 2, group: 'K' }, away: { kind: 'fixed', pos: 2, group: 'L' },        kickoff_utc: '2026-07-02T23:00:00Z', venue: 'BMO Field',               city: 'Toronto, Canada' },
-  { matchNumber: 81, home: { kind: 'fixed', pos: 1, group: 'D' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-03T03:00:00Z', venue: "Levi's Stadium",          city: 'Santa Clara, USA' },
-  { matchNumber: 85, home: { kind: 'fixed', pos: 1, group: 'B' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-03T03:00:00Z', venue: 'BC Place',                city: 'Vancouver, Canada' },
-  { matchNumber: 88, home: { kind: 'fixed', pos: 2, group: 'D' }, away: { kind: 'fixed', pos: 2, group: 'G' },        kickoff_utc: '2026-07-03T18:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  { matchNumber: 86, home: { kind: 'fixed', pos: 1, group: 'J' }, away: { kind: 'fixed', pos: 2, group: 'H' },        kickoff_utc: '2026-07-03T22:00:00Z', venue: 'Hard Rock Stadium',       city: 'Miami Gardens, USA' },
-  { matchNumber: 87, home: { kind: 'fixed', pos: 1, group: 'K' }, away: { kind: 'best3rd' },                          kickoff_utc: '2026-07-04T02:30:00Z', venue: 'Arrowhead Stadium',       city: 'Kansas City, USA' },
-];
+// Types and data imported from @/lib/r32Data
 
 // ── Bracket tree order ──────────────────────────────────────────────────────
 // Pairs of R32 match numbers whose winners meet in each R16 match
@@ -493,10 +471,16 @@ export default function BracketsPage() {
             <div className="grid sm:grid-cols-2 gap-3">
               {knockoutMatches
                 .sort((a, b) => a.match_number - b.match_number)
-                .map(m => (
-                  <MatchCard key={m.id} match={m} queryKey={['brackets', activeRound]}
-                    label={`${active.short} · Match ${m.match_number}`} />
-                ))}
+                .map(m => {
+                  const r32Entry = activeRound === 'r32' ? R32_BY_MATCH_NUMBER.get(m.match_number) : undefined;
+                  return (
+                    <MatchCard key={m.id} match={m} queryKey={['brackets', activeRound]}
+                      label={`${active.short} · Match ${m.match_number}`}
+                      homeLabel={r32Entry ? slotLabel(r32Entry.home) : undefined}
+                      awayLabel={r32Entry ? slotLabel(r32Entry.away) : undefined}
+                    />
+                  );
+                })}
             </div>
           )}
         </>

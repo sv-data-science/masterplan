@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { MatchCard } from '@/components/MatchCard';
 import { KitSVG } from '@/components/KitSVG';
 import { useAuthStore } from '@/store/auth';
+import { R32_BY_MATCH_NUMBER, slotLabel } from '@/lib/r32Data';
 
 export default function HomePage() {
   const { user } = useAuthStore();
@@ -18,9 +19,10 @@ export default function HomePage() {
   // Day grouping uses America/New_York so late-night UTC matches (e.g. 02:00 UTC = 10 PM EDT)
   // stay on the correct local calendar date instead of rolling to the next UTC day.
   const TZ = 'America/New_York';
+  const r32Matches = (matches ?? []).filter(m => m.stage === 'r32').sort((a, b) => a.match_number - b.match_number);
   const { upcoming, upcomingDayLabel } = (() => {
     const scheduled = (matches ?? [])
-      .filter(m => m.status === 'scheduled' && m.kickoff_utc)
+      .filter(m => m.status === 'scheduled' && m.kickoff_utc && m.stage !== 'r32')
       .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime());
     if (!scheduled.length) return { upcoming: [], upcomingDayLabel: '' };
     const first = scheduled[0].kickoff_utc!;
@@ -115,6 +117,28 @@ export default function HomePage() {
             <section>
               <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">{upcomingDayLabel}</h2><Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link></div>
               <div className="grid sm:grid-cols-2 gap-3">{upcoming.map(m => <MatchCard key={m.id} match={m} queryKey={['matches','home']} />)}</div>
+            </section>
+          )}
+          {r32Matches.length > 0 && user && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="font-bold text-lg text-white">🏆 Knockout Predictions</h2>
+                  <p className="text-xs text-gray-500 mt-0.5">Round of 32 · {r32Matches.filter(m => m.my_prediction).length}/{r32Matches.length} predicted</p>
+                </div>
+                <Link href="/brackets" className="text-sm text-green-400 hover:underline">Bracket →</Link>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {r32Matches.map(m => {
+                  const entry = R32_BY_MATCH_NUMBER.get(m.match_number);
+                  return (
+                    <MatchCard key={m.id} match={m} queryKey={['matches', 'home']}
+                      homeLabel={entry ? slotLabel(entry.home) : undefined}
+                      awayLabel={entry ? slotLabel(entry.away) : undefined}
+                    />
+                  );
+                })}
+              </div>
             </section>
           )}
         </div>
