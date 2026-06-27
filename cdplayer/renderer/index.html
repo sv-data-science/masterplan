@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CD Player</title>
+  <link rel="stylesheet" href="skins/base.css"/>
+  <link rel="stylesheet" id="skin-css" href="skins/winamp.css"/>
+</head>
+<body>
+  <!-- Title bar -->
+  <div id="titlebar">
+    <div id="titlebar-logo">
+      <span id="app-title">&#127925; CD Player</span>
+    </div>
+    <div id="titlebar-controls">
+      <button class="title-btn" id="btn-minimize">&#8722;</button>
+      <button class="title-btn" id="btn-maximize">&#9633;</button>
+      <button class="title-btn danger" id="btn-close">&#10005;</button>
+    </div>
+  </div>
+
+  <!-- Skin + Nav bar -->
+  <div id="topbar">
+    <nav id="nav">
+      <button class="nav-btn active" data-tab="cd">&#128191; CD</button>
+      <button class="nav-btn" data-tab="rip">&#9000; Rip</button>
+      <button class="nav-btn" data-tab="library">&#127925; Library</button>
+      <button class="nav-btn" data-tab="settings">&#9881; Settings</button>
+    </nav>
+    <div id="skin-switcher">
+      <label>Skin:</label>
+      <select id="skin-select">
+        <option value="winamp">WinAmp Classic</option>
+        <option value="wmp">Windows Media Player</option>
+        <option value="spotify">Spotify Dark</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div id="content">
+
+    <!-- ── CD Tab ── -->
+    <div class="tab active" id="tab-cd">
+      <div id="cd-panel">
+        <div id="cd-art-section">
+          <div id="cd-disc-art">
+            <div id="cd-disc-spinner"></div>
+          </div>
+          <div id="cd-meta">
+            <div id="cd-artist">No CD Detected</div>
+            <div id="cd-album"></div>
+            <div id="cd-year"></div>
+          </div>
+        </div>
+
+        <div id="cd-track-list-wrap">
+          <div id="cd-status-bar">
+            <span id="cd-status">Insert a CD and click Detect</span>
+            <button id="btn-detect-cd" class="action-btn">&#128191; Detect CD</button>
+          </div>
+          <div id="cd-track-list">
+            <div class="track-list-header">
+              <span class="col-num">#</span>
+              <span class="col-title">Title</span>
+              <span class="col-dur">Duration</span>
+              <span class="col-act"></span>
+            </div>
+            <div id="cd-tracks"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playback controls -->
+      <div id="player-bar">
+        <div id="now-playing">
+          <span id="np-track">&#9835; Nothing playing</span>
+          <span id="np-time">0:00</span>
+        </div>
+        <div id="player-controls">
+          <button class="ctrl-btn" id="btn-prev" title="Previous">&#9198;</button>
+          <button class="ctrl-btn" id="btn-play" title="Play/Pause">&#9654;</button>
+          <button class="ctrl-btn" id="btn-stop" title="Stop">&#9646;&#9646;</button>
+          <button class="ctrl-btn" id="btn-next" title="Next">&#9197;</button>
+        </div>
+        <div id="volume-wrap">
+          <span>&#128266;</span>
+          <input type="range" id="volume" min="0" max="100" value="80"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Rip Tab ── -->
+    <div class="tab" id="tab-rip">
+      <div id="rip-panel">
+        <h2>Rip CD to MP3</h2>
+        <div class="rip-form">
+          <div class="form-row">
+            <label>Output Folder</label>
+            <div class="path-row">
+              <input type="text" id="rip-output" readonly placeholder="Select output folder..."/>
+              <button id="btn-rip-browse" class="action-btn">Browse</button>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>MP3 Quality (kbps)</label>
+            <select id="rip-quality">
+              <option value="128">128 kbps — Smaller files</option>
+              <option value="192" selected>192 kbps — Good quality</option>
+              <option value="256">256 kbps — High quality</option>
+              <option value="320">320 kbps — Maximum quality</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Tracks to rip</label>
+            <div id="rip-track-select">
+              <button id="btn-rip-select-all" class="small-btn">All</button>
+              <button id="btn-rip-select-none" class="small-btn">None</button>
+              <div id="rip-track-checkboxes"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="rip-progress-section" style="display:none">
+          <div id="rip-progress-bar-wrap">
+            <div id="rip-progress-bar"></div>
+          </div>
+          <div id="rip-progress-label">Ripping track 0 of 0...</div>
+          <div id="rip-log"></div>
+        </div>
+
+        <div id="rip-actions">
+          <button id="btn-start-rip" class="action-btn primary">&#9000; Start Ripping</button>
+          <button id="btn-cancel-rip" class="action-btn danger" style="display:none">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Library Tab ── -->
+    <div class="tab" id="tab-library">
+      <div id="library-toolbar">
+        <input type="text" id="lib-search" placeholder="&#128269; Search artist, album, title..."/>
+        <button id="btn-refresh-lib" class="action-btn">&#8635; Refresh</button>
+      </div>
+      <div id="library-content">
+        <div id="library-sidebar">
+          <div id="sidebar-artists"></div>
+        </div>
+        <div id="library-main">
+          <div class="track-list-header">
+            <span class="col-num">#</span>
+            <span class="col-title">Title</span>
+            <span class="col-artist">Artist</span>
+            <span class="col-album">Album</span>
+            <span class="col-dur">Time</span>
+          </div>
+          <div id="library-tracks"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Settings Tab ── -->
+    <div class="tab" id="tab-settings">
+      <div id="settings-panel">
+        <h2>Settings</h2>
+        <div class="settings-group">
+          <h3>Music Library</h3>
+          <div class="form-row">
+            <label>Library Folder</label>
+            <div class="path-row">
+              <input type="text" id="settings-lib-path" readonly/>
+              <button id="btn-settings-lib-browse" class="action-btn">Browse</button>
+            </div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>Default Rip Quality</h3>
+          <div class="form-row">
+            <label>MP3 Bitrate</label>
+            <select id="settings-quality">
+              <option value="128">128 kbps</option>
+              <option value="192">192 kbps</option>
+              <option value="256">256 kbps</option>
+              <option value="320">320 kbps</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-group">
+          <h3>Appearance</h3>
+          <div class="form-row">
+            <label>Skin</label>
+            <select id="settings-skin">
+              <option value="winamp">WinAmp Classic</option>
+              <option value="wmp">Windows Media Player</option>
+              <option value="spotify">Spotify Dark</option>
+            </select>
+          </div>
+        </div>
+        <button id="btn-save-settings" class="action-btn primary">Save Settings</button>
+        <div id="settings-saved" style="display:none; color: var(--accent)">&#10003; Saved!</div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <script src="app.js"></script>
+</body>
+</html>

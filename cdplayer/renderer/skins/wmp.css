@@ -1,0 +1,60 @@
+/* Windows Media Player Skin */
+:root {
+  --font-family: 'Segoe UI', Tahoma, sans-serif;
+  --radius: 4px;
+
+  --bg-primary: #1e1e2e;
+  --sidebar-bg: #16162a;
+  --topbar-bg: #252538;
+  --statusbar-bg: #1e1e2e;
+  --player-bg: #111120;
+  --list-header-bg: #252538;
+
+  --titlebar-bg: #0f0f1e;
+  --titlebar-text: #c8c8e8;
+  --titlebar-btn-bg: #252538;
+  --titlebar-btn-hover: #3a3a5c;
+
+  --text-primary: #e0e0f0;
+  --text-secondary: #9090b8;
+  --text-muted: #5a5a80;
+
+  --accent: #7b68ee;
+  --accent-dark: #5a4fcf;
+
+  --border: #2e2e50;
+  --row-border: #1e1e38;
+  --row-hover: #2a2a48;
+  --row-active: #2e2860;
+  --row-playing: #3a2880;
+
+  --input-bg: #16162a;
+  --btn-bg: #252538;
+  --btn-hover: #2e2e50;
+  --ctrl-bg: #252538;
+
+  --scrollbar: #3a3a60;
+  --disc-bg: radial-gradient(circle, #3a2880 0%, #1e1e38 60%, #111 100%);
+  --disc-border: #7b68ee;
+  --disc-hole: #111;
+  --disc-ring: #7b68ee;
+}
+
+#titlebar { border-bottom: 1px solid #7b68ee33; }
+
+.nav-btn.active { box-shadow: 0 2px 0 var(--accent); border-radius: 4px 4px 0 0; }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 35% 35%, #4a3890 0%, #1e1e38 70%, #111 100%);
+  box-shadow: 0 4px 24px #7b68ee44;
+}
+
+#player-bar {
+  background: linear-gradient(180deg, #111120 0%, #0d0d18 100%);
+  border-top: 1px solid #7b68ee44;
+}
+
+.ctrl-btn { border-radius: 50%; }
+.ctrl-btn:hover { box-shadow: 0 0 10px #7b68ee66; }
+
+.track-row.playing { border-left: 3px solid var(--accent); }

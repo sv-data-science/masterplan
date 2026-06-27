@@ -1,0 +1,19 @@
+{
+  "name": "cd-player",
+  "version": "1.0.0",
+  "description": "CD Player, Ripper & MP3 Library",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "install-deps": "bash scripts/install-deps.sh"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "music-metadata": "^10.9.1",
+    "node-fetch": "^3.3.2",
+    "node-id3": "^0.2.9"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0"
+  }
+}

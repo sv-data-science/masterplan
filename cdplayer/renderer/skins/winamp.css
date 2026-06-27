@@ -1,0 +1,63 @@
+/* WinAmp Classic Skin */
+:root {
+  --font-family: 'Courier New', monospace;
+  --radius: 2px;
+
+  --bg-primary: #1a1a1a;
+  --sidebar-bg: #111;
+  --topbar-bg: #222;
+  --statusbar-bg: #181818;
+  --player-bg: #0d0d0d;
+  --list-header-bg: #1a1a1a;
+
+  --titlebar-bg: #000;
+  --titlebar-text: #00e5ff;
+  --titlebar-btn-bg: #1a1a1a;
+  --titlebar-btn-hover: #333;
+
+  --text-primary: #00e5ff;
+  --text-secondary: #0097a7;
+  --text-muted: #00667a;
+
+  --accent: #00e5ff;
+  --accent-dark: #00acc1;
+
+  --border: #004d5c;
+  --row-border: #0a2a30;
+  --row-hover: #0a2a30;
+  --row-active: #002a33;
+  --row-playing: #003340;
+
+  --input-bg: #0d1a1e;
+  --btn-bg: #111;
+  --btn-hover: #1a3a40;
+  --ctrl-bg: #111;
+
+  --scrollbar: #004d5c;
+  --disc-bg: radial-gradient(circle, #003340 0%, #001a20 60%, #000 100%);
+  --disc-border: #00e5ff;
+  --disc-hole: #000;
+  --disc-ring: #00e5ff;
+}
+
+body { background-image: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,229,255,0.02) 1px, rgba(0,229,255,0.02) 2px); }
+
+#titlebar { border-bottom: 1px solid #00e5ff33; }
+#app-title { text-transform: uppercase; letter-spacing: 2px; font-size: 11px; }
+
+.nav-btn { text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+.nav-btn.active { box-shadow: 0 0 8px var(--accent); }
+
+.ctrl-btn { font-family: monospace; border-radius: 2px; }
+.ctrl-btn:hover { box-shadow: 0 0 6px var(--accent); }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 40% 40%, #003340 0%, #001a20 60%, #000 100%);
+  box-shadow: 0 0 20px #00e5ff44, inset 0 0 20px #00000088;
+}
+
+#player-bar { border-top: 2px solid #00e5ff44; }
+#np-track { font-family: 'Courier New', monospace; text-transform: uppercase; letter-spacing: 1px; font-size: 11px; color: #00e5ff; }
+
+input[type=text], select { font-family: 'Courier New', monospace; }
+::-webkit-scrollbar-thumb { box-shadow: 0 0 4px var(--accent); }

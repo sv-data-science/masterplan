@@ -1,0 +1,70 @@
+/* Spotify Dark Skin */
+:root {
+  --font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 6px;
+
+  --bg-primary: #121212;
+  --sidebar-bg: #000;
+  --topbar-bg: #181818;
+  --statusbar-bg: #181818;
+  --player-bg: #181818;
+  --list-header-bg: #181818;
+
+  --titlebar-bg: #000;
+  --titlebar-text: #fff;
+  --titlebar-btn-bg: #282828;
+  --titlebar-btn-hover: #3e3e3e;
+
+  --text-primary: #fff;
+  --text-secondary: #b3b3b3;
+  --text-muted: #6a6a6a;
+
+  --accent: #1db954;
+  --accent-dark: #169c45;
+
+  --border: #282828;
+  --row-border: #1a1a1a;
+  --row-hover: #2a2a2a;
+  --row-active: #282828;
+  --row-playing: #1a3a24;
+
+  --input-bg: #242424;
+  --btn-bg: #282828;
+  --btn-hover: #3e3e3e;
+  --ctrl-bg: #282828;
+
+  --scrollbar: #3e3e3e;
+  --disc-bg: radial-gradient(circle, #1a5c2a 0%, #0d2a14 60%, #000 100%);
+  --disc-border: #1db954;
+  --disc-hole: #000;
+  --disc-ring: #1db954;
+}
+
+#lib-search {
+  border-radius: 20px;
+  padding-left: 14px;
+}
+
+.nav-btn { border-radius: 20px; font-weight: 600; }
+.nav-btn.active { background: var(--accent); }
+
+.ctrl-btn { border-radius: 50%; border: none; }
+.ctrl-btn:hover { transform: scale(1.08); background: var(--accent); }
+#btn-play { background: var(--accent); color: #000; border: none; }
+#btn-play:hover { background: #1ed760; transform: scale(1.1); }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 35% 35%, #1a5c2a 0%, #0d2a14 70%, #000 100%);
+  box-shadow: 0 8px 32px #1db95444;
+}
+
+.track-row.playing .col-num::after { content: '▶'; color: var(--accent); }
+.track-row.playing .col-num span { display: none; }
+.sidebar-item.active { color: var(--accent); }
+
+#player-bar {
+  border-top: 1px solid #282828;
+  background: linear-gradient(180deg, #181818 0%, #101010 100%);
+}
+
+.action-btn.primary { border-radius: 20px; font-weight: 700; letter-spacing: 0.5px; }
