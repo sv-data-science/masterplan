@@ -138,6 +138,8 @@ async def update_score(
 
     match.home_score = body.home_score
     match.away_score = body.away_score
+    match.home_score_pens = body.home_score_pens
+    match.away_score_pens = body.away_score_pens
     match.status = body.status
     if body.kickoff_utc is not None:
         match.kickoff_utc = body.kickoff_utc

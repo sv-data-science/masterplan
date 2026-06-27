@@ -139,9 +139,14 @@ export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: 
           <p className="font-semibold text-sm">{match.home_team.name}</p>
           <p className="text-xs text-gray-500">{match.home_team.code}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-0.5">
           {match.status !== 'scheduled' ? (
-            <div className="text-2xl font-bold tabular-nums">{match.home_score ?? '-'} – {match.away_score ?? '-'}</div>
+            <>
+              <div className="text-2xl font-bold tabular-nums">{match.home_score ?? '-'} – {match.away_score ?? '-'}</div>
+              {match.home_score_pens !== null && match.away_score_pens !== null && (
+                <div className="text-[10px] text-gray-500 font-medium">aet</div>
+              )}
+            </>
           ) : (
             <div className="text-gray-600 font-bold text-xl">vs</div>
           )}
@@ -184,6 +189,18 @@ export function MatchCard({ match, queryKey, label }: { match: Match; queryKey: 
               {awayGoals.map(g => <p key={g.id} className="text-xs text-gray-400">{fmt(g)} ⚽</p>)}
             </div>
           </div>
+        );
+      })()}
+      {match.home_score_pens !== null && match.away_score_pens !== null && (() => {
+        const homeWins = match.home_score_pens > match.away_score_pens;
+        const winner = homeWins ? match.home_team.name : match.away_team.name;
+        const ps = homeWins
+          ? `${match.home_score_pens}–${match.away_score_pens}`
+          : `${match.away_score_pens}–${match.home_score_pens}`;
+        return (
+          <p className="text-xs text-center text-yellow-500/80 mt-1">
+            🎯 {winner} won {ps} on penalties
+          </p>
         );
       })()}
       <div className="mt-3 pt-3 border-t border-[#30363d]">

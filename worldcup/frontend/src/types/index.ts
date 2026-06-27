@@ -83,6 +83,8 @@ export interface Match {
   city: string | null;
   home_score: number | null;
   away_score: number | null;
+  home_score_pens: number | null;
+  away_score_pens: number | null;
   status: MatchStatus;
   stage?: string | null;
   my_prediction: Prediction | null;

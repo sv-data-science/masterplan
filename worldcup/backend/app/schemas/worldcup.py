@@ -53,6 +53,8 @@ class MatchOut(BaseModel):
     city: Optional[str] = None
     home_score: Optional[int] = None
     away_score: Optional[int] = None
+    home_score_pens: Optional[int] = None
+    away_score_pens: Optional[int] = None
     status: str
     stage: Optional[str] = None
     my_prediction: Optional[PredictionOut] = None
@@ -73,6 +75,9 @@ class ScoreUpdate(BaseModel):
     kickoff_utc: Optional[datetime] = None
     venue: Optional[str] = None
     city: Optional[str] = None
+    # Penalty shootout scores — only for knockout matches decided by penalties
+    home_score_pens: Optional[int] = None
+    away_score_pens: Optional[int] = None
 
 
 class MatchPredictionEntry(BaseModel):

@@ -31,6 +31,9 @@ class Match(Base):
     city = Column(String(100), nullable=True)
     home_score = Column(Integer, nullable=True)
     away_score = Column(Integer, nullable=True)
+    # Penalty shootout scores — set only when match went to pens (not used for prediction scoring)
+    home_score_pens = Column(Integer, nullable=True)
+    away_score_pens = Column(Integer, nullable=True)
     # scheduled | live | completed
     status = Column(String(20), nullable=False, default="scheduled")
     # group | r32 | r16 | qf | sf | 3rd | final
