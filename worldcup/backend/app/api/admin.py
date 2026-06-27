@@ -6,7 +6,7 @@ from sqlalchemy import select
 from app.auth import get_current_user, hash_password
 from app.database import get_db
 from app.models.user import User
-from app.models.worldcup import Prediction, Match
+from app.models.worldcup import Prediction, Match, ScoreAuditLog
 from app.schemas.user import UserCreate, UserPublic
 from app.schemas.worldcup import PredictionOut
 from app.services.scoring import calculate_points
@@ -171,6 +171,50 @@ class AdminPredictionSet(BaseModel):
     match_id: str
     pred_home: int
     pred_away: int
+
+
+@router.get("/score-audit")
+async def score_audit_log(
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Return recent score changes with who made them."""
+    from sqlalchemy.orm import selectinload
+    rows = (await db.execute(
+        select(ScoreAuditLog)
+        .options(
+            selectinload(ScoreAuditLog.match).selectinload(Match.home_team),
+            selectinload(ScoreAuditLog.match).selectinload(Match.away_team),
+            selectinload(ScoreAuditLog.changed_by),
+        )
+        .order_by(ScoreAuditLog.changed_at.desc())
+        .limit(100)
+    )).scalars().all()
+
+    return [
+        {
+            "id": r.id,
+            "changed_at": r.changed_at.isoformat() if r.changed_at else None,
+            "changed_by": r.changed_by.display_name,
+            "changed_by_username": r.changed_by.username,
+            "match_number": r.match.match_number,
+            "home_team_code": r.match.home_team.code,
+            "home_team_flag": r.match.home_team.flag,
+            "away_team_code": r.match.away_team.code,
+            "away_team_flag": r.match.away_team.flag,
+            "old_home_score": r.old_home_score,
+            "old_away_score": r.old_away_score,
+            "old_status": r.old_status,
+            "old_home_score_pens": r.old_home_score_pens,
+            "old_away_score_pens": r.old_away_score_pens,
+            "new_home_score": r.new_home_score,
+            "new_away_score": r.new_away_score,
+            "new_status": r.new_status,
+            "new_home_score_pens": r.new_home_score_pens,
+            "new_away_score_pens": r.new_away_score_pens,
+        }
+        for r in rows
+    ]
 
 
 @router.post("/predictions", response_model=PredictionOut, status_code=201)

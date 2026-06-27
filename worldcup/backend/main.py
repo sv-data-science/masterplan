@@ -68,6 +68,31 @@ async def lifespan(app: FastAPI):
         except Exception:
             pass  # column already exists
 
+    # Create score audit log table if it doesn't exist yet
+    for ddl in [
+        """CREATE TABLE IF NOT EXISTS score_audit_log (
+            id VARCHAR PRIMARY KEY,
+            match_id VARCHAR NOT NULL REFERENCES matches(id),
+            changed_by_user_id VARCHAR NOT NULL REFERENCES users(id),
+            changed_at TIMESTAMPTZ DEFAULT now(),
+            old_home_score INTEGER,
+            old_away_score INTEGER,
+            old_status VARCHAR(20),
+            old_home_score_pens INTEGER,
+            old_away_score_pens INTEGER,
+            new_home_score INTEGER NOT NULL,
+            new_away_score INTEGER NOT NULL,
+            new_status VARCHAR(20) NOT NULL,
+            new_home_score_pens INTEGER,
+            new_away_score_pens INTEGER
+        )"""
+    ]:
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(ddl))
+        except Exception:
+            pass
+
     # Ensure memes tables exist (create_all may be skipped on existing DBs)
     for ddl in [
         """CREATE TABLE IF NOT EXISTS memes (

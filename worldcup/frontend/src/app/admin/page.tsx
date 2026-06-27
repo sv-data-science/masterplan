@@ -640,6 +640,80 @@ function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; user
   );
 }
 
+function AuditLogPanel() {
+  const { data: log = [], isLoading } = useQuery<any[]>({
+    queryKey: ['score-audit'],
+    queryFn: () => api.get('/admin/score-audit').then(r => r.data),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+  });
+
+  const fmtScore = (h: number | null, a: number | null, hp: number | null, ap: number | null) => {
+    if (h === null || a === null) return '—';
+    const pens = hp !== null && ap !== null ? ` (${hp}–${ap} pens)` : '';
+    return `${h}–${a}${pens}`;
+  };
+
+  return (
+    <div className="card p-4">
+      <h3 className="font-semibold text-white mb-3">🔍 Score change audit log</h3>
+      {isLoading && <p className="text-sm text-gray-500 text-center py-4">Loading…</p>}
+      {!isLoading && log.length === 0 && (
+        <p className="text-sm text-gray-600 text-center py-4">No score changes recorded yet</p>
+      )}
+      {log.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-xs">
+            <thead className="border-b border-[#30363d] text-gray-500 uppercase">
+              <tr>
+                <th className="text-left px-2 py-1.5">When</th>
+                <th className="text-left px-2 py-1.5">Who</th>
+                <th className="text-left px-2 py-1.5">Match</th>
+                <th className="text-left px-2 py-1.5">Before</th>
+                <th className="text-left px-2 py-1.5">After</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#21262d]">
+              {log.map((r: any) => {
+                const before = fmtScore(r.old_home_score, r.old_away_score, r.old_home_score_pens, r.old_away_score_pens);
+                const after  = fmtScore(r.new_home_score, r.new_away_score, r.new_home_score_pens, r.new_away_score_pens);
+                const statusChanged = r.old_status !== r.new_status;
+                const when = r.changed_at
+                  ? new Date(r.changed_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '—';
+                return (
+                  <tr key={r.id} className="hover:bg-[#1c2128]">
+                    <td className="px-2 py-1.5 text-gray-400 whitespace-nowrap">{when}</td>
+                    <td className="px-2 py-1.5">
+                      <span className="text-white font-medium">{r.changed_by}</span>
+                      <span className="text-gray-600 ml-1">@{r.changed_by_username}</span>
+                    </td>
+                    <td className="px-2 py-1.5 whitespace-nowrap">
+                      <span className="text-gray-300">#{r.match_number} {r.home_team_flag}{r.home_team_code} vs {r.away_team_code}{r.away_team_flag}</span>
+                    </td>
+                    <td className="px-2 py-1.5 font-mono text-gray-500">
+                      {before}
+                      {r.old_status && <span className="text-gray-700 ml-1">({r.old_status})</span>}
+                    </td>
+                    <td className="px-2 py-1.5 font-mono">
+                      <span className={after !== before ? 'text-green-400' : 'text-gray-400'}>{after}</span>
+                      {statusChanged && (
+                        <span className={`ml-1 ${r.new_status === 'completed' ? 'text-green-500' : r.new_status === 'live' ? 'text-red-400' : 'text-gray-500'}`}>
+                          ({r.new_status})
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UsersPanel({ users }: { users: any[] }) {
   return (
     <div className="card p-4">
@@ -710,6 +784,8 @@ export default function AdminPage() {
       <RetroactivePredictionPanel matches={matches} users={users} />
 
       <CreateUserPanel onCreated={invalidateUsers} />
+
+      <AuditLogPanel />
 
       <UsersPanel users={users} />
 

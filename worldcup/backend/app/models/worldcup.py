@@ -78,6 +78,30 @@ class GoalEvent(Base):
     team = relationship("Team")
 
 
+class ScoreAuditLog(Base):
+    __tablename__ = "score_audit_log"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    match_id = Column(String, ForeignKey("matches.id"), nullable=False, index=True)
+    changed_by_user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    changed_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Scores before the change (null = not set yet)
+    old_home_score = Column(Integer, nullable=True)
+    old_away_score = Column(Integer, nullable=True)
+    old_status = Column(String(20), nullable=True)
+    old_home_score_pens = Column(Integer, nullable=True)
+    old_away_score_pens = Column(Integer, nullable=True)
+    # Scores after the change
+    new_home_score = Column(Integer, nullable=False)
+    new_away_score = Column(Integer, nullable=False)
+    new_status = Column(String(20), nullable=False)
+    new_home_score_pens = Column(Integer, nullable=True)
+    new_away_score_pens = Column(Integer, nullable=True)
+
+    match = relationship("Match")
+    changed_by = relationship("User", foreign_keys=[changed_by_user_id])
+
+
 class TriviaLiveScore(Base):
     """One row per user — upserted after each answer so landing page shows live accuracy."""
     __tablename__ = "trivia_live_scores"
