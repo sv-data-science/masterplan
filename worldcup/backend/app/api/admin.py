@@ -230,16 +230,16 @@ async def patch_r32_schedule(admin: User = Depends(require_admin), db: AsyncSess
         76: datetime.fromisoformat('2026-06-29T17:00:00+00:00'),
         77: datetime.fromisoformat('2026-06-30T21:00:00+00:00'),
         78: datetime.fromisoformat('2026-06-30T17:00:00+00:00'),
-        79: datetime.fromisoformat('2026-07-01T02:00:00+00:00'),
+        79: datetime.fromisoformat('2026-06-30T23:00:00+00:00'),
         80: datetime.fromisoformat('2026-07-01T16:00:00+00:00'),
         81: datetime.fromisoformat('2026-07-02T00:00:00+00:00'),
         82: datetime.fromisoformat('2026-07-01T20:00:00+00:00'),
         83: datetime.fromisoformat('2026-07-02T23:00:00+00:00'),
         84: datetime.fromisoformat('2026-07-02T19:00:00+00:00'),
-        85: datetime.fromisoformat('2026-07-02T03:00:00+00:00'),
-        86: datetime.fromisoformat('2026-07-03T00:00:00+00:00'),
-        87: datetime.fromisoformat('2026-07-03T19:00:00+00:00'),
-        88: datetime.fromisoformat('2026-07-04T02:30:00+00:00'),
+        85: datetime.fromisoformat('2026-07-03T03:00:00+00:00'),
+        86: datetime.fromisoformat('2026-07-03T22:00:00+00:00'),
+        87: datetime.fromisoformat('2026-07-03T18:00:00+00:00'),
+        88: datetime.fromisoformat('2026-07-04T01:30:00+00:00'),
     }
 
     r32_matches = (await db.execute(
@@ -263,19 +263,25 @@ async def assign_r32_official(admin: User = Depends(require_admin), db: AsyncSes
     from sqlalchemy.orm import selectinload
     from app.models.worldcup import Team, Match as MatchModel
 
-    # Confirmed matchups from the official FIFA bracket
+    # All 16 confirmed matchups from the official FIFA bracket
     # (match_number, home_code, away_code)
     OFFICIAL = [
-        (73, 'RSA', 'CAN'),  # South Africa vs Canada
-        (74, 'GER', 'PAR'),  # Germany vs Paraguay
-        (75, 'NED', 'MAR'),  # Netherlands vs Morocco
-        (76, 'BRA', 'JPN'),  # Brazil vs Japan
-        (77, 'FRA', 'SWE'),  # France vs Sweden
-        (78, 'CIV', 'NOR'),  # Ivory Coast vs Norway
-        (81, 'USA', 'BIH'),  # USA vs Bosnia-Herzegovina
-        (82, 'BEL', 'SEN'),  # Belgium vs Senegal
-        (83, 'POR', 'CRO'),  # Portugal vs Croatia
-        (84, 'ESP', 'AUT'),  # Spain vs Austria
+        (73, 'RSA', 'CAN'),  # South Africa vs Canada        Jun 28 15:00 ET  Los Angeles
+        (74, 'GER', 'PAR'),  # Germany vs Paraguay           Jun 29 16:30 ET  Boston
+        (75, 'NED', 'MAR'),  # Netherlands vs Morocco        Jun 29 21:00 ET  Monterrey
+        (76, 'BRA', 'JPN'),  # Brazil vs Japan               Jun 29 13:00 ET  Houston
+        (77, 'FRA', 'SWE'),  # France vs Sweden              Jun 30 17:00 ET  New York/NJ
+        (78, 'CIV', 'NOR'),  # Ivory Coast vs Norway         Jun 30 13:00 ET  Dallas
+        (79, 'MEX', 'ECU'),  # Mexico vs Ecuador             Jun 30 19:00 ET  Mexico City
+        (80, 'ENG', 'COD'),  # England vs DR Congo           Jul 1  12:00 ET  Atlanta
+        (81, 'USA', 'BIH'),  # USA vs Bosnia-Herzegovina     Jul 1  20:00 ET  San Francisco
+        (82, 'BEL', 'SEN'),  # Belgium vs Senegal            Jul 1  16:00 ET  Seattle
+        (83, 'POR', 'CRO'),  # Portugal vs Croatia           Jul 2  19:00 ET  Toronto
+        (84, 'ESP', 'AUT'),  # Spain vs Austria              Jul 2  15:00 ET  Los Angeles
+        (85, 'SUI', 'ALG'),  # Switzerland vs Algeria        Jul 2  23:00 ET  Vancouver
+        (86, 'ARG', 'CPV'),  # Argentina vs Cape Verde       Jul 3  18:00 ET  Miami
+        (87, 'AUS', 'EGY'),  # Australia vs Egypt            Jul 3  14:00 ET  Dallas
+        (88, 'COL', 'GHA'),  # Colombia vs Ghana             Jul 3  21:30 ET  Kansas City
     ]
 
     # Load all teams and R32 matches
@@ -346,22 +352,22 @@ async def resolve_r32_teams(admin: User = Depends(require_admin), db: AsyncSessi
     # R32 slot definitions — (match_number, home_slot, away_slot)
     # slot = ('f', pos, group) for fixed, or ('b3',) for best 3rd
     R32_SLOTS = [
-        (73, ('f',2,'A'), ('f',1,'B')),   # South Africa vs Canada
-        (74, ('f',1,'E'), ('f',2,'D')),   # Germany vs Paraguay
-        (75, ('f',1,'F'), ('f',2,'C')),   # Netherlands vs Morocco
-        (76, ('f',1,'C'), ('f',2,'F')),   # Brazil vs Japan
-        (77, ('f',1,'I'), ('b3',)),       # France vs best3rd
-        (78, ('f',2,'E'), ('b3',)),       # Ivory Coast vs best3rd
-        (79, ('f',1,'A'), ('b3',)),       # Mexico vs best3rd
-        (80, ('f',1,'L'), ('b3',)),       # England vs best3rd
-        (81, ('f',1,'D'), ('b3',)),       # USA vs best3rd
-        (82, ('f',1,'G'), ('f',2,'I')),   # Belgium vs Senegal
-        (83, ('f',1,'K'), ('f',2,'L')),   # Portugal vs Croatia
-        (84, ('f',1,'H'), ('f',2,'J')),   # Spain vs Austria
-        (85, ('f',2,'B'), ('b3',)),       # 2nd B vs best3rd
-        (86, ('f',1,'J'), ('f',2,'H')),   # Argentina vs 2nd H
-        (87, ('f',2,'G'), ('b3',)),       # 2nd G vs best3rd
-        (88, ('f',2,'K'), ('b3',)),       # Colombia vs best3rd
+        (73, ('f',2,'A'), ('f',2,'B')),   # South Africa (2A) vs Canada (2B)
+        (74, ('f',1,'E'), ('b3',)),       # Germany (1E) vs Paraguay (best3rd D)
+        (75, ('f',1,'F'), ('f',2,'C')),   # Netherlands (1F) vs Morocco (2C)
+        (76, ('f',1,'C'), ('f',2,'F')),   # Brazil (1C) vs Japan (2F)
+        (77, ('f',1,'I'), ('b3',)),       # France (1I) vs Sweden (best3rd F)
+        (78, ('f',2,'E'), ('f',2,'I')),   # Ivory Coast (2E) vs Norway (2I)
+        (79, ('f',1,'A'), ('b3',)),       # Mexico (1A) vs Ecuador (best3rd E)
+        (80, ('f',1,'L'), ('b3',)),       # England (1L) vs DR Congo (best3rd K)
+        (81, ('f',1,'D'), ('b3',)),       # USA (1D) vs Bosnia (best3rd B)
+        (82, ('f',1,'G'), ('b3',)),       # Belgium (1G) vs Senegal (best3rd I)
+        (83, ('f',2,'K'), ('f',2,'L')),   # Portugal (2K) vs Croatia (2L)
+        (84, ('f',1,'H'), ('f',2,'J')),   # Spain (1H) vs Austria (2J)
+        (85, ('f',1,'B'), ('b3',)),       # Switzerland (1B) vs Algeria (best3rd J)
+        (86, ('f',1,'J'), ('f',2,'H')),   # Argentina (1J) vs Cape Verde (2H)
+        (87, ('f',2,'D'), ('f',2,'G')),   # Australia (2D) vs Egypt (2G)
+        (88, ('f',1,'K'), ('b3',)),       # Colombia (1K) vs Ghana (best3rd L)
     ]
 
     def resolve(slot, b3i):
@@ -420,16 +426,16 @@ async def seed_r32_matches(admin: User = Depends(require_admin), db: AsyncSessio
         (75, '2026-06-30T01:00:00+00:00', 'Estadio BBVA',             'Monterrey, Mexico'),     # Jun 29, 9PM ET
         (78, '2026-06-30T17:00:00+00:00', 'AT&T Stadium',             'Arlington, USA'),        # Jun 30, 1PM ET
         (77, '2026-06-30T21:00:00+00:00', 'MetLife Stadium',          'East Rutherford, USA'),  # Jun 30, 5PM ET
-        (79, '2026-07-01T02:00:00+00:00', 'Estadio Azteca',           'Mexico City, Mexico'),
+        (79, '2026-06-30T23:00:00+00:00', 'Estadio Azteca',           'Mexico City, Mexico'),
         (80, '2026-07-01T16:00:00+00:00', 'Mercedes-Benz Stadium',    'Atlanta, USA'),
-        (82, '2026-07-01T20:00:00+00:00', 'Lumen Field',              'Seattle, USA'),          # Jul 1, 4PM ET
-        (81, '2026-07-02T00:00:00+00:00', "Levi's Stadium",           'Santa Clara, USA'),      # Jul 1, 8PM ET
-        (85, '2026-07-02T03:00:00+00:00', 'BC Place',                 'Vancouver, Canada'),
-        (84, '2026-07-02T19:00:00+00:00', 'SoFi Stadium',             'Inglewood, USA'),        # Jul 2, 3PM ET
-        (83, '2026-07-02T23:00:00+00:00', 'BMO Field',                'Toronto, Canada'),       # Jul 2, 7PM ET
-        (86, '2026-07-03T00:00:00+00:00', 'Hard Rock Stadium',        'Miami Gardens, USA'),
-        (87, '2026-07-03T19:00:00+00:00', 'AT&T Stadium',             'Arlington, USA'),
-        (88, '2026-07-04T02:30:00+00:00', 'Arrowhead Stadium',        'Kansas City, USA'),
+        (82, '2026-07-01T20:00:00+00:00', 'Lumen Field',              'Seattle, USA'),
+        (81, '2026-07-02T00:00:00+00:00', "Levi's Stadium",           'Santa Clara, USA'),
+        (85, '2026-07-03T03:00:00+00:00', 'BC Place',                 'Vancouver, Canada'),
+        (84, '2026-07-02T19:00:00+00:00', 'SoFi Stadium',             'Inglewood, USA'),
+        (83, '2026-07-02T23:00:00+00:00', 'BMO Field',                'Toronto, Canada'),
+        (86, '2026-07-03T22:00:00+00:00', 'Hard Rock Stadium',        'Miami Gardens, USA'),
+        (87, '2026-07-03T18:00:00+00:00', 'AT&T Stadium',             'Arlington, USA'),
+        (88, '2026-07-04T01:30:00+00:00', 'Arrowhead Stadium',        'Kansas City, USA'),
     ]
 
     created = 0
