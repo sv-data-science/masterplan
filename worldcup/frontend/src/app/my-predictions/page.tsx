@@ -90,8 +90,12 @@ function R32PredictRow({ match, onSaved }: { match: Match; onSaved: () => void }
   const [saving, setSaving] = useState(false);
 
   const entry = R32_BY_MATCH_NUMBER.get(match.match_number);
-  const homeLbl = entry ? slotLabel(entry.home) : 'Home';
-  const awayLbl = entry ? slotLabel(entry.away) : 'Away';
+  const homeLbl = match.home_team.code !== 'TBD'
+    ? `${match.home_team.flag} ${match.home_team.name}`
+    : (entry ? slotLabel(entry.home) : 'Home');
+  const awayLbl = match.away_team.code !== 'TBD'
+    ? `${match.away_team.flag} ${match.away_team.name}`
+    : (entry ? slotLabel(entry.away) : 'Away');
 
   const save = async () => {
     const h = Number(home), a = Number(away);

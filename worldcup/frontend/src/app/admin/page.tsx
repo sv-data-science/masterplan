@@ -367,6 +367,8 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
 
 function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   const [seeding, setSeeding] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [resolveResult, setResolveResult] = useState<string | null>(null);
 
   const seed = async () => {
     setSeeding(true);
@@ -380,20 +382,41 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
     } finally { setSeeding(false); }
   };
 
+  const resolve = async () => {
+    setResolving(true);
+    setResolveResult(null);
+    try {
+      const r = await api.post('/admin/resolve-r32-teams');
+      const { updated, best3rd_assigned, unresolved } = r.data;
+      const msg = `${updated} matches updated · ${best3rd_assigned} best-3rd slots filled`;
+      toast.success(msg);
+      setResolveResult(unresolved?.length
+        ? `${msg}\nUnresolved: ${unresolved.join(', ')}`
+        : msg);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Resolve failed');
+    } finally { setResolving(false); }
+  };
+
   return (
     <div className="card p-4 border-purple-800/40 bg-purple-900/10">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h3 className="font-semibold text-white flex items-center gap-2">🏆 Seed Round of 32</h3>
-          <p className="text-xs text-gray-400 mt-0.5">
-            Creates 16 R32 match records (matches 73–88) with TBD teams so users can make knockout predictions.
-            Safe to run multiple times — skips matches that already exist.
-          </p>
-        </div>
-        <button onClick={seed} disabled={seeding} className="btn-primary py-1.5 text-sm">
-          {seeding ? '⏳ Seeding…' : '🏆 Seed R32'}
+      <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏆 Round of 32 Setup</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        Step 1 — create the 16 placeholder match records (run once, before R32 predictions open).
+        Step 2 — once all group stage matches are complete, assign the actual qualified teams.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={seed} disabled={seeding} className="btn-secondary py-1.5 text-sm">
+          {seeding ? '⏳ Seeding…' : '1️⃣ Seed R32 matches'}
+        </button>
+        <button onClick={resolve} disabled={resolving} className="btn-primary py-1.5 text-sm">
+          {resolving ? '⏳ Resolving…' : '2️⃣ Assign qualified teams'}
         </button>
       </div>
+      {resolveResult && (
+        <pre className="mt-2 text-xs text-gray-300 bg-[#0d1117] rounded p-2 whitespace-pre-wrap">{resolveResult}</pre>
+      )}
     </div>
   );
 }

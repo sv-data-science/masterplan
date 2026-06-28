@@ -133,8 +133,8 @@ export default function HomePage() {
                   const entry = R32_BY_MATCH_NUMBER.get(m.match_number);
                   return (
                     <MatchCard key={m.id} match={m} queryKey={['matches', 'home']}
-                      homeLabel={entry ? slotLabel(entry.home) : undefined}
-                      awayLabel={entry ? slotLabel(entry.away) : undefined}
+                      homeLabel={entry && m.home_team.code === 'TBD' ? slotLabel(entry.home) : undefined}
+                      awayLabel={entry && m.away_team.code === 'TBD' ? slotLabel(entry.away) : undefined}
                     />
                   );
                 })}

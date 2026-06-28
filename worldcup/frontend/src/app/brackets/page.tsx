@@ -476,8 +476,8 @@ export default function BracketsPage() {
                   return (
                     <MatchCard key={m.id} match={m} queryKey={['brackets', activeRound]}
                       label={`${active.short} · Match ${m.match_number}`}
-                      homeLabel={r32Entry ? slotLabel(r32Entry.home) : undefined}
-                      awayLabel={r32Entry ? slotLabel(r32Entry.away) : undefined}
+                      homeLabel={r32Entry && m.home_team.code === 'TBD' ? slotLabel(r32Entry.home) : undefined}
+                      awayLabel={r32Entry && m.away_team.code === 'TBD' ? slotLabel(r32Entry.away) : undefined}
                     />
                   );
                 })}

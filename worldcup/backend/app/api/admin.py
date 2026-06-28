@@ -217,6 +217,88 @@ async def score_audit_log(
     ]
 
 
+@router.post("/resolve-r32-teams")
+async def resolve_r32_teams(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Auto-assign qualified teams to R32 matches based on completed group stage standings.
+    Safe to re-run — overwrites previous assignments."""
+    from sqlalchemy.orm import selectinload
+    from app.models.worldcup import Team, Match as MatchModel
+
+    # Load all group stage matches (match numbers 1–72)
+    gs = (await db.execute(
+        select(MatchModel)
+        .options(selectinload(MatchModel.home_team), selectinload(MatchModel.away_team))
+        .where(MatchModel.match_number <= 72)
+    )).scalars().all()
+
+    by_group: dict = {}
+    for m in gs:
+        by_group.setdefault(m.group_letter, []).append(m)
+
+    def group_standings(matches):
+        s: dict = {}
+        for m in matches:
+            for t in [m.home_team, m.away_team]:
+                s.setdefault(t.id, {'team': t, 'pts': 0, 'gf': 0, 'ga': 0})
+            if m.status == 'completed' and m.home_score is not None:
+                h, a = s[m.home_team.id], s[m.away_team.id]
+                h['gf'] += m.home_score; h['ga'] += m.away_score
+                a['gf'] += m.away_score; a['ga'] += m.home_score
+                if m.home_score > m.away_score:   h['pts'] += 3
+                elif m.home_score < m.away_score: a['pts'] += 3
+                else: h['pts'] += 1; a['pts'] += 1
+        return sorted(s.values(), key=lambda x: (-x['pts'], -(x['gf'] - x['ga']), -x['gf']))
+
+    standings_map = {g: group_standings(ms) for g, ms in by_group.items()}
+
+    # Best 8 of 12 third-place teams (sorted by pts → GD → GF)
+    thirds = [standings_map[g][2] for g in sorted(standings_map) if len(standings_map[g]) >= 3]
+    thirds.sort(key=lambda x: (-x['pts'], -(x['gf'] - x['ga']), -x['gf']))
+    best8 = [t['team'] for t in thirds[:8]]
+
+    # R32 slot definitions — (match_number, home_slot, away_slot)
+    # slot = ('f', pos, group) for fixed, or ('b3',) for best 3rd
+    R32_SLOTS = [
+        (74, ('f',1,'E'), ('b3',)), (73, ('f',2,'A'), ('f',2,'B')),
+        (76, ('f',1,'C'), ('f',2,'F')), (75, ('f',1,'F'), ('f',2,'C')),
+        (78, ('f',2,'E'), ('f',2,'I')), (77, ('f',1,'I'), ('b3',)),
+        (79, ('f',1,'A'), ('b3',)), (80, ('f',1,'L'), ('b3',)),
+        (82, ('f',1,'G'), ('b3',)), (84, ('f',1,'H'), ('f',2,'J')),
+        (83, ('f',2,'K'), ('f',2,'L')), (81, ('f',1,'D'), ('b3',)),
+        (85, ('f',1,'B'), ('b3',)), (88, ('f',2,'D'), ('f',2,'G')),
+        (86, ('f',1,'J'), ('f',2,'H')), (87, ('f',1,'K'), ('b3',)),
+    ]
+
+    def resolve(slot, b3i):
+        if slot[0] == 'f':
+            pos, grp = slot[1], slot[2]
+            st = standings_map.get(grp, [])
+            return (st[pos - 1]['team'] if len(st) >= pos else None), b3i
+        return (best8[b3i] if b3i < len(best8) else None), b3i + 1
+
+    r32_db = {m.match_number: m for m in (await db.execute(
+        select(MatchModel).where(MatchModel.stage == 'r32')
+    )).scalars().all()}
+
+    updated, b3i, unresolved = 0, 0, []
+    for match_num, home_slot, away_slot in R32_SLOTS:
+        m = r32_db.get(match_num)
+        if not m:
+            unresolved.append(f"M{match_num} not in DB")
+            continue
+        ht, b3i = resolve(home_slot, b3i)
+        at, b3i = resolve(away_slot, b3i)
+        if ht: m.home_team_id = ht.id
+        if at: m.away_team_id = at.id
+        if ht or at:
+            updated += 1
+        if not ht or not at:
+            unresolved.append(f"M{match_num} partial (home={'ok' if ht else 'TBD'}, away={'ok' if at else 'TBD'})")
+
+    await db.flush()
+    return {"status": "ok", "updated": updated, "best3rd_assigned": min(b3i, len(best8)), "unresolved": unresolved}
+
+
 @router.post("/seed-r32")
 async def seed_r32_matches(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Create TBD placeholder team + 16 R32 match records if not already present."""
