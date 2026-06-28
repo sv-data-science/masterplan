@@ -51,14 +51,14 @@ function resolveSlot(groupMatches: Match[], pos: 0 | 1): { team: Team | null; co
 // ── Bracket tree order ──────────────────────────────────────────────────────
 // Pairs of R32 match numbers whose winners meet in each R16 match
 const R32_PAIRS: [number, number][] = [
-  [74, 77],
-  [73, 75],
-  [76, 78],
-  [79, 80],
-  [82, 84],
-  [83, 81],
-  [85, 87],
-  [86, 88],
+  [74, 77],   // Germany/Paraguay + France/Sweden
+  [73, 75],   // S.Africa/Canada + Netherlands/Morocco
+  [76, 78],   // Brazil/Japan + Ivory Coast/Norway
+  [79, 80],   // 1A + 1L
+  [82, 81],   // Belgium/Senegal + USA/Bosnia
+  [83, 84],   // Portugal/Croatia + Spain/Austria
+  [85, 87],   // 2B + 2G
+  [86, 88],   // 1J/2H + 2K
 ];
 
 // ── Bracket tree geometry ───────────────────────────────────────────────────

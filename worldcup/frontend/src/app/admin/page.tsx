@@ -368,6 +368,7 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
 function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   const [seeding, setSeeding] = useState(false);
   const [resolving, setResolving] = useState(false);
+  const [patching, setPatchingSchedule] = useState(false);
   const [resolveResult, setResolveResult] = useState<string | null>(null);
 
   const seed = async () => {
@@ -399,12 +400,24 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
     } finally { setResolving(false); }
   };
 
+  const patchSchedule = async () => {
+    setPatchingSchedule(true);
+    try {
+      const r = await api.post('/admin/patch-r32-schedule');
+      toast.success(`R32 schedule patched — ${r.data.updated} kickoff times updated`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Patch failed');
+    } finally { setPatchingSchedule(false); }
+  };
+
   return (
     <div className="card p-4 border-purple-800/40 bg-purple-900/10">
       <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏆 Round of 32 Setup</h3>
       <p className="text-xs text-gray-400 mb-3">
-        Step 1 — create the 16 placeholder match records (run once, before R32 predictions open).
-        Step 2 — once all group stage matches are complete, assign the actual qualified teams.
+        Step 1 — create the 16 placeholder match records (run once).
+        Step 2 — once group stage is complete, assign the qualified teams.
+        Step 3 — fix kickoff times if they were seeded incorrectly.
       </p>
       <div className="flex flex-wrap gap-2">
         <button onClick={seed} disabled={seeding} className="btn-secondary py-1.5 text-sm">
@@ -412,6 +425,9 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
         </button>
         <button onClick={resolve} disabled={resolving} className="btn-primary py-1.5 text-sm">
           {resolving ? '⏳ Resolving…' : '2️⃣ Assign qualified teams'}
+        </button>
+        <button onClick={patchSchedule} disabled={patching} className="btn-secondary py-1.5 text-sm">
+          {patching ? '⏳ Patching…' : '3️⃣ Fix R32 kickoff times'}
         </button>
       </div>
       {resolveResult && (

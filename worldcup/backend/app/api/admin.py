@@ -217,6 +217,45 @@ async def score_audit_log(
     ]
 
 
+@router.post("/patch-r32-schedule")
+async def patch_r32_schedule(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Update kickoff times for R32 matches to match the official FIFA schedule."""
+    from app.models.worldcup import Match as MatchModel
+    from datetime import datetime
+
+    schedule = {
+        73: datetime.fromisoformat('2026-06-28T19:00:00+00:00'),
+        74: datetime.fromisoformat('2026-06-29T20:30:00+00:00'),
+        75: datetime.fromisoformat('2026-06-30T01:00:00+00:00'),
+        76: datetime.fromisoformat('2026-06-29T17:00:00+00:00'),
+        77: datetime.fromisoformat('2026-06-30T21:00:00+00:00'),
+        78: datetime.fromisoformat('2026-06-30T17:00:00+00:00'),
+        79: datetime.fromisoformat('2026-07-01T02:00:00+00:00'),
+        80: datetime.fromisoformat('2026-07-01T16:00:00+00:00'),
+        81: datetime.fromisoformat('2026-07-02T00:00:00+00:00'),
+        82: datetime.fromisoformat('2026-07-01T20:00:00+00:00'),
+        83: datetime.fromisoformat('2026-07-02T23:00:00+00:00'),
+        84: datetime.fromisoformat('2026-07-02T19:00:00+00:00'),
+        85: datetime.fromisoformat('2026-07-02T03:00:00+00:00'),
+        86: datetime.fromisoformat('2026-07-03T00:00:00+00:00'),
+        87: datetime.fromisoformat('2026-07-03T19:00:00+00:00'),
+        88: datetime.fromisoformat('2026-07-04T02:30:00+00:00'),
+    }
+
+    r32_matches = (await db.execute(
+        select(MatchModel).where(MatchModel.stage == 'r32')
+    )).scalars().all()
+
+    updated = 0
+    for m in r32_matches:
+        if m.match_number in schedule:
+            m.kickoff_utc = schedule[m.match_number]
+            updated += 1
+
+    await db.flush()
+    return {"status": "ok", "updated": updated}
+
+
 @router.post("/resolve-r32-teams")
 async def resolve_r32_teams(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Auto-assign qualified teams to R32 matches based on completed group stage standings.
@@ -259,14 +298,22 @@ async def resolve_r32_teams(admin: User = Depends(require_admin), db: AsyncSessi
     # R32 slot definitions — (match_number, home_slot, away_slot)
     # slot = ('f', pos, group) for fixed, or ('b3',) for best 3rd
     R32_SLOTS = [
-        (74, ('f',1,'E'), ('b3',)), (73, ('f',2,'A'), ('f',2,'B')),
-        (76, ('f',1,'C'), ('f',2,'F')), (75, ('f',1,'F'), ('f',2,'C')),
-        (78, ('f',2,'E'), ('f',2,'I')), (77, ('f',1,'I'), ('b3',)),
-        (79, ('f',1,'A'), ('b3',)), (80, ('f',1,'L'), ('b3',)),
-        (82, ('f',1,'G'), ('b3',)), (84, ('f',1,'H'), ('f',2,'J')),
-        (83, ('f',2,'K'), ('f',2,'L')), (81, ('f',1,'D'), ('b3',)),
-        (85, ('f',1,'B'), ('b3',)), (88, ('f',2,'D'), ('f',2,'G')),
-        (86, ('f',1,'J'), ('f',2,'H')), (87, ('f',1,'K'), ('b3',)),
+        (73, ('f',2,'A'), ('f',1,'B')),   # South Africa vs Canada
+        (74, ('f',1,'E'), ('f',2,'D')),   # Germany vs Paraguay
+        (75, ('f',1,'F'), ('f',2,'C')),   # Netherlands vs Morocco
+        (76, ('f',1,'C'), ('f',2,'F')),   # Brazil vs Japan
+        (77, ('f',1,'I'), ('b3',)),       # France vs best3rd
+        (78, ('f',2,'E'), ('b3',)),       # Ivory Coast vs best3rd
+        (79, ('f',1,'A'), ('b3',)),       # Mexico vs best3rd
+        (80, ('f',1,'L'), ('b3',)),       # England vs best3rd
+        (81, ('f',1,'D'), ('b3',)),       # USA vs best3rd
+        (82, ('f',1,'G'), ('f',2,'I')),   # Belgium vs Senegal
+        (83, ('f',1,'K'), ('f',2,'L')),   # Portugal vs Croatia
+        (84, ('f',1,'H'), ('f',2,'J')),   # Spain vs Austria
+        (85, ('f',2,'B'), ('b3',)),       # 2nd B vs best3rd
+        (86, ('f',1,'J'), ('f',2,'H')),   # Argentina vs 2nd H
+        (87, ('f',2,'G'), ('b3',)),       # 2nd G vs best3rd
+        (88, ('f',2,'K'), ('b3',)),       # Colombia vs best3rd
     ]
 
     def resolve(slot, b3i):
@@ -319,22 +366,22 @@ async def seed_r32_matches(admin: User = Depends(require_admin), db: AsyncSessio
         await db.flush()
 
     r32_data = [
-        (74, '2026-06-29T01:30:00+00:00', 'Gillette Stadium',       'Foxborough, USA'),
-        (73, '2026-06-29T03:00:00+00:00', 'Rose Bowl Stadium',       'Pasadena, USA'),
-        (76, '2026-06-29T23:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
-        (75, '2026-06-30T02:00:00+00:00', 'Estadio BBVA',            'Monterrey, Mexico'),
-        (78, '2026-06-30T18:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
-        (77, '2026-06-30T21:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
-        (79, '2026-07-01T02:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
-        (80, '2026-07-01T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
-        (82, '2026-07-02T04:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
-        (84, '2026-07-02T22:00:00+00:00', 'SoFi Stadium',            'Inglewood, USA'),
-        (83, '2026-07-02T23:00:00+00:00', 'BMO Field',               'Toronto, Canada'),
-        (81, '2026-07-03T03:00:00+00:00', "Levi's Stadium",          'Santa Clara, USA'),
-        (85, '2026-07-03T03:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
-        (88, '2026-07-03T18:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
-        (86, '2026-07-03T22:00:00+00:00', 'Hard Rock Stadium',       'Miami Gardens, USA'),
-        (87, '2026-07-04T02:30:00+00:00', 'Arrowhead Stadium',       'Kansas City, USA'),
+        (73, '2026-06-28T19:00:00+00:00', 'Rose Bowl Stadium',        'Pasadena, USA'),        # Jun 28, 3PM ET
+        (76, '2026-06-29T17:00:00+00:00', 'NRG Stadium',              'Houston, USA'),          # Jun 29, 1PM ET
+        (74, '2026-06-29T20:30:00+00:00', 'Gillette Stadium',         'Foxborough, USA'),       # Jun 29, 4:30PM ET
+        (75, '2026-06-30T01:00:00+00:00', 'Estadio BBVA',             'Monterrey, Mexico'),     # Jun 29, 9PM ET
+        (78, '2026-06-30T17:00:00+00:00', 'AT&T Stadium',             'Arlington, USA'),        # Jun 30, 1PM ET
+        (77, '2026-06-30T21:00:00+00:00', 'MetLife Stadium',          'East Rutherford, USA'),  # Jun 30, 5PM ET
+        (79, '2026-07-01T02:00:00+00:00', 'Estadio Azteca',           'Mexico City, Mexico'),
+        (80, '2026-07-01T16:00:00+00:00', 'Mercedes-Benz Stadium',    'Atlanta, USA'),
+        (82, '2026-07-01T20:00:00+00:00', 'Lumen Field',              'Seattle, USA'),          # Jul 1, 4PM ET
+        (81, '2026-07-02T00:00:00+00:00', "Levi's Stadium",           'Santa Clara, USA'),      # Jul 1, 8PM ET
+        (85, '2026-07-02T03:00:00+00:00', 'BC Place',                 'Vancouver, Canada'),
+        (84, '2026-07-02T19:00:00+00:00', 'SoFi Stadium',             'Inglewood, USA'),        # Jul 2, 3PM ET
+        (83, '2026-07-02T23:00:00+00:00', 'BMO Field',                'Toronto, Canada'),       # Jul 2, 7PM ET
+        (86, '2026-07-03T00:00:00+00:00', 'Hard Rock Stadium',        'Miami Gardens, USA'),
+        (87, '2026-07-03T19:00:00+00:00', 'AT&T Stadium',             'Arlington, USA'),
+        (88, '2026-07-04T02:30:00+00:00', 'Arrowhead Stadium',        'Kansas City, USA'),
     ]
 
     created = 0
