@@ -113,11 +113,15 @@ function TeamRow({ info, border }: { info: SlotInfo; border?: boolean }) {
   );
 }
 
-function BracketMatchCard({ entry, groupMatchMap, w, h }: {
-  entry: R32Entry; groupMatchMap: Map<string, Match[]>; w: number; h: number;
+function BracketMatchCard({ entry, groupMatchMap, dbMatch, w, h }: {
+  entry: R32Entry; groupMatchMap: Map<string, Match[]>; dbMatch?: Match; w: number; h: number;
 }) {
-  const home = slotInfo(entry.home, groupMatchMap);
-  const away = slotInfo(entry.away, groupMatchMap);
+  const home = dbMatch && dbMatch.home_team.code !== 'TBD'
+    ? { flag: dbMatch.home_team.flag, name: dbMatch.home_team.name, sub: '', confirmed: true }
+    : slotInfo(entry.home, groupMatchMap);
+  const away = dbMatch && dbMatch.away_team.code !== 'TBD'
+    ? { flag: dbMatch.away_team.flag, name: dbMatch.away_team.name, sub: '', confirmed: true }
+    : slotInfo(entry.away, groupMatchMap);
   return (
     <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
       <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
@@ -180,7 +184,10 @@ function Connectors({ fromCenters, toCenters, w, h }: {
 }
 
 // ── Full bracket tree ───────────────────────────────────────────────────────
-function BracketTreeView({ groupMatchMap }: { groupMatchMap: Map<string, Match[]> }) {
+function BracketTreeView({ groupMatchMap, r32DbMatchByNumber }: {
+  groupMatchMap: Map<string, Match[]>;
+  r32DbMatchByNumber: Map<number, Match>;
+}) {
   const r32Map = new Map(R32.map(e => [e.matchNumber, e]));
 
   // Pre-compute y-centers for each round
@@ -222,7 +229,7 @@ function BracketTreeView({ groupMatchMap }: { groupMatchMap: Map<string, Match[]
             const top = gi * SLOT_H + ci * (BK.cardH + BK.pairGap);
             return (
               <div key={matchNum} className="absolute" style={{ top, left: 0, width: BK.r32W, height: BK.cardH }}>
-                <BracketMatchCard entry={entry} groupMatchMap={groupMatchMap} w={BK.r32W} h={BK.cardH} />
+                <BracketMatchCard entry={entry} groupMatchMap={groupMatchMap} dbMatch={r32DbMatchByNumber.get(matchNum)} w={BK.r32W} h={BK.cardH} />
               </div>
             );
           })
@@ -354,7 +361,7 @@ export default function BracketsPage() {
   const { data: allMatches = [] } = useQuery<Match[]>({
     queryKey: ['matches', 'all'],
     queryFn: () => matchesApi.list().then(r => r.data),
-    staleTime: 60_000,
+    staleTime: 0,
   });
 
   const { data: knockoutMatches = [], isLoading } = useQuery<Match[]>({
@@ -365,7 +372,9 @@ export default function BracketsPage() {
   });
 
   const groupMatchMap = new Map<string, Match[]>();
+  const r32DbMatchByNumber = new Map<number, Match>();
   for (const m of allMatches) {
+    if (m.stage === 'r32') { r32DbMatchByNumber.set(m.match_number, m); continue; }
     if (!m.group_letter) continue;
     if (!groupMatchMap.has(m.group_letter)) groupMatchMap.set(m.group_letter, []);
     groupMatchMap.get(m.group_letter)!.push(m);
@@ -410,7 +419,7 @@ export default function BracketsPage() {
 
       {/* ── Bracket view ── */}
       {view === 'bracket' && (
-        <BracketTreeView groupMatchMap={groupMatchMap} />
+        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} />
       )}
 
       {/* ── List view ── */}
