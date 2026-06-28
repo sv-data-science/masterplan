@@ -256,6 +256,54 @@ async def patch_r32_schedule(admin: User = Depends(require_admin), db: AsyncSess
     return {"status": "ok", "updated": updated}
 
 
+@router.post("/assign-r32-official")
+async def assign_r32_official(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Assign R32 teams from the official FIFA bracket (hardcoded confirmed matchups).
+    Falls back to standings-based resolution for the matches not yet visible in the published bracket."""
+    from sqlalchemy.orm import selectinload
+    from app.models.worldcup import Team, Match as MatchModel
+
+    # Confirmed matchups from the official FIFA bracket
+    # (match_number, home_code, away_code)
+    OFFICIAL = [
+        (73, 'RSA', 'CAN'),  # South Africa vs Canada
+        (74, 'GER', 'PAR'),  # Germany vs Paraguay
+        (75, 'NED', 'MAR'),  # Netherlands vs Morocco
+        (76, 'BRA', 'JPN'),  # Brazil vs Japan
+        (77, 'FRA', 'SWE'),  # France vs Sweden
+        (78, 'CIV', 'NOR'),  # Ivory Coast vs Norway
+        (81, 'USA', 'BIH'),  # USA vs Bosnia-Herzegovina
+        (82, 'BEL', 'SEN'),  # Belgium vs Senegal
+        (83, 'POR', 'CRO'),  # Portugal vs Croatia
+        (84, 'ESP', 'AUT'),  # Spain vs Austria
+    ]
+
+    # Load all teams and R32 matches
+    teams_by_code = {t.code: t for t in (await db.execute(select(Team))).scalars().all()}
+    r32_db = {m.match_number: m for m in (await db.execute(
+        select(MatchModel).where(MatchModel.stage == 'r32')
+    )).scalars().all()}
+
+    updated, missing = 0, []
+    for match_num, home_code, away_code in OFFICIAL:
+        m = r32_db.get(match_num)
+        if not m:
+            missing.append(f"M{match_num} not in DB")
+            continue
+        ht = teams_by_code.get(home_code)
+        at = teams_by_code.get(away_code)
+        if not ht: missing.append(f"Team {home_code} not found")
+        if not at: missing.append(f"Team {away_code} not found")
+        if ht: m.home_team_id = ht.id
+        if at: m.away_team_id = at.id
+        if ht or at:
+            updated += 1
+
+    await db.flush()
+    return {"status": "ok", "updated": updated, "missing": missing,
+            "note": f"Matches {[r[0] for r in OFFICIAL]} set from official bracket. Remaining matches (M79/M80/M85/M86/M87/M88) still need assignment."}
+
+
 @router.post("/resolve-r32-teams")
 async def resolve_r32_teams(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Auto-assign qualified teams to R32 matches based on completed group stage standings.

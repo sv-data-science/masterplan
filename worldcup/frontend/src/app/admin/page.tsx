@@ -367,9 +367,9 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
 
 function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   const [seeding, setSeeding] = useState(false);
-  const [resolving, setResolving] = useState(false);
+  const [assigning, setAssigning] = useState(false);
   const [patching, setPatchingSchedule] = useState(false);
-  const [resolveResult, setResolveResult] = useState<string | null>(null);
+  const [result, setResult] = useState<string | null>(null);
 
   const seed = async () => {
     setSeeding(true);
@@ -383,21 +383,18 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
     } finally { setSeeding(false); }
   };
 
-  const resolve = async () => {
-    setResolving(true);
-    setResolveResult(null);
+  const assignOfficial = async () => {
+    setAssigning(true);
+    setResult(null);
     try {
-      const r = await api.post('/admin/resolve-r32-teams');
-      const { updated, best3rd_assigned, unresolved } = r.data;
-      const msg = `${updated} matches updated · ${best3rd_assigned} best-3rd slots filled`;
-      toast.success(msg);
-      setResolveResult(unresolved?.length
-        ? `${msg}\nUnresolved: ${unresolved.join(', ')}`
-        : msg);
+      const r = await api.post('/admin/assign-r32-official');
+      const { updated, missing, note } = r.data;
+      toast.success(`${updated} matches set from official FIFA bracket`);
+      setResult([note, ...(missing?.length ? [`Issues: ${missing.join(', ')}`] : [])].join('\n'));
       onSeeded();
     } catch (e: any) {
-      toast.error(e.response?.data?.detail ?? 'Resolve failed');
-    } finally { setResolving(false); }
+      toast.error(e.response?.data?.detail ?? 'Assignment failed');
+    } finally { setAssigning(false); }
   };
 
   const patchSchedule = async () => {
@@ -416,22 +413,22 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
       <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏆 Round of 32 Setup</h3>
       <p className="text-xs text-gray-400 mb-3">
         Step 1 — create the 16 placeholder match records (run once).
-        Step 2 — once group stage is complete, assign the qualified teams.
-        Step 3 — fix kickoff times if they were seeded incorrectly.
+        Step 2 — assign teams from the official FIFA published bracket.
+        Step 3 — fix kickoff times if seeded incorrectly.
       </p>
       <div className="flex flex-wrap gap-2">
         <button onClick={seed} disabled={seeding} className="btn-secondary py-1.5 text-sm">
           {seeding ? '⏳ Seeding…' : '1️⃣ Seed R32 matches'}
         </button>
-        <button onClick={resolve} disabled={resolving} className="btn-primary py-1.5 text-sm">
-          {resolving ? '⏳ Resolving…' : '2️⃣ Assign qualified teams'}
+        <button onClick={assignOfficial} disabled={assigning} className="btn-primary py-1.5 text-sm">
+          {assigning ? '⏳ Assigning…' : '2️⃣ Assign from official bracket'}
         </button>
         <button onClick={patchSchedule} disabled={patching} className="btn-secondary py-1.5 text-sm">
           {patching ? '⏳ Patching…' : '3️⃣ Fix R32 kickoff times'}
         </button>
       </div>
-      {resolveResult && (
-        <pre className="mt-2 text-xs text-gray-300 bg-[#0d1117] rounded p-2 whitespace-pre-wrap">{resolveResult}</pre>
+      {result && (
+        <pre className="mt-2 text-xs text-gray-300 bg-[#0d1117] rounded p-2 whitespace-pre-wrap">{result}</pre>
       )}
     </div>
   );
