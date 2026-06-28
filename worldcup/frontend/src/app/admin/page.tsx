@@ -437,6 +437,94 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   );
 }
 
+interface R32Assignment { match_number: number; home: string; away: string; kickoff_utc: string | null }
+
+function R32OverridePanel({ onSaved }: { onSaved: () => void }) {
+  const [assignments, setAssignments] = useState<R32Assignment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [homeCode, setHomeCode] = useState('');
+  const [awayCode, setAwayCode] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get('/admin/r32-assignments');
+      setAssignments(r.data);
+    } catch { toast.error('Failed to load R32 assignments'); }
+    finally { setLoading(false); }
+  };
+
+  const startEdit = (a: R32Assignment) => {
+    const hCode = a.home.match(/\((\w+)\)/)?.[1] ?? '';
+    const aCode = a.away.match(/\((\w+)\)/)?.[1] ?? '';
+    setEditing(a.match_number);
+    setHomeCode(hCode === 'TBD' ? '' : hCode);
+    setAwayCode(aCode === 'TBD' ? '' : aCode);
+  };
+
+  const save = async (matchNumber: number) => {
+    if (!homeCode && !awayCode) { toast.error('Enter at least one team code'); return; }
+    setSaving(true);
+    try {
+      await api.post('/admin/set-r32-teams', {
+        match_number: matchNumber,
+        home_team_code: homeCode || null,
+        away_team_code: awayCode || null,
+      });
+      toast.success(`M${matchNumber} updated`);
+      setEditing(null);
+      await load();
+      onSaved();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Save failed');
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="card p-4 border-orange-800/40 bg-orange-900/10">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-white">🔧 R32 Team Override</h3>
+        <button onClick={load} disabled={loading} className="btn-secondary py-1 text-xs">
+          {loading ? 'Loading…' : 'Load current assignments'}
+        </button>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">
+        Manually fix individual R32 match teams using the 3-letter team code (e.g. PAR, GER, USA).
+        Use when auto-assign picks the wrong team due to DB standings not matching reality.
+      </p>
+      {assignments.length > 0 && (
+        <div className="space-y-1 max-h-96 overflow-y-auto">
+          {assignments.map(a => (
+            <div key={a.match_number} className="flex items-center gap-2 py-1.5 px-2 rounded bg-[#0d1117] text-sm">
+              <span className="text-gray-500 text-xs w-6 shrink-0">M{a.match_number}</span>
+              {editing === a.match_number ? (
+                <>
+                  <input value={homeCode} onChange={e => setHomeCode(e.target.value.toUpperCase())}
+                    placeholder="Home code" className="input w-20 py-0.5 text-xs font-mono" maxLength={3} />
+                  <span className="text-gray-600">vs</span>
+                  <input value={awayCode} onChange={e => setAwayCode(e.target.value.toUpperCase())}
+                    placeholder="Away code" className="input w-20 py-0.5 text-xs font-mono" maxLength={3} />
+                  <button onClick={() => save(a.match_number)} disabled={saving} className="btn-primary py-0.5 px-2 text-xs">
+                    {saving ? '…' : 'Save'}
+                  </button>
+                  <button onClick={() => setEditing(null)} className="text-gray-500 hover:text-white text-xs">Cancel</button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-gray-300 truncate">{a.home} <span className="text-gray-600">vs</span> {a.away}</span>
+                  <button onClick={() => startEdit(a)} className="text-blue-400 hover:text-blue-300 text-xs shrink-0">Edit</button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function PatchSchedulePanel({ onPatched }: { onPatched: () => void }) {
   const [patching, setPatching] = useState(false);
 
@@ -846,6 +934,8 @@ export default function AdminPage() {
       <SeedPanel onSeeded={invalidate} />
 
       <SeedR32Panel onSeeded={invalidate} />
+
+      <R32OverridePanel onSaved={invalidate} />
 
       <EspnGoalSyncPanel onSynced={invalidate} />
 

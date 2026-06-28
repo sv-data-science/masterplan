@@ -410,6 +410,64 @@ async def seed_r32_matches(admin: User = Depends(require_admin), db: AsyncSessio
     return {"status": "seeded", "created": created}
 
 
+class R32TeamOverride(BaseModel):
+    match_number: int
+    home_team_code: str | None = None
+    away_team_code: str | None = None
+
+
+@router.post("/set-r32-teams")
+async def set_r32_teams(body: R32TeamOverride, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Manually set home/away team for a specific R32 match by team code. Pass None to leave unchanged."""
+    from app.models.worldcup import Team, Match as MatchModel
+
+    match = (await db.execute(
+        select(MatchModel).where(MatchModel.match_number == body.match_number, MatchModel.stage == 'r32')
+    )).scalar_one_or_none()
+    if not match:
+        raise HTTPException(status_code=404, detail=f"R32 match {body.match_number} not found")
+
+    if body.home_team_code:
+        team = (await db.execute(select(Team).where(Team.code == body.home_team_code))).scalar_one_or_none()
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team '{body.home_team_code}' not found")
+        match.home_team_id = team.id
+
+    if body.away_team_code:
+        team = (await db.execute(select(Team).where(Team.code == body.away_team_code))).scalar_one_or_none()
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team '{body.away_team_code}' not found")
+        match.away_team_id = team.id
+
+    await db.flush()
+    return {"status": "ok", "match_number": body.match_number,
+            "home_team_code": body.home_team_code, "away_team_code": body.away_team_code}
+
+
+@router.get("/r32-assignments")
+async def get_r32_assignments(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Return current team assignments for all R32 matches."""
+    from sqlalchemy.orm import selectinload
+    from app.models.worldcup import Match as MatchModel
+
+    matches = (await db.execute(
+        select(MatchModel)
+        .options(selectinload(MatchModel.home_team), selectinload(MatchModel.away_team))
+        .where(MatchModel.stage == 'r32')
+        .order_by(MatchModel.match_number)
+    )).scalars().all()
+
+    return [
+        {
+            "match_number": m.match_number,
+            "home": f"{m.home_team.flag} {m.home_team.code} ({m.home_team.name})",
+            "away": f"{m.away_team.flag} {m.away_team.code} ({m.away_team.name})",
+            "kickoff_utc": m.kickoff_utc.isoformat() if m.kickoff_utc else None,
+        }
+        for m in matches
+    ]
+
+
 @router.post("/predictions", response_model=PredictionOut, status_code=201)
 async def admin_set_prediction(
     body: AdminPredictionSet,
