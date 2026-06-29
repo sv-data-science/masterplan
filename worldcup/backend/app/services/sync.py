@@ -151,7 +151,6 @@ async def sync_scores() -> dict:
             resp = await client.get(
                 API_URL,
                 headers={"X-Auth-Token": settings.FOOTBALL_DATA_API_KEY},
-                params={"stage": "GROUP_STAGE"},
             )
         if resp.status_code == 429:
             return {"error": "Rate limited by football-data.org (10 req/min)", "updated": 0}
