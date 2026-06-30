@@ -70,7 +70,7 @@ async def recalculate_all_points(admin: User = Depends(require_admin), db: Async
     from app.services.scoring import recalculate_match_points
     from sqlalchemy.orm import selectinload
 
-    from app.services.scoring import SCORING_CUTOFF
+    from app.services.scoring import UNSCORED_MATCH_NUMBERS
 
     matches = (await db.execute(
         select(MatchModel)
@@ -78,7 +78,7 @@ async def recalculate_all_points(admin: User = Depends(require_admin), db: Async
         .where(
             MatchModel.status == 'completed',
             MatchModel.home_score.is_not(None),
-            MatchModel.kickoff_utc >= SCORING_CUTOFF,
+            MatchModel.match_number.not_in(UNSCORED_MATCH_NUMBERS),
         )
     )).scalars().all()
 
@@ -656,17 +656,17 @@ async def get_r32_assignments(admin: User = Depends(require_admin), db: AsyncSes
 
 @router.post("/wipe-pre-cutoff-points")
 async def wipe_pre_cutoff_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    """Set points_earned = NULL for predictions on matches before Jun 12 (first 3 matches excluded from scoring)."""
+    """Set points_earned = NULL for M1, M2, M3 — these are permanently excluded from scoring."""
     from sqlalchemy import update
-    from app.services.scoring import SCORING_CUTOFF
+    from app.services.scoring import UNSCORED_MATCH_NUMBERS
     from app.models.worldcup import Match as MatchModel
 
     early_match_ids = (await db.execute(
-        select(MatchModel.id).where(MatchModel.kickoff_utc < SCORING_CUTOFF)
+        select(MatchModel.id).where(MatchModel.match_number.in_(UNSCORED_MATCH_NUMBERS))
     )).scalars().all()
 
     if not early_match_ids:
-        return {"status": "ok", "predictions_wiped": 0, "message": "No pre-cutoff matches found"}
+        return {"status": "ok", "predictions_wiped": 0, "message": "No excluded matches found"}
 
     result = await db.execute(
         update(Prediction)
