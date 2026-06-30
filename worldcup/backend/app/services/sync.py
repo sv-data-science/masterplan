@@ -186,11 +186,14 @@ async def sync_scores() -> dict:
             et   = score_block.get("extraTime")  or {}
             pens = score_block.get("penalties")  or {}
 
-            # For penalty-decided matches, extraTime holds the tied 120-min result;
-            # fullTime may carry just the 90-min score or the pen total — use extraTime.
-            if duration == "PENALTY_SHOOTOUT" and et.get("home") is not None:
-                hs  = et.get("home")
-                as_ = et.get("away")
+            # football-data.org score conventions:
+            #   fullTime  = goals at end of 90 min only
+            #   extraTime = goals scored ONLY during the ET period (additive, not cumulative)
+            #   penalties = shootout counts
+            # For EXTRA_TIME / PENALTY_SHOOTOUT matches the 90+ET score = fullTime + extraTime.
+            if duration in ("EXTRA_TIME", "PENALTY_SHOOTOUT") and ft.get("home") is not None:
+                hs  = (ft.get("home") or 0) + (et.get("home") or 0)
+                as_ = (ft.get("away") or 0) + (et.get("away") or 0)
             else:
                 hs  = ft.get("home")
                 as_ = ft.get("away")
