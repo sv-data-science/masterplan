@@ -648,6 +648,28 @@ async def get_r32_assignments(admin: User = Depends(require_admin), db: AsyncSes
     ]
 
 
+@router.post("/wipe-r32-points")
+async def wipe_r32_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Set points_earned = NULL for all R32 predictions. Scores stay intact. Use to reset until R32 scoring is verified."""
+    from sqlalchemy import update, and_
+    from app.models.worldcup import Match as MatchModel
+
+    r32_match_ids = (await db.execute(
+        select(MatchModel.id).where(MatchModel.stage == 'r32')
+    )).scalars().all()
+
+    if not r32_match_ids:
+        return {"status": "ok", "predictions_wiped": 0, "message": "No R32 matches found"}
+
+    result = await db.execute(
+        update(Prediction)
+        .where(Prediction.match_id.in_(r32_match_ids))
+        .values(points_earned=None)
+    )
+    await db.flush()
+    return {"status": "ok", "predictions_wiped": result.rowcount, "r32_matches": len(r32_match_ids)}
+
+
 @router.get("/user-audit/{username}")
 async def user_audit(username: str, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Show all predictions for a user with points earned, grouped by stage. Useful for auditing totals."""

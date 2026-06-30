@@ -246,6 +246,7 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   });
 
   const [recalculating, setRecalculating] = useState(false);
+  const [wipingR32, setWipingR32] = useState(false);
 
   const triggerSync = async () => {
     setSyncing(true);
@@ -278,6 +279,19 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
       toast.error(e.response?.data?.detail ?? 'Recalculation failed');
     } finally {
       setRecalculating(false);
+    }
+  };
+
+  const wipeR32Points = async () => {
+    setWipingR32(true);
+    try {
+      const r = await api.post('/admin/wipe-r32-points');
+      toast.success(`R32 points wiped — ${r.data.predictions_wiped} predictions reset to pending`);
+      onSynced();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Wipe failed');
+    } finally {
+      setWipingR32(false);
     }
   };
 
@@ -317,6 +331,14 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
             title="Re-run points for all completed matches (use after manually correcting a score)"
           >
             {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate points'}
+          </button>
+          <button
+            onClick={wipeR32Points}
+            disabled={wipingR32}
+            className="btn-secondary py-1.5 text-sm"
+            title="Set all R32 prediction points to NULL — scores stay, group stage untouched"
+          >
+            {wipingR32 ? '⏳ Wiping…' : '🗑️ Wipe R32 points'}
           </button>
         </div>
       </div>
