@@ -247,6 +247,7 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
 
   const [recalculating, setRecalculating] = useState(false);
   const [wipingR32, setWipingR32] = useState(false);
+  const [wipingEarly, setWipingEarly] = useState(false);
 
   const triggerSync = async () => {
     setSyncing(true);
@@ -279,6 +280,19 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
       toast.error(e.response?.data?.detail ?? 'Recalculation failed');
     } finally {
       setRecalculating(false);
+    }
+  };
+
+  const wipeEarlyPoints = async () => {
+    setWipingEarly(true);
+    try {
+      const r = await api.post('/admin/wipe-pre-cutoff-points');
+      toast.success(`Pre-Jun 12 points wiped — ${r.data.predictions_wiped} predictions cleared (${r.data.matches_excluded} matches)`);
+      onSynced();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Wipe failed');
+    } finally {
+      setWipingEarly(false);
     }
   };
 
@@ -339,6 +353,14 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
             title="Set all R32 prediction points to NULL — scores stay, group stage untouched"
           >
             {wipingR32 ? '⏳ Wiping…' : '🗑️ Wipe R32 points'}
+          </button>
+          <button
+            onClick={wipeEarlyPoints}
+            disabled={wipingEarly}
+            className="btn-secondary py-1.5 text-sm"
+            title="Clear points for the 3 matches on Jun 11 — they are permanently excluded from scoring"
+          >
+            {wipingEarly ? '⏳ Wiping…' : '🚫 Wipe Jun 11 points'}
           </button>
         </div>
       </div>

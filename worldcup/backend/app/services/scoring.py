@@ -1,6 +1,11 @@
+from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.worldcup import Match, Prediction
+
+# Predictions for matches before this date are never scored.
+# The first 3 matches (Jun 11) are excluded because not all players had joined yet.
+SCORING_CUTOFF = datetime(2026, 6, 12, 0, 0, 0, tzinfo=timezone.utc)
 
 
 def calculate_points(
@@ -19,6 +24,9 @@ def calculate_points(
 
 
 async def recalculate_match_points(match: Match, db: AsyncSession) -> None:
+    # Skip matches before the scoring cutoff — those predictions never earn points
+    if match.kickoff_utc and match.kickoff_utc.replace(tzinfo=timezone.utc if match.kickoff_utc.tzinfo is None else match.kickoff_utc.tzinfo) < SCORING_CUTOFF:
+        return
     result = await db.execute(
         select(Prediction).where(Prediction.match_id == match.id)
     )
