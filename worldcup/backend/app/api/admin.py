@@ -648,6 +648,61 @@ async def get_r32_assignments(admin: User = Depends(require_admin), db: AsyncSes
     ]
 
 
+@router.get("/user-audit/{username}")
+async def user_audit(username: str, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Show all predictions for a user with points earned, grouped by stage. Useful for auditing totals."""
+    from sqlalchemy.orm import selectinload
+
+    user = (await db.execute(select(User).where(User.username == username))).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User '{username}' not found")
+
+    preds = (await db.execute(
+        select(Prediction)
+        .options(
+            selectinload(Prediction.match).selectinload(Match.home_team),
+            selectinload(Prediction.match).selectinload(Match.away_team),
+        )
+        .where(Prediction.user_id == user.id)
+        .order_by(Prediction.match_id)
+    )).scalars().all()
+
+    rows = []
+    total = 0
+    group_total = 0
+    r32_total = 0
+    for p in preds:
+        m = p.match
+        pts = p.points_earned
+        stage = m.stage or "group"
+        rows.append({
+            "match_number": m.match_number,
+            "stage": stage,
+            "home": m.home_team.code,
+            "away": m.away_team.code,
+            "actual": f"{m.home_score}-{m.away_score}" if m.home_score is not None else "TBD",
+            "pred": f"{p.pred_home}-{p.pred_away}",
+            "pts": pts,
+            "status": m.status,
+            "score_locked": getattr(m, "score_locked", False),
+        })
+        if pts is not None:
+            total += pts
+            if stage == "group":
+                group_total += pts
+            else:
+                r32_total += pts
+
+    return {
+        "username": username,
+        "display_name": user.display_name,
+        "total_points": total,
+        "group_stage_points": group_total,
+        "r32_points": r32_total,
+        "predictions": rows,
+    }
+
+
 @router.post("/predictions", response_model=PredictionOut, status_code=201)
 async def admin_set_prediction(
     body: AdminPredictionSet,
