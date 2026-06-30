@@ -186,20 +186,27 @@ async def sync_scores() -> dict:
             et   = score_block.get("extraTime")  or {}
             pens = score_block.get("penalties")  or {}
 
-            # football-data.org score conventions:
-            #   fullTime  = goals at end of 90 min only
-            #   extraTime = goals scored ONLY during the ET period (additive, not cumulative)
-            #   penalties = shootout counts
-            # For EXTRA_TIME / PENALTY_SHOOTOUT matches the 90+ET score = fullTime + extraTime.
-            if duration in ("EXTRA_TIME", "PENALTY_SHOOTOUT") and ft.get("home") is not None:
-                hs  = (ft.get("home") or 0) + (et.get("home") or 0)
-                as_ = (ft.get("away") or 0) + (et.get("away") or 0)
+            # football-data.org WC2026 score encoding per duration:
+            #   REGULAR:           fullTime = 90-min final score
+            #   EXTRA_TIME:        fullTime = 90-min score, extraTime = goals in ET period only (additive)
+            #   PENALTY_SHOOTOUT:  fullTime = tied 90+ET result, extraTime = pen shootout goal counts
+            # The 90+ET result (used for prediction scoring) is what we store in home_score/away_score.
+            # Penalty counts go into home_score_pens/away_score_pens (display only, never used for points).
+            if duration == "PENALTY_SHOOTOUT":
+                hs      = ft.get("home")
+                as_     = ft.get("away")
+                hs_pens = et.get("home")   # extraTime holds pen goals on PENALTY_SHOOTOUT matches
+                as_pens = et.get("away")
+            elif duration == "EXTRA_TIME" and ft.get("home") is not None:
+                hs      = (ft.get("home") or 0) + (et.get("home") or 0)
+                as_     = (ft.get("away") or 0) + (et.get("away") or 0)
+                hs_pens = None
+                as_pens = None
             else:
-                hs  = ft.get("home")
-                as_ = ft.get("away")
-
-            hs_pens  = pens.get("home")
-            as_pens  = pens.get("away")
+                hs      = ft.get("home")
+                as_     = ft.get("away")
+                hs_pens = None
+                as_pens = None
 
             # Try to find our match by external_id first
             result = await db.execute(select(Match).where(Match.external_id == ext_id))
