@@ -79,7 +79,10 @@ export default function HomePage() {
             <span className="text-gray-400 text-sm">Your rank</span>
             <span className="text-2xl font-bold text-green-400">#{myRank.rank}</span>
             <span className="text-gray-400 text-sm">·</span>
-            <span className="text-xl font-bold text-white">{myRank.total_points}pts</span>
+            <div className="text-left">
+              <span className="text-xl font-bold text-white">{myRank.total_points}pts</span>
+              <p className="text-[10px] text-yellow-500/80 leading-tight">group phase · R32 pending</p>
+            </div>
           </div>
         ) : !user ? (
           <div className="mt-4"><Link href="/register" className="btn-primary mr-2">Get started</Link><Link href="/login" className="btn-secondary">Log in</Link></div>
@@ -144,6 +147,10 @@ export default function HomePage() {
         </div>
         <div>
           <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">Leaderboard</h2><Link href="/leaderboard" className="text-sm text-green-400 hover:underline">Full →</Link></div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-yellow-700/40 bg-yellow-900/15 mb-2 text-xs text-yellow-300">
+            <span>⚙️</span>
+            <span>Group phase only — R32 points pending</span>
+          </div>
           <div className="card divide-y divide-[#30363d]">
             {top5.length === 0 && <p className="p-4 text-sm text-gray-500 text-center">No scores yet</p>}
             {top5.map(e => (
@@ -153,7 +160,7 @@ export default function HomePage() {
                   <KitSVG kit={{ ...DEFAULT_KIT, ...(e.kit as KitConfig), jersey: { ...DEFAULT_KIT.jersey, ...((e.kit as KitConfig)?.jersey) }, shorts: { ...DEFAULT_KIT.shorts, ...((e.kit as KitConfig)?.shorts) }, socks: { ...DEFAULT_KIT.socks, ...((e.kit as KitConfig)?.socks) } }} width={24} />
                 </div>
                 <div className="flex-1 min-w-0"><p className="font-medium text-sm truncate">{e.display_name}</p><p className="text-xs text-gray-500">{(e as any).predictions ?? e.predictions_made ?? 0} predictions</p></div>
-                <div className="text-right"><p className="font-bold text-green-400">{e.total_points}</p><p className="text-xs text-gray-500">pts</p></div>
+                <div className="text-right"><p className="font-bold text-green-400">{e.total_points}</p><p className="text-[10px] text-yellow-600/80">GS pts</p></div>
               </div>
             ))}
           </div>
