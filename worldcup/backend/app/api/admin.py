@@ -63,6 +63,28 @@ async def trigger_sync(admin: User = Depends(require_admin)):
     return await sync_scores()
 
 
+@router.post("/recalculate-points")
+async def recalculate_all_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Re-run points calculation for every completed match. Use after manually correcting a score."""
+    from app.models.worldcup import Match as MatchModel
+    from app.services.scoring import recalculate_match_points
+    from sqlalchemy.orm import selectinload
+
+    matches = (await db.execute(
+        select(MatchModel)
+        .options(selectinload(MatchModel.predictions))
+        .where(MatchModel.status == 'completed', MatchModel.home_score.is_not(None))
+    )).scalars().all()
+
+    recalculated = 0
+    for m in matches:
+        await recalculate_match_points(m, db)
+        recalculated += 1
+
+    await db.flush()
+    return {"status": "ok", "matches_recalculated": recalculated}
+
+
 @router.post("/sync-goals")
 async def trigger_sync_goals(admin: User = Depends(require_admin)):
     """Sync goal scorers from ESPN's public API (no key required)."""

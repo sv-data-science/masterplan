@@ -245,6 +245,8 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
     staleTime: 10_000,
   });
 
+  const [recalculating, setRecalculating] = useState(false);
+
   const triggerSync = async () => {
     setSyncing(true);
     try {
@@ -263,6 +265,19 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
       toast.error(e.response?.data?.detail ?? 'Sync failed');
     } finally {
       setSyncing(false);
+    }
+  };
+
+  const recalculatePoints = async () => {
+    setRecalculating(true);
+    try {
+      const r = await api.post('/admin/recalculate-points');
+      toast.success(`Points recalculated for ${r.data.matches_recalculated} completed matches`);
+      onSynced();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Recalculation failed');
+    } finally {
+      setRecalculating(false);
     }
   };
 
@@ -286,14 +301,24 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
             <p className="text-xs text-red-400 mt-1">Last error: {status.error}</p>
           )}
         </div>
-        <button
-          onClick={triggerSync}
-          disabled={syncing || !status?.api_key_configured}
-          className="btn-primary py-1.5 text-sm disabled:opacity-40"
-          title={!status?.api_key_configured ? 'API key not configured' : ''}
-        >
-          {syncing ? '⏳ Syncing…' : '🔄 Sync now'}
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={triggerSync}
+            disabled={syncing || !status?.api_key_configured}
+            className="btn-primary py-1.5 text-sm disabled:opacity-40"
+            title={!status?.api_key_configured ? 'API key not configured' : ''}
+          >
+            {syncing ? '⏳ Syncing…' : '🔄 Sync now'}
+          </button>
+          <button
+            onClick={recalculatePoints}
+            disabled={recalculating}
+            className="btn-secondary py-1.5 text-sm"
+            title="Re-run points for all completed matches (use after manually correcting a score)"
+          >
+            {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate points'}
+          </button>
+        </div>
       </div>
     </div>
   );
