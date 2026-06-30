@@ -822,6 +822,100 @@ function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; user
   );
 }
 
+function ForceScorePanel({ onUpdated }: { onUpdated: () => void }) {
+  const [form, setForm] = useState({ match_number: '', home_score: '', away_score: '', home_score_pens: '', away_score_pens: '', lock: true });
+  const [saving, setSaving] = useState(false);
+  const [debugResult, setDebugResult] = useState<string | null>(null);
+  const [debugging, setDebugging] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const mn = parseInt(form.match_number);
+    const h = parseInt(form.home_score), a = parseInt(form.away_score);
+    if (isNaN(mn) || isNaN(h) || isNaN(a)) { toast.error('Match number and scores are required'); return; }
+    const hp = form.home_score_pens !== '' ? parseInt(form.home_score_pens) : null;
+    const ap = form.away_score_pens !== '' ? parseInt(form.away_score_pens) : null;
+    setSaving(true);
+    try {
+      const r = await api.post('/admin/force-score', {
+        match_number: mn,
+        home_score: h,
+        away_score: a,
+        home_score_pens: hp,
+        away_score_pens: ap,
+        lock: form.lock,
+      });
+      toast.success(`M${mn} set to ${h}–${a}${hp !== null ? ` (pens ${hp}–${ap})` : ''} · ${r.data.locked ? 'locked' : 'unlocked'}`);
+      onUpdated();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Force score failed');
+    } finally { setSaving(false); }
+  };
+
+  const debugApi = async () => {
+    setDebugging(true);
+    setDebugResult(null);
+    try {
+      const r = await api.get('/admin/debug-api-scores');
+      setDebugResult(JSON.stringify(r.data, null, 2));
+    } catch (e: any) {
+      setDebugResult(`Error: ${e.response?.data?.detail ?? e.message}`);
+    } finally { setDebugging(false); }
+  };
+
+  return (
+    <div className="card p-4 border-red-800/40 bg-red-900/10">
+      <h3 className="font-semibold text-white mb-1">🔒 Force score (admin override)</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        Manually set a match score — bypasses sync. Use for penalty matches where the API encodes scores incorrectly.
+        "Lock" prevents the auto-sync from overwriting this score.
+      </p>
+      <form onSubmit={submit} className="flex flex-wrap gap-2 items-end">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Match #</label>
+          <input type="number" min={1} value={form.match_number} onChange={set('match_number')} className="input w-20 py-1 text-sm text-center" placeholder="73" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Home score (90+ET)</label>
+          <input type="number" min={0} max={20} value={form.home_score} onChange={set('home_score')} className="input w-16 py-1 text-sm text-center" placeholder="1" />
+        </div>
+        <span className="text-gray-600 self-end pb-1.5">–</span>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Away score (90+ET)</label>
+          <input type="number" min={0} max={20} value={form.away_score} onChange={set('away_score')} className="input w-16 py-1 text-sm text-center" placeholder="1" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Home pens (optional)</label>
+          <input type="number" min={0} max={20} value={form.home_score_pens} onChange={set('home_score_pens')} className="input w-16 py-1 text-sm text-center" placeholder="—" />
+        </div>
+        <span className="text-gray-600 self-end pb-1.5">–</span>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Away pens (optional)</label>
+          <input type="number" min={0} max={20} value={form.away_score_pens} onChange={set('away_score_pens')} className="input w-16 py-1 text-sm text-center" placeholder="—" />
+        </div>
+        <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer self-end pb-2">
+          <input type="checkbox" checked={form.lock} onChange={e => setForm(f => ({ ...f, lock: e.target.checked }))} />
+          Lock (prevent sync override)
+        </label>
+        <button type="submit" disabled={saving} className="btn-primary py-1.5 text-sm self-end">
+          {saving ? '…' : '🔒 Force score'}
+        </button>
+        <button type="button" onClick={debugApi} disabled={debugging} className="btn-secondary py-1.5 text-xs self-end">
+          {debugging ? '…' : '🔍 Debug API'}
+        </button>
+      </form>
+      {debugResult && (
+        <pre className="mt-3 text-xs text-gray-300 bg-[#0d1117] rounded p-3 overflow-auto max-h-64 border border-[#30363d]">
+          {debugResult}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 function AuditLogPanel() {
   const { data: log = [], isLoading } = useQuery<any[]>({
     queryKey: ['score-audit'],
@@ -962,6 +1056,8 @@ export default function AdminPage() {
       <EspnGoalSyncPanel onSynced={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
+
+      <ForceScorePanel onUpdated={invalidate} />
 
       <PatchSchedulePanel onPatched={invalidate} />
 

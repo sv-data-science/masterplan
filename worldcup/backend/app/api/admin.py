@@ -144,6 +144,110 @@ async def debug_espn(admin: User = Depends(require_admin)):
     return result
 
 
+@router.get("/debug-api-scores")
+async def debug_api_scores(admin: User = Depends(require_admin)):
+    """Fetch raw score blocks from football-data.org for all ET/pen matches — confirms field encoding."""
+    import httpx
+    if not settings.FOOTBALL_DATA_API_KEY:
+        raise HTTPException(status_code=503, detail="FOOTBALL_DATA_API_KEY not set")
+
+    async with httpx.AsyncClient(timeout=15) as client:
+        resp = await client.get(
+            "https://api.football-data.org/v4/competitions/WC/matches",
+            headers={"X-Auth-Token": settings.FOOTBALL_DATA_API_KEY},
+        )
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail=f"API returned {resp.status_code}")
+
+    results = []
+    for m in resp.json().get("matches", []):
+        score = m.get("score") or {}
+        duration = score.get("duration", "REGULAR")
+        if duration in ("PENALTY_SHOOTOUT", "EXTRA_TIME") or m.get("status") in ("FINISHED", "AWARDED"):
+            ft   = score.get("fullTime") or {}
+            et   = score.get("extraTime") or {}
+            pens = score.get("penalties") or {}
+            ht   = score.get("halfTime") or {}
+            if duration in ("PENALTY_SHOOTOUT", "EXTRA_TIME") or (ft.get("home") is not None):
+                results.append({
+                    "id": m["id"],
+                    "home": (m.get("homeTeam") or {}).get("shortName", (m.get("homeTeam") or {}).get("name")),
+                    "away": (m.get("awayTeam") or {}).get("shortName", (m.get("awayTeam") or {}).get("name")),
+                    "status": m.get("status"),
+                    "duration": duration,
+                    "halfTime": ht,
+                    "fullTime": ft,
+                    "extraTime": et,
+                    "penalties": pens,
+                })
+    return {"count": len(results), "matches": results}
+
+
+class ForceScoreBody(BaseModel):
+    match_number: int
+    home_score: int
+    away_score: int
+    home_score_pens: int | None = None
+    away_score_pens: int | None = None
+    lock: bool = True
+
+
+@router.post("/force-score")
+async def force_match_score(
+    body: ForceScoreBody,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Manually set a match score, bypassing sync. Optionally locks the score so sync won't overwrite."""
+    from sqlalchemy.orm import selectinload
+    from app.services.scoring import recalculate_match_points
+
+    match = (await db.execute(
+        select(Match)
+        .options(selectinload(Match.predictions))
+        .where(Match.match_number == body.match_number)
+    )).scalar_one_or_none()
+    if not match:
+        raise HTTPException(status_code=404, detail=f"Match {body.match_number} not found")
+
+    match.home_score = body.home_score
+    match.away_score = body.away_score
+    match.home_score_pens = body.home_score_pens
+    match.away_score_pens = body.away_score_pens
+    match.status = "completed"
+    match.score_locked = body.lock
+
+    await recalculate_match_points(match, db)
+    await db.flush()
+
+    return {
+        "status": "ok",
+        "match_number": body.match_number,
+        "home_score": body.home_score,
+        "away_score": body.away_score,
+        "home_score_pens": body.home_score_pens,
+        "away_score_pens": body.away_score_pens,
+        "locked": body.lock,
+    }
+
+
+@router.post("/unlock-score")
+async def unlock_match_score(
+    match_number: int,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    """Remove admin lock from a match so sync can update it again."""
+    match = (await db.execute(
+        select(Match).where(Match.match_number == match_number)
+    )).scalar_one_or_none()
+    if not match:
+        raise HTTPException(status_code=404, detail=f"Match {match_number} not found")
+    match.score_locked = False
+    await db.flush()
+    return {"status": "ok", "match_number": match_number, "locked": False}
+
+
 @router.get("/sync/status")
 async def sync_status(admin: User = Depends(require_admin)):
     return {

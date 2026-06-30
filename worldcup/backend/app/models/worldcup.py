@@ -39,6 +39,7 @@ class Match(Base):
     # group | r32 | r16 | qf | sf | 3rd | final
     stage = Column(String(10), nullable=True)
     external_id = Column(Integer, nullable=True, unique=True, index=True)  # football-data.org match id
+    score_locked = Column(Boolean, nullable=False, default=False)  # admin override — sync skips this match
 
     home_team = relationship("Team", foreign_keys=[home_team_id], back_populates="home_matches")
     away_team = relationship("Team", foreign_keys=[away_team_id], back_populates="away_matches")

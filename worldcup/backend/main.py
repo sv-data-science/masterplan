@@ -61,6 +61,7 @@ async def lifespan(app: FastAPI):
         "ALTER TABLE matches ADD COLUMN stage VARCHAR(10)",
         "ALTER TABLE matches ADD COLUMN home_score_pens INTEGER",
         "ALTER TABLE matches ADD COLUMN away_score_pens INTEGER",
+        "ALTER TABLE matches ADD COLUMN score_locked BOOLEAN DEFAULT FALSE",
     ]:
         try:
             async with engine.begin() as conn:

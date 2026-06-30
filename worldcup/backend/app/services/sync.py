@@ -189,14 +189,19 @@ async def sync_scores() -> dict:
             # football-data.org WC2026 score encoding per duration:
             #   REGULAR:           fullTime = 90-min final score
             #   EXTRA_TIME:        fullTime = 90-min score, extraTime = goals in ET period only (additive)
-            #   PENALTY_SHOOTOUT:  fullTime = tied 90+ET result, extraTime = pen shootout goal counts
-            # The 90+ET result (used for prediction scoring) is what we store in home_score/away_score.
-            # Penalty counts go into home_score_pens/away_score_pens (display only, never used for points).
+            #   PENALTY_SHOOTOUT:  fullTime = TOTAL AGGREGATE (90+ET+pen goals combined)
+            #                      penalties = pen-shootout goals only
+            #                      90+ET score = fullTime - penalties (used for prediction scoring)
+            # Penalty counts go into home_score_pens/away_score_pens (display only, never for points).
             if duration == "PENALTY_SHOOTOUT":
-                hs      = ft.get("home")
-                as_     = ft.get("away")
-                hs_pens = et.get("home")   # extraTime holds pen goals on PENALTY_SHOOTOUT matches
-                as_pens = et.get("away")
+                hs_pens = pens.get("home")
+                as_pens = pens.get("away")
+                if ft.get("home") is not None and hs_pens is not None:
+                    hs  = (ft.get("home") or 0) - hs_pens
+                    as_ = (ft.get("away") or 0) - as_pens
+                else:
+                    hs  = ft.get("home")
+                    as_ = ft.get("away")
             elif duration == "EXTRA_TIME" and ft.get("home") is not None:
                 hs      = (ft.get("home") or 0) + (et.get("home") or 0)
                 as_     = (ft.get("away") or 0) + (et.get("away") or 0)
@@ -230,6 +235,14 @@ async def sync_scores() -> dict:
                 match = result.scalar_one_or_none()
 
             if not match:
+                continue
+
+            # Skip score updates for admin-locked matches (manually corrected scores)
+            if getattr(match, 'score_locked', False) and new_status == "completed":
+                # Still update external_id linkage if missing
+                if match.external_id != ext_id:
+                    match.external_id = ext_id
+                    await db.flush()
                 continue
 
             changed = False
