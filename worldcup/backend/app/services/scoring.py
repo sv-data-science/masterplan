@@ -3,7 +3,7 @@ from sqlalchemy import select
 from app.models.worldcup import Match, Prediction
 
 # Match numbers excluded from scoring — not all players had joined yet.
-UNSCORED_MATCH_NUMBERS = {1, 2, 3}
+UNSCORED_MATCH_NUMBERS = {1, 2, 3, 4}
 
 
 def calculate_points(
