@@ -180,8 +180,23 @@ async def sync_scores() -> dict:
             if new_status == "scheduled":
                 continue
 
-            hs = (api_m.get("score") or {}).get("fullTime", {}).get("home")
-            as_ = (api_m.get("score") or {}).get("fullTime", {}).get("away")
+            score_block = api_m.get("score") or {}
+            duration = score_block.get("duration", "REGULAR")
+            ft   = score_block.get("fullTime")   or {}
+            et   = score_block.get("extraTime")  or {}
+            pens = score_block.get("penalties")  or {}
+
+            # For penalty-decided matches, extraTime holds the tied 120-min result;
+            # fullTime may carry just the 90-min score or the pen total — use extraTime.
+            if duration == "PENALTY_SHOOTOUT" and et.get("home") is not None:
+                hs  = et.get("home")
+                as_ = et.get("away")
+            else:
+                hs  = ft.get("home")
+                as_ = ft.get("away")
+
+            hs_pens  = pens.get("home")
+            as_pens  = pens.get("away")
 
             # Try to find our match by external_id first
             result = await db.execute(select(Match).where(Match.external_id == ext_id))
@@ -221,6 +236,11 @@ async def sync_scores() -> dict:
                     match.home_score = hs
                     match.away_score = as_
                     await recalculate_match_points(match, db)
+                    changed = True
+                # Sync penalty shootout scores into dedicated fields (not used for prediction scoring)
+                if match.home_score_pens != hs_pens or match.away_score_pens != as_pens:
+                    match.home_score_pens = hs_pens
+                    match.away_score_pens = as_pens
                     changed = True
 
                 # Sync goal scorers — always refresh so corrections propagate
