@@ -332,7 +332,7 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
     : 'Never';
 
   return (
-    <div className="card p-4 border-blue-800/40 bg-blue-900/10">
+    <div className="card p-4 border-blue-800/40 bg-blue-900/10 space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="font-semibold text-white flex items-center gap-2">
@@ -347,48 +347,48 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
             <p className="text-xs text-red-400 mt-1">Last error: {status.error}</p>
           )}
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={triggerSync}
-            disabled={syncing || !status?.api_key_configured}
-            className="btn-primary py-1.5 text-sm disabled:opacity-40"
-            title={!status?.api_key_configured ? 'API key not configured' : ''}
-          >
-            {syncing ? '⏳ Syncing…' : '🔄 Sync now'}
-          </button>
-          <button
-            onClick={recalculatePoints}
-            disabled={recalculating}
-            className="btn-secondary py-1.5 text-sm"
-            title="Re-run points for all completed matches M5+ (skips M1–M4)"
-          >
-            {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate all'}
-          </button>
-          <button
-            onClick={recalculateR32}
-            disabled={recalcR32}
-            className="btn-primary py-1.5 text-sm"
-            title="Recalculate R32 only — group stage totals untouched. Uses 90+ET score, penalties ignored."
-          >
-            {recalcR32 ? '⏳ Recalculating…' : '🏆 Recalculate R32'}
-          </button>
-          <button
-            onClick={wipeR32Points}
-            disabled={wipingR32}
-            className="btn-secondary py-1.5 text-sm"
-            title="Set all R32 prediction points to NULL — scores stay, group stage untouched"
-          >
-            {wipingR32 ? '⏳ Wiping…' : '🗑️ Wipe R32 points'}
-          </button>
-          <button
-            onClick={wipeEarlyPoints}
-            disabled={wipingEarly}
-            className="btn-secondary py-1.5 text-sm"
-            title="Clear points for the 3 matches on Jun 11 — they are permanently excluded from scoring"
-          >
-            {wipingEarly ? '⏳ Wiping…' : '🚫 Wipe Jun 11 points'}
-          </button>
-        </div>
+        <button
+          onClick={triggerSync}
+          disabled={syncing || !status?.api_key_configured}
+          className="btn-primary py-1.5 text-sm disabled:opacity-40"
+          title={!status?.api_key_configured ? 'API key not configured' : ''}
+        >
+          {syncing ? '⏳ Syncing…' : '🔄 Sync now'}
+        </button>
+      </div>
+      <div className="flex gap-2 flex-wrap border-t border-blue-800/30 pt-3">
+        <button
+          onClick={recalculatePoints}
+          disabled={recalculating}
+          className="btn-secondary py-1.5 text-sm"
+          title="Re-run points for all completed matches M5+ (skips M1–M4)"
+        >
+          {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate all'}
+        </button>
+        <button
+          onClick={recalculateR32}
+          disabled={recalcR32}
+          className="btn-primary py-1.5 text-sm"
+          title="Recalculate R32 only — group stage untouched. 90+ET score, penalties ignored."
+        >
+          {recalcR32 ? '⏳ Recalculating…' : '🏆 Recalculate R32'}
+        </button>
+        <button
+          onClick={wipeR32Points}
+          disabled={wipingR32}
+          className="btn-secondary py-1.5 text-sm"
+          title="Set all R32 prediction points to NULL — scores stay, group stage untouched"
+        >
+          {wipingR32 ? '⏳ Wiping…' : '🗑️ Wipe R32 points'}
+        </button>
+        <button
+          onClick={wipeEarlyPoints}
+          disabled={wipingEarly}
+          className="btn-secondary py-1.5 text-sm"
+          title="Clear points for M1–M4 — permanently excluded from scoring"
+        >
+          {wipingEarly ? '⏳ Wiping…' : '🚫 Wipe M1–M4 points'}
+        </button>
       </div>
     </div>
   );
