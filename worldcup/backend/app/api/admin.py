@@ -677,6 +677,42 @@ async def wipe_pre_cutoff_points(admin: User = Depends(require_admin), db: Async
     return {"status": "ok", "predictions_wiped": result.rowcount, "matches_excluded": len(early_match_ids)}
 
 
+@router.post("/recalculate-r32-points")
+async def recalculate_r32_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Recalculate points for completed R32 matches only. Group stage totals are never touched.
+    Scoring basis: home_score / away_score = 90+ET result (ties count as ties; penalties ignored)."""
+    from sqlalchemy.orm import selectinload
+    from app.services.scoring import recalculate_match_points
+    from app.models.worldcup import Match as MatchModel
+
+    matches = (await db.execute(
+        select(MatchModel)
+        .options(selectinload(MatchModel.predictions))
+        .where(
+            MatchModel.stage == 'r32',
+            MatchModel.status == 'completed',
+            MatchModel.home_score.is_not(None),
+        )
+    )).scalars().all()
+
+    recalculated = 0
+    details = []
+    for m in matches:
+        await recalculate_match_points(m, db)
+        recalculated += 1
+        details.append({
+            "match_number": m.match_number,
+            "home": m.home_team_id,
+            "away": m.away_team_id,
+            "score": f"{m.home_score}-{m.away_score}",
+            "pens": f"{m.home_score_pens}-{m.away_score_pens}" if m.home_score_pens is not None else None,
+            "locked": getattr(m, "score_locked", False),
+        })
+
+    await db.flush()
+    return {"status": "ok", "matches_recalculated": recalculated, "matches": details}
+
+
 @router.post("/wipe-r32-points")
 async def wipe_r32_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Set points_earned = NULL for all R32 predictions. Scores stay intact. Use to reset until R32 scoring is verified."""

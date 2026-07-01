@@ -248,6 +248,7 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   const [recalculating, setRecalculating] = useState(false);
   const [wipingR32, setWipingR32] = useState(false);
   const [wipingEarly, setWipingEarly] = useState(false);
+  const [recalcR32, setRecalcR32] = useState(false);
 
   const triggerSync = async () => {
     setSyncing(true);
@@ -280,6 +281,23 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
       toast.error(e.response?.data?.detail ?? 'Recalculation failed');
     } finally {
       setRecalculating(false);
+    }
+  };
+
+  const recalculateR32 = async () => {
+    setRecalcR32(true);
+    try {
+      const r = await api.post('/admin/recalculate-r32-points');
+      const lines = (r.data.matches || []).map((m: any) =>
+        `M${m.match_number}: ${m.score}${m.pens ? ` (pens ${m.pens})` : ''}${m.locked ? ' 🔒' : ''}`
+      ).join('\n');
+      toast.success(`R32 points recalculated — ${r.data.matches_recalculated} matches`, { duration: 6000 });
+      if (lines) console.log('R32 recalc:\n' + lines);
+      onSynced();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Recalculate R32 failed');
+    } finally {
+      setRecalcR32(false);
     }
   };
 
@@ -342,9 +360,17 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
             onClick={recalculatePoints}
             disabled={recalculating}
             className="btn-secondary py-1.5 text-sm"
-            title="Re-run points for all completed matches (use after manually correcting a score)"
+            title="Re-run points for all completed matches M5+ (skips M1–M4)"
           >
-            {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate points'}
+            {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate all'}
+          </button>
+          <button
+            onClick={recalculateR32}
+            disabled={recalcR32}
+            className="btn-primary py-1.5 text-sm"
+            title="Recalculate R32 only — group stage totals untouched. Uses 90+ET score, penalties ignored."
+          >
+            {recalcR32 ? '⏳ Recalculating…' : '🏆 Recalculate R32'}
           </button>
           <button
             onClick={wipeR32Points}
