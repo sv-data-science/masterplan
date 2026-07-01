@@ -245,11 +245,6 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
     staleTime: 10_000,
   });
 
-  const [recalculating, setRecalculating] = useState(false);
-  const [wipingR32, setWipingR32] = useState(false);
-  const [wipingEarly, setWipingEarly] = useState(false);
-  const [recalcR32, setRecalcR32] = useState(false);
-
   const triggerSync = async () => {
     setSyncing(true);
     try {
@@ -271,68 +266,12 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
     }
   };
 
-  const recalculatePoints = async () => {
-    setRecalculating(true);
-    try {
-      const r = await api.post('/admin/recalculate-points');
-      toast.success(`Points recalculated for ${r.data.matches_recalculated} completed matches`);
-      onSynced();
-    } catch (e: any) {
-      toast.error(e.response?.data?.detail ?? 'Recalculation failed');
-    } finally {
-      setRecalculating(false);
-    }
-  };
-
-  const recalculateR32 = async () => {
-    setRecalcR32(true);
-    try {
-      const r = await api.post('/admin/recalculate-r32-points');
-      const lines = (r.data.matches || []).map((m: any) =>
-        `M${m.match_number}: ${m.score}${m.pens ? ` (pens ${m.pens})` : ''}${m.locked ? ' 🔒' : ''}`
-      ).join('\n');
-      toast.success(`R32 points recalculated — ${r.data.matches_recalculated} matches`, { duration: 6000 });
-      if (lines) console.log('R32 recalc:\n' + lines);
-      onSynced();
-    } catch (e: any) {
-      toast.error(e.response?.data?.detail ?? 'Recalculate R32 failed');
-    } finally {
-      setRecalcR32(false);
-    }
-  };
-
-  const wipeEarlyPoints = async () => {
-    setWipingEarly(true);
-    try {
-      const r = await api.post('/admin/wipe-pre-cutoff-points');
-      toast.success(`Pre-Jun 12 points wiped — ${r.data.predictions_wiped} predictions cleared (${r.data.matches_excluded} matches)`);
-      onSynced();
-    } catch (e: any) {
-      toast.error(e.response?.data?.detail ?? 'Wipe failed');
-    } finally {
-      setWipingEarly(false);
-    }
-  };
-
-  const wipeR32Points = async () => {
-    setWipingR32(true);
-    try {
-      const r = await api.post('/admin/wipe-r32-points');
-      toast.success(`R32 points wiped — ${r.data.predictions_wiped} predictions reset to pending`);
-      onSynced();
-    } catch (e: any) {
-      toast.error(e.response?.data?.detail ?? 'Wipe failed');
-    } finally {
-      setWipingR32(false);
-    }
-  };
-
   const lastSync = status?.synced_at
     ? new Date(status.synced_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     : 'Never';
 
   return (
-    <div className="card p-4 border-blue-800/40 bg-blue-900/10 space-y-3">
+    <div className="card p-4 border-blue-800/40 bg-blue-900/10">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="font-semibold text-white flex items-center gap-2">
@@ -356,38 +295,74 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
           {syncing ? '⏳ Syncing…' : '🔄 Sync now'}
         </button>
       </div>
-      <div className="flex gap-2 flex-wrap border-t border-blue-800/30 pt-3">
-        <button
-          onClick={recalculatePoints}
-          disabled={recalculating}
-          className="btn-secondary py-1.5 text-sm"
-          title="Re-run points for all completed matches M5+ (skips M1–M4)"
-        >
-          {recalculating ? '⏳ Recalculating…' : '♻️ Recalculate all'}
+    </div>
+  );
+}
+
+function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
+  const [recalculating, setRecalculating] = useState(false);
+  const [recalcR32, setRecalcR32] = useState(false);
+  const [wipingR32, setWipingR32] = useState(false);
+  const [wipingEarly, setWipingEarly] = useState(false);
+
+  const recalculateAll = async () => {
+    setRecalculating(true);
+    try {
+      const r = await api.post('/admin/recalculate-points');
+      toast.success(`Points recalculated for ${r.data.matches_recalculated} matches (M5+)`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setRecalculating(false); }
+  };
+
+  const recalculateR32 = async () => {
+    setRecalcR32(true);
+    try {
+      const r = await api.post('/admin/recalculate-r32-points');
+      toast.success(`R32 points recalculated — ${r.data.matches_recalculated} matches`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setRecalcR32(false); }
+  };
+
+  const wipeR32 = async () => {
+    setWipingR32(true);
+    try {
+      const r = await api.post('/admin/wipe-r32-points');
+      toast.success(`R32 points wiped — ${r.data.predictions_wiped} predictions reset`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setWipingR32(false); }
+  };
+
+  const wipeEarly = async () => {
+    setWipingEarly(true);
+    try {
+      const r = await api.post('/admin/wipe-pre-cutoff-points');
+      toast.success(`M1–M4 points wiped — ${r.data.predictions_wiped} predictions cleared`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setWipingEarly(false); }
+  };
+
+  return (
+    <div className="card p-4 border-yellow-800/40 bg-yellow-900/10">
+      <h3 className="font-semibold text-white mb-1">🏆 Points management</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        M1–M4 are permanently excluded. R32 uses 90+ET score — penalty shootout result is ignored.
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+        <button onClick={recalculateAll} disabled={recalculating} className="btn-secondary py-2 text-sm">
+          {recalculating ? '⏳…' : '♻️ Recalculate all'}
         </button>
-        <button
-          onClick={recalculateR32}
-          disabled={recalcR32}
-          className="btn-primary py-1.5 text-sm"
-          title="Recalculate R32 only — group stage untouched. 90+ET score, penalties ignored."
-        >
-          {recalcR32 ? '⏳ Recalculating…' : '🏆 Recalculate R32'}
+        <button onClick={recalculateR32} disabled={recalcR32} className="btn-primary py-2 text-sm">
+          {recalcR32 ? '⏳…' : '🏆 Recalculate R32'}
         </button>
-        <button
-          onClick={wipeR32Points}
-          disabled={wipingR32}
-          className="btn-secondary py-1.5 text-sm"
-          title="Set all R32 prediction points to NULL — scores stay, group stage untouched"
-        >
-          {wipingR32 ? '⏳ Wiping…' : '🗑️ Wipe R32 points'}
+        <button onClick={wipeR32} disabled={wipingR32} className="btn-secondary py-2 text-sm">
+          {wipingR32 ? '⏳…' : '🗑️ Wipe R32 points'}
         </button>
-        <button
-          onClick={wipeEarlyPoints}
-          disabled={wipingEarly}
-          className="btn-secondary py-1.5 text-sm"
-          title="Clear points for M1–M4 — permanently excluded from scoring"
-        >
-          {wipingEarly ? '⏳ Wiping…' : '🚫 Wipe M1–M4 points'}
+        <button onClick={wipeEarly} disabled={wipingEarly} className="btn-secondary py-2 text-sm">
+          {wipingEarly ? '⏳…' : '🚫 Wipe M1–M4 points'}
         </button>
       </div>
     </div>
@@ -1116,6 +1091,8 @@ export default function AdminPage() {
         <h1 className="text-2xl font-bold text-white">Admin Panel</h1>
         <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-0.5 rounded-full border border-yellow-500/30">Admin</span>
       </div>
+
+      <PointsManagementPanel onUpdated={invalidate} />
 
       <SeedPanel onSeeded={invalidate} />
 
