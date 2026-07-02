@@ -346,23 +346,23 @@ function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
   };
 
   return (
-    <div className="card p-4 border-yellow-800/40 bg-yellow-900/10">
+    <div id="points-management" className="card p-4 border-yellow-600/50 bg-yellow-900/15">
       <h3 className="font-semibold text-white mb-1">🏆 Points management</h3>
       <p className="text-xs text-gray-400 mb-3">
-        M1–M4 are permanently excluded. R32 uses 90+ET score — penalty shootout result is ignored.
+        M1–M4 are permanently excluded from scoring. R32 uses 90+ET result — penalty shootout outcome is ignored.
       </p>
-      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-        <button onClick={recalculateAll} disabled={recalculating} className="btn-secondary py-2 text-sm">
-          {recalculating ? '⏳…' : '♻️ Recalculate all'}
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={recalculateAll} disabled={recalculating} className="btn-secondary py-2 text-sm w-full">
+          {recalculating ? '⏳ Working…' : '♻️ Recalculate all'}
         </button>
-        <button onClick={recalculateR32} disabled={recalcR32} className="btn-primary py-2 text-sm">
-          {recalcR32 ? '⏳…' : '🏆 Recalculate R32'}
+        <button onClick={recalculateR32} disabled={recalcR32} className="btn-primary py-2 text-sm w-full">
+          {recalcR32 ? '⏳ Working…' : '🏆 Recalculate R32'}
         </button>
-        <button onClick={wipeR32} disabled={wipingR32} className="btn-secondary py-2 text-sm">
-          {wipingR32 ? '⏳…' : '🗑️ Wipe R32 points'}
+        <button onClick={wipeR32} disabled={wipingR32} className="btn-secondary py-2 text-sm w-full">
+          {wipingR32 ? '⏳ Working…' : '🗑️ Wipe R32 points'}
         </button>
-        <button onClick={wipeEarly} disabled={wipingEarly} className="btn-secondary py-2 text-sm">
-          {wipingEarly ? '⏳…' : '🚫 Wipe M1–M4 points'}
+        <button onClick={wipeEarly} disabled={wipingEarly} className="btn-secondary py-2 text-sm w-full">
+          {wipingEarly ? '⏳ Working…' : '🚫 Wipe M1–M4 pts'}
         </button>
       </div>
     </div>
@@ -1093,7 +1093,6 @@ export default function AdminPage() {
       </div>
 
       <PointsManagementPanel onUpdated={invalidate} />
-
       <SeedPanel onSeeded={invalidate} />
 
       <SeedR32Panel onSeeded={invalidate} />
