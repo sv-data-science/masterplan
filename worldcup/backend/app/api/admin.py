@@ -741,7 +741,7 @@ _R16_SEED_DATA = [
     (89, '2026-07-05T17:00:00+00:00', 'MetLife Stadium',       'East Rutherford, USA'),
     (90, '2026-07-05T21:00:00+00:00', 'SoFi Stadium',          'Inglewood, USA'),
     (91, '2026-07-06T17:00:00+00:00', 'AT&T Stadium',          'Arlington, USA'),
-    (92, '2026-07-06T21:00:00+00:00', 'NRG Stadium',           'Houston, USA'),
+    (92, '2026-07-06T21:00:00+00:00', 'Estadio Azteca',         'Mexico City, Mexico'),
     (93, '2026-07-07T17:00:00+00:00', 'Lumen Field',           'Seattle, USA'),
     (94, '2026-07-07T21:00:00+00:00', 'Rose Bowl Stadium',     'Pasadena, USA'),
     (95, '2026-07-08T17:00:00+00:00', 'Hard Rock Stadium',     'Miami Gardens, USA'),
