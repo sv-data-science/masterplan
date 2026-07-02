@@ -12,7 +12,6 @@ import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
 from app.models.worldcup import Match, Team, GoalEvent
-from app.services.scoring import recalculate_match_points
 from app.database import AsyncSessionLocal
 from app.config import settings
 
@@ -258,7 +257,6 @@ async def sync_scores() -> dict:
                 if match.home_score != hs or match.away_score != as_:
                     match.home_score = hs
                     match.away_score = as_
-                    await recalculate_match_points(match, db)
                     changed = True
                 # Sync penalty shootout scores into dedicated fields (not used for prediction scoring)
                 if match.home_score_pens != hs_pens or match.away_score_pens != as_pens:
