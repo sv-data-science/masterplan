@@ -504,6 +504,75 @@ function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   );
 }
 
+function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
+  const [seeding, setSeeding] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [patching, setPatching] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const seed = async () => {
+    setSeeding(true);
+    try {
+      const r = await api.post('/admin/seed-r16');
+      if (r.data.status === 'already_exists') toast(`R16 matches already present (${r.data.matches} found)`);
+      else toast.success(`R16 seeded — ${r.data.created} matches created`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Seed R16 failed');
+    } finally { setSeeding(false); }
+  };
+
+  const assignWinners = async () => {
+    setAssigning(true);
+    setResult(null);
+    try {
+      const r = await api.post('/admin/assign-r16-winners');
+      const { updated, unresolved } = r.data;
+      toast.success(`${updated} R16 matches updated`);
+      setResult(unresolved?.length ? unresolved.join('\n') : null);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Assignment failed');
+    } finally { setAssigning(false); }
+  };
+
+  const patchSchedule = async () => {
+    setPatching(true);
+    try {
+      const r = await api.post('/admin/patch-r16-schedule');
+      toast.success(`R16 schedule patched — ${r.data.updated} matches updated`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Patch failed');
+    } finally { setPatching(false); }
+  };
+
+  return (
+    <div className="card p-4 border-blue-800/40 bg-blue-900/10">
+      <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏅 Round of 16 Setup</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        Step 1 — create the 8 R16 match records (M89–M96).
+        Step 2 — auto-assign teams from completed R32 winners.
+        Step 3 — fix kickoff times once the official FIFA schedule is confirmed.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={seed} disabled={seeding} className="btn-secondary py-1.5 text-sm">
+          {seeding ? '⏳ Seeding…' : '1️⃣ Seed R16 matches'}
+        </button>
+        <button onClick={assignWinners} disabled={assigning} className="btn-primary py-1.5 text-sm">
+          {assigning ? '⏳ Assigning…' : '2️⃣ Assign R32 winners'}
+        </button>
+        <button onClick={patchSchedule} disabled={patching} className="btn-secondary py-1.5 text-sm">
+          {patching ? '⏳ Patching…' : '3️⃣ Fix R16 kickoff times'}
+        </button>
+      </div>
+      {result && (
+        <pre className="mt-2 text-xs text-gray-300 bg-[#0d1117] rounded p-2 whitespace-pre-wrap">{result}</pre>
+      )}
+    </div>
+  );
+}
+
 interface R32Assignment { match_number: number; home: string; away: string; kickoff_utc: string | null }
 
 function R32OverridePanel({ onSaved }: { onSaved: () => void }) {
@@ -1096,6 +1165,8 @@ export default function AdminPage() {
       <SeedPanel onSeeded={invalidate} />
 
       <SeedR32Panel onSeeded={invalidate} />
+
+      <SeedR16Panel onSeeded={invalidate} />
 
       <R32OverridePanel onSaved={invalidate} />
 

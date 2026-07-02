@@ -5,6 +5,7 @@ import { matchesApi } from '@/lib/api';
 import { Match, Team } from '@/types';
 import { MatchCard } from '@/components/MatchCard';
 import { R32, R32Entry, R32_BY_MATCH_NUMBER, SlotDef, slotLabel } from '@/lib/r32Data';
+import { R16, R16Entry, R16_BY_MATCH_NUMBER, r16SlotLabel } from '@/lib/r16Data';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
@@ -138,6 +139,39 @@ function BracketMatchCard({ entry, groupMatchMap, dbMatch, w, h }: {
   );
 }
 
+function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
+  entry: R16Entry;
+  dbMatch?: Match;
+  r32MatchByNum: Map<number, Match>;
+  w: number;
+  h: number;
+}) {
+  function slotFor(r32Num: number, dbTeam?: { code: string; flag: string; name: string } | null): SlotInfo {
+    if (dbTeam && dbTeam.code !== 'TBD') {
+      return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    }
+    const r32m = r32MatchByNum.get(r32Num);
+    const pending = r32m?.status === 'completed';
+    return { flag: '', name: r16SlotLabel(r32Num), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
+  }
+  const home = slotFor(entry.r32HomeMatch, dbMatch?.home_team);
+  const away = slotFor(entry.r32AwayMatch, dbMatch?.away_team);
+  return (
+    <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
+      <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
+        <span className="text-[9px] text-gray-600 font-medium">M{entry.matchNumber}</span>
+        <span className="text-[9px] text-gray-600">{fmtDate(entry.kickoff_utc)}</span>
+      </div>
+      <div className="flex-1 flex flex-col justify-around">
+        <TeamRow info={home} />
+        <div className="border-t border-[#21262d] mx-1.5" />
+        <TeamRow info={away} border={false} />
+      </div>
+      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
+    </div>
+  );
+}
+
 function TBDCard({ label, w, h }: { label: string; w: number; h: number }) {
   return (
     <div className="bg-[#0d1117] border border-[#21262d] rounded-lg flex flex-col items-center justify-center gap-0.5" style={{ width: w, height: h }}>
@@ -184,9 +218,10 @@ function Connectors({ fromCenters, toCenters, w, h }: {
 }
 
 // ── Full bracket tree ───────────────────────────────────────────────────────
-function BracketTreeView({ groupMatchMap, r32DbMatchByNumber }: {
+function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber }: {
   groupMatchMap: Map<string, Match[]>;
   r32DbMatchByNumber: Map<number, Match>;
+  r16DbMatchByNumber: Map<number, Match>;
 }) {
   const r32Map = new Map(R32.map(e => [e.matchNumber, e]));
 
@@ -241,9 +276,15 @@ function BracketTreeView({ groupMatchMap, r32DbMatchByNumber }: {
         </div>
 
         {/* R16 cards */}
-        {r16Centers.map((cy, i) => (
-          <div key={i} className="absolute" style={{ top: cy - BK.cardH / 2, left: BK.r32W + BK.connW, width: BK.r16W, height: BK.cardH }}>
-            <TBDCard label={`R16 · #${i + 1}`} w={BK.r16W} h={BK.cardH} />
+        {R16.map((entry, i) => (
+          <div key={entry.matchNumber} className="absolute" style={{ top: r16Centers[i] - BK.cardH / 2, left: BK.r32W + BK.connW, width: BK.r16W, height: BK.cardH }}>
+            <R16BracketMatchCard
+              entry={entry}
+              dbMatch={r16DbMatchByNumber.get(entry.matchNumber)}
+              r32MatchByNum={r32DbMatchByNumber}
+              w={BK.r16W}
+              h={BK.cardH}
+            />
           </div>
         ))}
 
@@ -373,8 +414,10 @@ export default function BracketsPage() {
 
   const groupMatchMap = new Map<string, Match[]>();
   const r32DbMatchByNumber = new Map<number, Match>();
+  const r16DbMatchByNumber = new Map<number, Match>();
   for (const m of allMatches) {
     if (m.stage === 'r32') { r32DbMatchByNumber.set(m.match_number, m); continue; }
+    if (m.stage === 'r16') { r16DbMatchByNumber.set(m.match_number, m); continue; }
     if (!m.group_letter) continue;
     if (!groupMatchMap.has(m.group_letter)) groupMatchMap.set(m.group_letter, []);
     groupMatchMap.get(m.group_letter)!.push(m);
@@ -419,7 +462,7 @@ export default function BracketsPage() {
 
       {/* ── Bracket view ── */}
       {view === 'bracket' && (
-        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} />
+        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} r16DbMatchByNumber={r16DbMatchByNumber} />
       )}
 
       {/* ── List view ── */}
@@ -482,11 +525,18 @@ export default function BracketsPage() {
                 .sort((a, b) => a.match_number - b.match_number)
                 .map(m => {
                   const r32Entry = activeRound === 'r32' ? R32_BY_MATCH_NUMBER.get(m.match_number) : undefined;
+                  const r16Entry = activeRound === 'r16' ? R16_BY_MATCH_NUMBER.get(m.match_number) : undefined;
                   return (
                     <MatchCard key={m.id} match={m} queryKey={['brackets', activeRound]}
                       label={`${active.short} · Match ${m.match_number}`}
-                      homeLabel={r32Entry && m.home_team.code === 'TBD' ? slotLabel(r32Entry.home) : undefined}
-                      awayLabel={r32Entry && m.away_team.code === 'TBD' ? slotLabel(r32Entry.away) : undefined}
+                      homeLabel={
+                        (r32Entry && m.home_team.code === 'TBD' ? slotLabel(r32Entry.home) : undefined) ??
+                        (r16Entry && m.home_team.code === 'TBD' ? r16SlotLabel(r16Entry.r32HomeMatch) : undefined)
+                      }
+                      awayLabel={
+                        (r32Entry && m.away_team.code === 'TBD' ? slotLabel(r32Entry.away) : undefined) ??
+                        (r16Entry && m.away_team.code === 'TBD' ? r16SlotLabel(r16Entry.r32AwayMatch) : undefined)
+                      }
                     />
                   );
                 })}

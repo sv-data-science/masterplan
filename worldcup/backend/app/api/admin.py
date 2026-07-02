@@ -735,6 +735,161 @@ async def wipe_r32_points(admin: User = Depends(require_admin), db: AsyncSession
     return {"status": "ok", "predictions_wiped": result.rowcount, "r32_matches": len(r32_match_ids)}
 
 
+# ─── R16 ─────────────────────────────────────────────────────────────────────
+
+_R16_SEED_DATA = [
+    (89, '2026-07-05T17:00:00+00:00', 'MetLife Stadium',       'East Rutherford, USA'),
+    (90, '2026-07-05T21:00:00+00:00', 'SoFi Stadium',          'Inglewood, USA'),
+    (91, '2026-07-06T17:00:00+00:00', 'AT&T Stadium',          'Arlington, USA'),
+    (92, '2026-07-06T21:00:00+00:00', 'NRG Stadium',           'Houston, USA'),
+    (93, '2026-07-07T17:00:00+00:00', 'Lumen Field',           'Seattle, USA'),
+    (94, '2026-07-07T21:00:00+00:00', 'Rose Bowl Stadium',     'Pasadena, USA'),
+    (95, '2026-07-08T17:00:00+00:00', 'Hard Rock Stadium',     'Miami Gardens, USA'),
+    (96, '2026-07-08T21:00:00+00:00', 'Mercedes-Benz Stadium', 'Atlanta, USA'),
+]
+
+# (r16_match_num, r32_home_parent, r32_away_parent)
+_R16_PAIRS = [
+    (89, 74, 77),
+    (90, 73, 75),
+    (91, 76, 78),
+    (92, 79, 80),
+    (93, 82, 81),
+    (94, 83, 84),
+    (95, 85, 87),
+    (96, 86, 88),
+]
+
+
+@router.post("/seed-r16")
+async def seed_r16_matches(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Create 8 R16 match records (M89–M96) if not already present."""
+    from sqlalchemy import func
+    from app.models.worldcup import Team, Match
+    from datetime import datetime
+
+    r16_count = (await db.execute(
+        select(func.count()).select_from(Match).where(Match.stage == 'r16')
+    )).scalar() or 0
+    if r16_count >= 8:
+        return {"status": "already_exists", "matches": r16_count}
+
+    tbd_team = (await db.execute(select(Team).where(Team.code == 'TBD'))).scalar_one_or_none()
+    if not tbd_team:
+        tbd_team = Team(id=str(uuid.uuid4()), name='TBD', code='TBD', group_letter='?', flag='🏳️')
+        db.add(tbd_team)
+        await db.flush()
+
+    created = 0
+    for match_number, kickoff_str, venue, city in _R16_SEED_DATA:
+        existing = (await db.execute(
+            select(Match).where(Match.match_number == match_number)
+        )).scalar_one_or_none()
+        if not existing:
+            m = Match(
+                id=str(uuid.uuid4()),
+                match_number=match_number,
+                group_letter='?',
+                matchday=5,
+                home_team_id=tbd_team.id,
+                away_team_id=tbd_team.id,
+                kickoff_utc=datetime.fromisoformat(kickoff_str),
+                venue=venue,
+                city=city,
+                status='scheduled',
+                stage='r16',
+            )
+            db.add(m)
+            created += 1
+
+    await db.flush()
+    return {"status": "seeded", "created": created}
+
+
+@router.post("/assign-r16-winners")
+async def assign_r16_winners(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Auto-assign R16 teams from completed R32 results. Winner = team with higher score (90+ET);
+    on draw, uses penalty scores if recorded."""
+    from app.models.worldcup import Match as MatchModel
+    from sqlalchemy.orm import selectinload
+
+    r32_by_num = {
+        m.match_number: m
+        for m in (await db.execute(
+            select(MatchModel)
+            .options(selectinload(MatchModel.home_team), selectinload(MatchModel.away_team))
+            .where(MatchModel.stage == 'r32')
+        )).scalars().all()
+    }
+    r16_by_num = {
+        m.match_number: m
+        for m in (await db.execute(
+            select(MatchModel).where(MatchModel.stage == 'r16')
+        )).scalars().all()
+    }
+
+    def winner_team(m: MatchModel):
+        if m.status != 'completed' or m.home_score is None:
+            return None
+        if m.home_score > m.away_score:
+            return m.home_team
+        if m.away_score > m.home_score:
+            return m.away_team
+        if m.home_score_pens is not None and m.away_score_pens is not None:
+            if m.home_score_pens > m.away_score_pens:
+                return m.home_team
+            if m.away_score_pens > m.home_score_pens:
+                return m.away_team
+        return None
+
+    updated, unresolved = 0, []
+    for r16_num, r32_home_num, r32_away_num in _R16_PAIRS:
+        r16m = r16_by_num.get(r16_num)
+        if not r16m:
+            unresolved.append(f"M{r16_num} not in DB — run seed-r16 first")
+            continue
+        r32h = r32_by_num.get(r32_home_num)
+        r32a = r32_by_num.get(r32_away_num)
+        hw = winner_team(r32h) if r32h else None
+        aw = winner_team(r32a) if r32a else None
+        if hw:
+            r16m.home_team_id = hw.id
+        else:
+            unresolved.append(f"M{r16_num} home slot: M{r32_home_num} not resolved yet")
+        if aw:
+            r16m.away_team_id = aw.id
+        else:
+            unresolved.append(f"M{r16_num} away slot: M{r32_away_num} not resolved yet")
+        if hw or aw:
+            updated += 1
+
+    await db.flush()
+    return {"status": "ok", "updated": updated, "unresolved": unresolved}
+
+
+@router.post("/patch-r16-schedule")
+async def patch_r16_schedule(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Update R16 kickoff times/venues to official FIFA schedule."""
+    from app.models.worldcup import Match as MatchModel
+    from datetime import datetime
+
+    r16_db = {m.match_number: m for m in (await db.execute(
+        select(MatchModel).where(MatchModel.stage == 'r16')
+    )).scalars().all()}
+
+    updated = 0
+    for match_number, kickoff_str, venue, city in _R16_SEED_DATA:
+        m = r16_db.get(match_number)
+        if m:
+            m.kickoff_utc = datetime.fromisoformat(kickoff_str)
+            m.venue = venue
+            m.city = city
+            updated += 1
+
+    await db.flush()
+    return {"status": "ok", "updated": updated}
+
+
 @router.get("/user-audit/{username}")
 async def user_audit(username: str, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Show all predictions for a user with points earned, grouped by stage. Useful for auditing totals."""
