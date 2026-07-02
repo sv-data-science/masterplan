@@ -81,7 +81,6 @@ export default function HomePage() {
             <span className="text-gray-400 text-sm">·</span>
             <div className="text-left">
               <span className="text-xl font-bold text-white">{myRank.total_points}pts</span>
-              <p className="text-[10px] text-yellow-500/80 leading-tight">group phase · R32 pending</p>
             </div>
           </div>
         ) : !user ? (
@@ -147,10 +146,6 @@ export default function HomePage() {
         </div>
         <div>
           <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">Leaderboard</h2><Link href="/leaderboard" className="text-sm text-green-400 hover:underline">Full →</Link></div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-yellow-700/40 bg-yellow-900/15 mb-2 text-xs text-yellow-300">
-            <span>⚙️</span>
-            <span>Group phase only — R32 points pending</span>
-          </div>
           <div className="card divide-y divide-[#30363d]">
             {top5.length === 0 && <p className="p-4 text-sm text-gray-500 text-center">No scores yet</p>}
             {top5.map(e => (

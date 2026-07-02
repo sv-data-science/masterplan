@@ -23,13 +23,6 @@ export default function LeaderboardPage() {
         <div className="text-sm text-gray-500">{entries.length} players</div>
       </div>
 
-      <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-yellow-700/50 bg-yellow-900/15">
-        <span className="text-xl shrink-0">⚙️</span>
-        <div>
-          <p className="text-sm font-semibold text-yellow-300">Round of 32 scores under review</p>
-          <p className="text-xs text-gray-400 mt-0.5">Points shown are from the <strong className="text-white">group phase only</strong>. R32 points will be added once scoring is verified.</p>
-        </div>
-      </div>
       {isLoading && <div className="text-center py-12 text-gray-500">Loading…</div>}
       {!isLoading && entries.length === 0 && (
         <div className="card p-8 text-center text-gray-500">
@@ -42,7 +35,7 @@ export default function LeaderboardPage() {
           <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs text-gray-500 font-medium uppercase">
             <div className="col-span-1">#</div>
             <div className="col-span-6">Player</div>
-            <div className="col-span-2 text-center">Pts <span className="normal-case text-yellow-600">(GS)</span></div>
+            <div className="col-span-2 text-center">Pts</div>
             <div className="col-span-3 text-center">Predictions</div>
           </div>
           {entries.map(e => {
