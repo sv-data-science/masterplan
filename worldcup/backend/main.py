@@ -191,15 +191,19 @@ async def lifespan(app: FastAPI):
                         if m.away_score_pens > m.home_score_pens: return m.away_team
                     return None
 
+                # Load TBD team id once to compare without lazy-loading relationships
+                _tbd2 = (await _s2.execute(select(_Team).where(_Team.code == 'TBD'))).scalar_one_or_none()
+                _tbd_id = _tbd2.id if _tbd2 else None
+
                 assigned = 0
                 for _r16n, _h32, _a32 in _R16_PAIRS:
                     _r16m = _r16.get(_r16n)
                     if not _r16m: continue
                     _hw = _winner(_r32.get(_h32))
                     _aw = _winner(_r32.get(_a32))
-                    if _hw and _r16m.home_team.code == 'TBD':
+                    if _hw and _r16m.home_team_id == _tbd_id:
                         _r16m.home_team_id = _hw.id; assigned += 1
-                    if _aw and _r16m.away_team.code == 'TBD':
+                    if _aw and _r16m.away_team_id == _tbd_id:
                         _r16m.away_team_id = _aw.id; assigned += 1
                 if assigned:
                     await _s2.commit()
