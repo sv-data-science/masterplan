@@ -1398,8 +1398,8 @@ export const ALL_QUESTIONS: TriviaQuestion[] = [
   },
   {
     id: 189,
-    question: "Which South American team surprised everyone by reaching the semi-finals in both 2018 and 2022?",
-    options: ['Colombia', 'Ecuador', 'Uruguay', 'Croatia'],
+    question: "Which small European nation (population ~4 million) surprised everyone by reaching the semi-finals in both 2018 and 2022?",
+    options: ['Slovenia', 'Slovakia', 'North Macedonia', 'Croatia'],
     answer: 3,
     fact: "Croatia reached the 2018 final (lost to France 4–2) and the 2022 semi-finals (lost to Argentina) — remarkable for a country of 4 million.",
   },
@@ -2687,8 +2687,8 @@ export const ALL_QUESTIONS: TriviaQuestion[] = [
     id: 366,
     question: "How many matches will each 2026 host nation (USA, Canada, Mexico) host in their territory?",
     options: ['USA 60, Canada 10, Mexico 10', 'USA 78, Canada 13, Mexico 13', 'USA 60, Canada 22, Mexico 22', 'All equal at 34 each'],
-    answer: 0,
-    fact: "The USA will host 60 matches, Canada 10, and Mexico 10 of the 80 group-stage and knockout round games (the full 104 including all rounds).",
+    answer: 1,
+    fact: "With the expanded 48-team, 104-match format, the USA will host 78 matches across its 11 venues, while Canada and Mexico each host 13 matches across their 2–3 venues.",
   },
 
   // SPECIFIC COUNTRY/PLAYER CONNECTIONS

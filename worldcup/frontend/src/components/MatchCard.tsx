@@ -52,17 +52,17 @@ function outcomeLabel(points: number | null) {
   return <span className="badge-wrong">✗ Wrong</span>;
 }
 
-function PredictionsReveal({ matchId, matchStatus }: { matchId: string; matchStatus: string }) {
+function PredictionsReveal({ matchId, locked }: { matchId: string; locked: boolean }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuthStore();
   const { data: entries = [], isLoading } = useQuery<MatchPredictionEntry[]>({
     queryKey: ['match-predictions', matchId],
     queryFn: () => matchesApi.predictions(matchId).then(r => r.data),
-    enabled: open && matchStatus !== 'scheduled' && !!user,
+    enabled: open && locked && !!user,
     staleTime: 60_000,
   });
 
-  if (!user || matchStatus === 'scheduled') return null;
+  if (!user || !locked) return null;
 
   return (
     <div className="mt-2">
@@ -99,7 +99,9 @@ function PredictionsReveal({ matchId, matchStatus }: { matchId: string; matchSta
   );
 }
 
-export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[] }) {
+export function MatchCard({ match, queryKey, label, homeLabel, awayLabel }: {
+  match: Match; queryKey: string[]; label?: string; homeLabel?: string; awayLabel?: string;
+}) {
   const { user } = useAuthStore();
   const qc = useQueryClient();
   const [home, setHome] = useState<string | number>(match.my_prediction?.pred_home ?? '');
@@ -124,7 +126,9 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs text-gray-500 font-medium">Group {match.group_letter} · MD{match.matchday}</span>
+        <span className="text-xs text-gray-500 font-medium">
+          {label ?? (match.stage === 'r32' ? `R32 · Match ${match.match_number}` : `Group ${match.group_letter} · MD${match.matchday}`)}
+        </span>
         {match.status === 'live' ? (
           <span className="flex items-center gap-1 text-xs text-red-400">🔴 Live</span>
         ) : match.status === 'completed' ? (
@@ -136,20 +140,37 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
       <div className="flex items-center justify-between gap-4">
         <div className="flex-1 text-right">
           <p className="text-lg">{match.home_team.flag}</p>
-          <p className="font-semibold text-sm">{match.home_team.name}</p>
-          <p className="text-xs text-gray-500">{match.home_team.code}</p>
+          {homeLabel ? (
+            <p className="font-semibold text-sm text-gray-300 leading-tight">{homeLabel}</p>
+          ) : (
+            <>
+              <p className="font-semibold text-sm">{match.home_team.name}</p>
+              <p className="text-xs text-gray-500">{match.home_team.code}</p>
+            </>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-0.5">
           {match.status !== 'scheduled' ? (
-            <div className="text-2xl font-bold tabular-nums">{match.home_score ?? '-'} – {match.away_score ?? '-'}</div>
+            <>
+              <div className="text-2xl font-bold tabular-nums">{match.home_score ?? '-'} – {match.away_score ?? '-'}</div>
+              {match.home_score_pens !== null && match.away_score_pens !== null && (
+                <div className="text-[10px] text-gray-500 font-medium">aet</div>
+              )}
+            </>
           ) : (
             <div className="text-gray-600 font-bold text-xl">vs</div>
           )}
         </div>
         <div className="flex-1 text-left">
           <p className="text-lg">{match.away_team.flag}</p>
-          <p className="font-semibold text-sm">{match.away_team.name}</p>
-          <p className="text-xs text-gray-500">{match.away_team.code}</p>
+          {awayLabel ? (
+            <p className="font-semibold text-sm text-gray-300 leading-tight">{awayLabel}</p>
+          ) : (
+            <>
+              <p className="font-semibold text-sm">{match.away_team.name}</p>
+              <p className="text-xs text-gray-500">{match.away_team.code}</p>
+            </>
+          )}
         </div>
       </div>
       {match.kickoff_utc && (
@@ -186,6 +207,18 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
           </div>
         );
       })()}
+      {match.home_score_pens !== null && match.away_score_pens !== null && (() => {
+        const homeWins = match.home_score_pens > match.away_score_pens;
+        const winner = homeWins ? match.home_team.name : match.away_team.name;
+        const ps = homeWins
+          ? `${match.home_score_pens}–${match.away_score_pens}`
+          : `${match.away_score_pens}–${match.home_score_pens}`;
+        return (
+          <p className="text-xs text-center text-yellow-500/80 mt-1">
+            🎯 {winner} won {ps} on penalties
+          </p>
+        );
+      })()}
       <div className="mt-3 pt-3 border-t border-[#30363d]">
         {match.status === 'completed' && match.my_prediction ? (
           <div className="flex items-center justify-between text-sm">
@@ -213,7 +246,7 @@ export function MatchCard({ match, queryKey }: { match: Match; queryKey: string[
           <p className="text-xs text-gray-600 text-center"><a href="/login" className="underline hover:text-green-400">Log in</a> to predict</p>
         )}
       </div>
-      <PredictionsReveal matchId={match.id} matchStatus={match.status} />
+      <PredictionsReveal matchId={match.id} locked={locked} />
     </div>
   );
 }

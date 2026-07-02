@@ -58,12 +58,41 @@ async def lifespan(app: FastAPI):
         "ALTER TABLE users ADD COLUMN fav_wc_year INTEGER",
         "ALTER TABLE users ADD COLUMN fav_national_team TEXT",
         "ALTER TABLE users ADD COLUMN fav_player TEXT",
+        "ALTER TABLE matches ADD COLUMN stage VARCHAR(10)",
+        "ALTER TABLE matches ADD COLUMN home_score_pens INTEGER",
+        "ALTER TABLE matches ADD COLUMN away_score_pens INTEGER",
+        "ALTER TABLE matches ADD COLUMN score_locked BOOLEAN DEFAULT FALSE",
     ]:
         try:
             async with engine.begin() as conn:
                 await conn.execute(text(col_sql))
         except Exception:
             pass  # column already exists
+
+    # Create score audit log table if it doesn't exist yet
+    for ddl in [
+        """CREATE TABLE IF NOT EXISTS score_audit_log (
+            id VARCHAR PRIMARY KEY,
+            match_id VARCHAR NOT NULL REFERENCES matches(id),
+            changed_by_user_id VARCHAR NOT NULL REFERENCES users(id),
+            changed_at TIMESTAMPTZ DEFAULT now(),
+            old_home_score INTEGER,
+            old_away_score INTEGER,
+            old_status VARCHAR(20),
+            old_home_score_pens INTEGER,
+            old_away_score_pens INTEGER,
+            new_home_score INTEGER NOT NULL,
+            new_away_score INTEGER NOT NULL,
+            new_status VARCHAR(20) NOT NULL,
+            new_home_score_pens INTEGER,
+            new_away_score_pens INTEGER
+        )"""
+    ]:
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(ddl))
+        except Exception:
+            pass
 
     # Ensure memes tables exist (create_all may be skipped on existing DBs)
     for ddl in [
@@ -101,6 +130,83 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         log.warning("Seed skipped: %s", e)
 
+    # Auto-seed R16 matches and assign winners from completed R32 results
+    try:
+        from sqlalchemy import func, text as _text
+        from app.models.worldcup import Match as _Match, Team as _Team
+        from sqlalchemy.orm import selectinload as _sli
+        import uuid as _uuid
+        from datetime import datetime as _dt
+
+        async with AsyncSessionLocal() as _s:
+            r16_count = (await _s.execute(
+                select(func.count()).select_from(_Match).where(_Match.stage == 'r16')
+            )).scalar() or 0
+
+            if r16_count < 8:
+                _tbd = (await _s.execute(select(_Team).where(_Team.code == 'TBD'))).scalar_one_or_none()
+                if not _tbd:
+                    _tbd = _Team(id=str(_uuid.uuid4()), name='TBD', code='TBD', group_letter='?', flag='🏳️')
+                    _s.add(_tbd)
+                    await _s.flush()
+                _R16_DATA = [
+                    (89, '2026-07-05T17:00:00+00:00', 'MetLife Stadium',       'East Rutherford, USA'),
+                    (90, '2026-07-05T21:00:00+00:00', 'SoFi Stadium',          'Inglewood, USA'),
+                    (91, '2026-07-06T17:00:00+00:00', 'AT&T Stadium',          'Arlington, USA'),
+                    (92, '2026-07-06T21:00:00+00:00', 'NRG Stadium',           'Houston, USA'),
+                    (93, '2026-07-07T17:00:00+00:00', 'Lumen Field',           'Seattle, USA'),
+                    (94, '2026-07-07T21:00:00+00:00', 'Rose Bowl Stadium',     'Pasadena, USA'),
+                    (95, '2026-07-08T17:00:00+00:00', 'Hard Rock Stadium',     'Miami Gardens, USA'),
+                    (96, '2026-07-08T21:00:00+00:00', 'Mercedes-Benz Stadium', 'Atlanta, USA'),
+                ]
+                created = 0
+                for _mn, _ks, _venue, _city in _R16_DATA:
+                    if not (await _s.execute(select(_Match).where(_Match.match_number == _mn))).scalar_one_or_none():
+                        _s.add(_Match(id=str(_uuid.uuid4()), match_number=_mn, group_letter='?',
+                                      matchday=5, home_team_id=_tbd.id, away_team_id=_tbd.id,
+                                      kickoff_utc=_dt.fromisoformat(_ks), venue=_venue, city=_city,
+                                      status='scheduled', stage='r16'))
+                        created += 1
+                await _s.commit()
+                if created:
+                    log.info("Auto-seeded %d R16 matches", created)
+
+            # Auto-assign R32 winners to R16 slots where both R32 parents are complete
+            _R16_PAIRS = [(89,74,77),(90,73,75),(91,76,78),(92,79,80),(93,82,81),(94,83,84),(95,85,87),(96,86,88)]
+            async with AsyncSessionLocal() as _s2:
+                _r32 = {m.match_number: m for m in (await _s2.execute(
+                    select(_Match).options(_sli(_Match.home_team), _sli(_Match.away_team))
+                    .where(_Match.stage == 'r32')
+                )).scalars().all()}
+                _r16 = {m.match_number: m for m in (await _s2.execute(
+                    select(_Match).where(_Match.stage == 'r16')
+                )).scalars().all()}
+
+                def _winner(m):
+                    if not m or m.status != 'completed' or m.home_score is None: return None
+                    if m.home_score > m.away_score: return m.home_team
+                    if m.away_score > m.home_score: return m.away_team
+                    if m.home_score_pens is not None and m.away_score_pens is not None:
+                        if m.home_score_pens > m.away_score_pens: return m.home_team
+                        if m.away_score_pens > m.home_score_pens: return m.away_team
+                    return None
+
+                assigned = 0
+                for _r16n, _h32, _a32 in _R16_PAIRS:
+                    _r16m = _r16.get(_r16n)
+                    if not _r16m: continue
+                    _hw = _winner(_r32.get(_h32))
+                    _aw = _winner(_r32.get(_a32))
+                    if _hw and _r16m.home_team.code == 'TBD':
+                        _r16m.home_team_id = _hw.id; assigned += 1
+                    if _aw and _r16m.away_team.code == 'TBD':
+                        _r16m.away_team_id = _aw.id; assigned += 1
+                if assigned:
+                    await _s2.commit()
+                    log.info("Auto-assigned %d R16 team slots from R32 results", assigned)
+    except Exception as _e:
+        log.warning("R16 auto-setup skipped: %s", _e)
+
     task = None
     if settings.FOOTBALL_DATA_API_KEY and settings.SYNC_INTERVAL_MINUTES > 0:
         task = asyncio.create_task(_auto_sync_loop())
@@ -137,7 +243,7 @@ app.include_router(goals.router, prefix="/api/v1")
 app.include_router(trivia.router, prefix="/api/v1")
 
 # ── Memes (inlined to avoid any module-import issues on Railway) ──────────────
-_ALLOWED_EMOJIS = {"❤️", "😂", "🔥", "🙈", "😮"}
+_ALLOWED_EMOJIS = {"👍", "❤️", "😂", "🔥", "🙈", "😮", "👏", "😭", "🤣", "😡"}
 
 class _MemeCreate(BaseModel):
     image_data: str

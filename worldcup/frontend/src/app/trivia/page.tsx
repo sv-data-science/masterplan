@@ -8,7 +8,7 @@ import { api, triviaApi } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
 
-const TIMER_SECONDS = 15;
+const TIMER_SECONDS = 20;
 
 type Phase = 'start' | 'question' | 'result';
 
@@ -57,6 +57,7 @@ function TriviaLeaderboard({ refreshKey }: { refreshKey: number }) {
           <Link href={`/profile/${row.username}`} className="flex-1 text-white font-medium hover:text-green-400 transition-colors truncate">{row.display_name}</Link>
           <span className="text-green-400 font-bold">
             {row.best_score}<span className="text-gray-500 font-normal">/{row.best_total}</span>
+            <span className="text-gray-400 font-normal text-xs ml-1">({Math.round(row.best_score / row.best_total * 100)}%)</span>
           </span>
           <span className="text-gray-600 text-xs hidden sm:inline">
             {row.games_played} game{row.games_played !== 1 ? 's' : ''}
@@ -151,7 +152,7 @@ export default function TriviaPage() {
   const startGame = (overrideLang?: TriviaLang) => {
     const activeLang = overrideLang ?? lang;
     const pool = activeLang === 'es' && ALL_QUESTIONS_ES.length > 0 ? ALL_QUESTIONS_ES : ALL_QUESTIONS;
-    const qs = getQuestionsForQuiz(pool).slice(0, 10);
+    const qs = getQuestionsForQuiz(pool);
     setQuestions(qs);
     setCurrent(0);
     setSelected(null);
@@ -167,8 +168,8 @@ export default function TriviaPage() {
     p >= 80 ? 'text-green-400' : p >= 60 ? 'text-yellow-400' : 'text-red-400';
   const accuracyBarColor = (p: number) =>
     p >= 80 ? 'bg-green-500' : p >= 60 ? 'bg-yellow-500' : 'bg-red-500';
-  const timerColor = timeLeft > 10 ? 'text-green-400' : timeLeft > 5 ? 'text-yellow-400' : 'text-red-400';
-  const timerBarColor = timeLeft > 10 ? 'bg-green-500' : timeLeft > 5 ? 'bg-yellow-500' : 'bg-red-500';
+  const timerColor = timeLeft > 13 ? 'text-green-400' : timeLeft > 7 ? 'text-yellow-400' : 'text-red-400';
+  const timerBarColor = timeLeft > 13 ? 'bg-green-500' : timeLeft > 7 ? 'bg-yellow-500' : 'bg-red-500';
 
   const pick = (idx: number) => {
     if (selected !== null) return;
@@ -176,9 +177,7 @@ export default function TriviaPage() {
     setSelected(idx);
     const correct = idx === questions[current].answer;
     const newScore = score + (correct ? 1 : 0);
-    const answered = current + 1;
     if (correct) setScore(newScore);
-    if (user) triviaApi.saveLive(newScore, answered).catch(() => {});
     setAnswers(prev => {
       const next = [...prev];
       next[current] = idx;
@@ -267,8 +266,8 @@ export default function TriviaPage() {
 
           <p className="text-xs text-gray-600">
             {lang === 'es'
-              ? `10 preguntas por partida · ${remaining} nuevas de ${totalPool} en total · ⏱ 15 seg`
-              : `10 questions per game · ${remaining} new of ${totalPool} total · ⏱ 15 sec each`}
+              ? `Continuo · ${remaining} nuevas de ${totalPool} en total · ⏱ 20 seg`
+              : `Continuous · ${remaining} new of ${totalPool} total · ⏱ 20 sec each`}
           </p>
 
           {user && myStats && myStats.games_played > 0 && (
@@ -290,7 +289,7 @@ export default function TriviaPage() {
                   <div className={`text-2xl font-bold ${livePct != null ? accuracyColor(livePct) : 'text-gray-500'}`}>
                     {livePct != null ? `${livePct}%` : '—'}
                   </div>
-                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Puntuación en vivo' : 'Live score'}</div>
+                  <div className="text-xs text-gray-500 mt-0.5">{lang === 'es' ? 'Total histórico' : 'All-time'}</div>
                   {myStats.live_total > 0 && (
                     <div className="text-xs text-gray-600">{myStats.live_score}/{myStats.live_total} Q</div>
                   )}

@@ -151,7 +151,6 @@ async def sync_scores() -> dict:
             resp = await client.get(
                 API_URL,
                 headers={"X-Auth-Token": settings.FOOTBALL_DATA_API_KEY},
-                params={"stage": "GROUP_STAGE"},
             )
         if resp.status_code == 429:
             return {"error": "Rate limited by football-data.org (10 req/min)", "updated": 0}
@@ -181,8 +180,38 @@ async def sync_scores() -> dict:
             if new_status == "scheduled":
                 continue
 
-            hs = (api_m.get("score") or {}).get("fullTime", {}).get("home")
-            as_ = (api_m.get("score") or {}).get("fullTime", {}).get("away")
+            score_block = api_m.get("score") or {}
+            duration = score_block.get("duration", "REGULAR")
+            ft   = score_block.get("fullTime")   or {}
+            et   = score_block.get("extraTime")  or {}
+            pens = score_block.get("penalties")  or {}
+
+            # football-data.org WC2026 score encoding per duration:
+            #   REGULAR:           fullTime = 90-min final score
+            #   EXTRA_TIME:        fullTime = 90-min score, extraTime = goals in ET period only (additive)
+            #   PENALTY_SHOOTOUT:  fullTime = TOTAL AGGREGATE (90+ET+pen goals combined)
+            #                      penalties = pen-shootout goals only
+            #                      90+ET score = fullTime - penalties (used for prediction scoring)
+            # Penalty counts go into home_score_pens/away_score_pens (display only, never for points).
+            if duration == "PENALTY_SHOOTOUT":
+                hs_pens = pens.get("home")
+                as_pens = pens.get("away")
+                if ft.get("home") is not None and hs_pens is not None:
+                    hs  = (ft.get("home") or 0) - hs_pens
+                    as_ = (ft.get("away") or 0) - as_pens
+                else:
+                    hs  = ft.get("home")
+                    as_ = ft.get("away")
+            elif duration == "EXTRA_TIME" and ft.get("home") is not None:
+                hs      = (ft.get("home") or 0) + (et.get("home") or 0)
+                as_     = (ft.get("away") or 0) + (et.get("away") or 0)
+                hs_pens = None
+                as_pens = None
+            else:
+                hs      = ft.get("home")
+                as_     = ft.get("away")
+                hs_pens = None
+                as_pens = None
 
             # Try to find our match by external_id first
             result = await db.execute(select(Match).where(Match.external_id == ext_id))
@@ -208,6 +237,14 @@ async def sync_scores() -> dict:
             if not match:
                 continue
 
+            # Skip score updates for admin-locked matches (manually corrected scores)
+            if getattr(match, 'score_locked', False) and new_status == "completed":
+                # Still update external_id linkage if missing
+                if match.external_id != ext_id:
+                    match.external_id = ext_id
+                    await db.flush()
+                continue
+
             changed = False
             if match.external_id != ext_id:
                 match.external_id = ext_id
@@ -222,6 +259,11 @@ async def sync_scores() -> dict:
                     match.home_score = hs
                     match.away_score = as_
                     await recalculate_match_points(match, db)
+                    changed = True
+                # Sync penalty shootout scores into dedicated fields (not used for prediction scoring)
+                if match.home_score_pens != hs_pens or match.away_score_pens != as_pens:
+                    match.home_score_pens = hs_pens
+                    match.away_score_pens = as_pens
                     changed = True
 
                 # Sync goal scorers — always refresh so corrections propagate

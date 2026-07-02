@@ -31,9 +31,15 @@ class Match(Base):
     city = Column(String(100), nullable=True)
     home_score = Column(Integer, nullable=True)
     away_score = Column(Integer, nullable=True)
+    # Penalty shootout scores — set only when match went to pens (not used for prediction scoring)
+    home_score_pens = Column(Integer, nullable=True)
+    away_score_pens = Column(Integer, nullable=True)
     # scheduled | live | completed
     status = Column(String(20), nullable=False, default="scheduled")
+    # group | r32 | r16 | qf | sf | 3rd | final
+    stage = Column(String(10), nullable=True)
     external_id = Column(Integer, nullable=True, unique=True, index=True)  # football-data.org match id
+    score_locked = Column(Boolean, nullable=False, default=False)  # admin override — sync skips this match
 
     home_team = relationship("Team", foreign_keys=[home_team_id], back_populates="home_matches")
     away_team = relationship("Team", foreign_keys=[away_team_id], back_populates="away_matches")
@@ -71,6 +77,30 @@ class GoalEvent(Base):
 
     match = relationship("Match", back_populates="goals")
     team = relationship("Team")
+
+
+class ScoreAuditLog(Base):
+    __tablename__ = "score_audit_log"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    match_id = Column(String, ForeignKey("matches.id"), nullable=False, index=True)
+    changed_by_user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    changed_at = Column(DateTime(timezone=True), server_default=func.now())
+    # Scores before the change (null = not set yet)
+    old_home_score = Column(Integer, nullable=True)
+    old_away_score = Column(Integer, nullable=True)
+    old_status = Column(String(20), nullable=True)
+    old_home_score_pens = Column(Integer, nullable=True)
+    old_away_score_pens = Column(Integer, nullable=True)
+    # Scores after the change
+    new_home_score = Column(Integer, nullable=False)
+    new_away_score = Column(Integer, nullable=False)
+    new_status = Column(String(20), nullable=False)
+    new_home_score_pens = Column(Integer, nullable=True)
+    new_away_score_pens = Column(Integer, nullable=True)
+
+    match = relationship("Match")
+    changed_by = relationship("User", foreign_keys=[changed_by_user_id])
 
 
 class TriviaLiveScore(Base):

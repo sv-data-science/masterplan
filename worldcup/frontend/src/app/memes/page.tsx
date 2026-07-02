@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/auth';
 import { api } from '@/lib/api';
 
-const EMOJIS = ['❤️', '😂', '🔥', '🙈', '😮'];
+const EMOJIS = ['👍', '❤️', '😂', '🔥', '🙈', '😮', '👏', '😭', '🤣', '😡'];
 
 interface MemeData {
   id: string;
@@ -165,11 +165,11 @@ export default function MemesPage() {
                   className="w-full object-cover"
                   loading="lazy"
                 />
-                {/* Delete overlay for own memes */}
+                {/* Delete button for own memes */}
                 {(user?.id === meme.user_id || user?.is_admin) && (
                   <button
                     onClick={() => { if (confirm('Delete this meme?')) deleteMutation.mutate(meme.id); }}
-                    className="absolute top-2 right-2 bg-black/70 hover:bg-red-700 text-white rounded-full w-7 h-7 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 bg-black/70 hover:bg-red-700 text-white rounded-full w-7 h-7 text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity"
                     title="Delete"
                   >
                     ✕

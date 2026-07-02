@@ -2,6 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.worldcup import Match, Prediction
 
+# Match numbers excluded from scoring — not all players had joined yet.
+UNSCORED_MATCH_NUMBERS = {1, 2, 3, 4}
+
 
 def calculate_points(
     pred_home: int, pred_away: int, actual_home: int, actual_away: int
@@ -19,6 +22,8 @@ def calculate_points(
 
 
 async def recalculate_match_points(match: Match, db: AsyncSession) -> None:
+    if match.match_number in UNSCORED_MATCH_NUMBERS:
+        return
     result = await db.execute(
         select(Prediction).where(Prediction.match_id == match.id)
     )

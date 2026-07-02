@@ -299,6 +299,76 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
+  const [recalculating, setRecalculating] = useState(false);
+  const [recalcR32, setRecalcR32] = useState(false);
+  const [wipingR32, setWipingR32] = useState(false);
+  const [wipingEarly, setWipingEarly] = useState(false);
+
+  const recalculateAll = async () => {
+    setRecalculating(true);
+    try {
+      const r = await api.post('/admin/recalculate-points');
+      toast.success(`Points recalculated for ${r.data.matches_recalculated} matches (M5+)`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setRecalculating(false); }
+  };
+
+  const recalculateR32 = async () => {
+    setRecalcR32(true);
+    try {
+      const r = await api.post('/admin/recalculate-r32-points');
+      toast.success(`R32 points recalculated — ${r.data.matches_recalculated} matches`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setRecalcR32(false); }
+  };
+
+  const wipeR32 = async () => {
+    setWipingR32(true);
+    try {
+      const r = await api.post('/admin/wipe-r32-points');
+      toast.success(`R32 points wiped — ${r.data.predictions_wiped} predictions reset`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setWipingR32(false); }
+  };
+
+  const wipeEarly = async () => {
+    setWipingEarly(true);
+    try {
+      const r = await api.post('/admin/wipe-pre-cutoff-points');
+      toast.success(`M1–M4 points wiped — ${r.data.predictions_wiped} predictions cleared`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setWipingEarly(false); }
+  };
+
+  return (
+    <div id="points-management" className="card p-4 border-yellow-600/50 bg-yellow-900/15">
+      <h3 className="font-semibold text-white mb-1">🏆 Points management</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        M1–M4 are permanently excluded from scoring. R32 uses 90+ET result — penalty shootout outcome is ignored.
+      </p>
+      <div className="grid grid-cols-2 gap-2">
+        <button onClick={recalculateAll} disabled={recalculating} className="btn-secondary py-2 text-sm w-full">
+          {recalculating ? '⏳ Working…' : '♻️ Recalculate all'}
+        </button>
+        <button onClick={recalculateR32} disabled={recalcR32} className="btn-primary py-2 text-sm w-full">
+          {recalcR32 ? '⏳ Working…' : '🏆 Recalculate R32'}
+        </button>
+        <button onClick={wipeR32} disabled={wipingR32} className="btn-secondary py-2 text-sm w-full">
+          {wipingR32 ? '⏳ Working…' : '🗑️ Wipe R32 points'}
+        </button>
+        <button onClick={wipeEarly} disabled={wipingEarly} className="btn-secondary py-2 text-sm w-full">
+          {wipingEarly ? '⏳ Working…' : '🚫 Wipe M1–M4 pts'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
   const [syncing, setSyncing] = useState(false);
   const [debugResult, setDebugResult] = useState<string | null>(null);
@@ -360,6 +430,232 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
         <pre className="mt-3 text-xs text-gray-300 bg-[#0d1117] rounded p-3 overflow-auto max-h-48 border border-[#30363d]">
           {debugResult}
         </pre>
+      )}
+    </div>
+  );
+}
+
+function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
+  const [seeding, setSeeding] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [patching, setPatchingSchedule] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const seed = async () => {
+    setSeeding(true);
+    try {
+      const r = await api.post('/admin/seed-r32');
+      if (r.data.status === 'already_exists') toast(`R32 matches already present (${r.data.matches} found)`);
+      else toast.success(`R32 seeded — ${r.data.created} matches created`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Seed R32 failed');
+    } finally { setSeeding(false); }
+  };
+
+  const assignOfficial = async () => {
+    setAssigning(true);
+    setResult(null);
+    try {
+      const r = await api.post('/admin/assign-r32-official');
+      const { updated, missing, note } = r.data;
+      toast.success(`${updated} matches set from official FIFA bracket`);
+      setResult([note, ...(missing?.length ? [`Issues: ${missing.join(', ')}`] : [])].join('\n'));
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Assignment failed');
+    } finally { setAssigning(false); }
+  };
+
+  const patchSchedule = async () => {
+    setPatchingSchedule(true);
+    try {
+      const r = await api.post('/admin/patch-r32-schedule');
+      toast.success(`R32 schedule patched — ${r.data.updated} kickoff times updated`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Patch failed');
+    } finally { setPatchingSchedule(false); }
+  };
+
+  return (
+    <div className="card p-4 border-purple-800/40 bg-purple-900/10">
+      <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏆 Round of 32 Setup</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        Step 1 — create the 16 placeholder match records (run once).
+        Step 2 — assign teams from the official FIFA published bracket.
+        Step 3 — fix kickoff times if seeded incorrectly.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={seed} disabled={seeding} className="btn-secondary py-1.5 text-sm">
+          {seeding ? '⏳ Seeding…' : '1️⃣ Seed R32 matches'}
+        </button>
+        <button onClick={assignOfficial} disabled={assigning} className="btn-primary py-1.5 text-sm">
+          {assigning ? '⏳ Assigning…' : '2️⃣ Assign from official bracket'}
+        </button>
+        <button onClick={patchSchedule} disabled={patching} className="btn-secondary py-1.5 text-sm">
+          {patching ? '⏳ Patching…' : '3️⃣ Fix R32 kickoff times'}
+        </button>
+      </div>
+      {result && (
+        <pre className="mt-2 text-xs text-gray-300 bg-[#0d1117] rounded p-2 whitespace-pre-wrap">{result}</pre>
+      )}
+    </div>
+  );
+}
+
+function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
+  const [seeding, setSeeding] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [patching, setPatching] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const seed = async () => {
+    setSeeding(true);
+    try {
+      const r = await api.post('/admin/seed-r16');
+      if (r.data.status === 'already_exists') toast(`R16 matches already present (${r.data.matches} found)`);
+      else toast.success(`R16 seeded — ${r.data.created} matches created`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Seed R16 failed');
+    } finally { setSeeding(false); }
+  };
+
+  const assignWinners = async () => {
+    setAssigning(true);
+    setResult(null);
+    try {
+      const r = await api.post('/admin/assign-r16-winners');
+      const { updated, unresolved } = r.data;
+      toast.success(`${updated} R16 matches updated`);
+      setResult(unresolved?.length ? unresolved.join('\n') : null);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Assignment failed');
+    } finally { setAssigning(false); }
+  };
+
+  const patchSchedule = async () => {
+    setPatching(true);
+    try {
+      const r = await api.post('/admin/patch-r16-schedule');
+      toast.success(`R16 schedule patched — ${r.data.updated} matches updated`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Patch failed');
+    } finally { setPatching(false); }
+  };
+
+  return (
+    <div className="card p-4 border-blue-800/40 bg-blue-900/10">
+      <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏅 Round of 16 Setup</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        Step 1 — create the 8 R16 match records (M89–M96).
+        Step 2 — auto-assign teams from completed R32 winners.
+        Step 3 — fix kickoff times once the official FIFA schedule is confirmed.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <button onClick={seed} disabled={seeding} className="btn-secondary py-1.5 text-sm">
+          {seeding ? '⏳ Seeding…' : '1️⃣ Seed R16 matches'}
+        </button>
+        <button onClick={assignWinners} disabled={assigning} className="btn-primary py-1.5 text-sm">
+          {assigning ? '⏳ Assigning…' : '2️⃣ Assign R32 winners'}
+        </button>
+        <button onClick={patchSchedule} disabled={patching} className="btn-secondary py-1.5 text-sm">
+          {patching ? '⏳ Patching…' : '3️⃣ Fix R16 kickoff times'}
+        </button>
+      </div>
+      {result && (
+        <pre className="mt-2 text-xs text-gray-300 bg-[#0d1117] rounded p-2 whitespace-pre-wrap">{result}</pre>
+      )}
+    </div>
+  );
+}
+
+interface R32Assignment { match_number: number; home: string; away: string; kickoff_utc: string | null }
+
+function R32OverridePanel({ onSaved }: { onSaved: () => void }) {
+  const [assignments, setAssignments] = useState<R32Assignment[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [homeCode, setHomeCode] = useState('');
+  const [awayCode, setAwayCode] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const r = await api.get('/admin/r32-assignments');
+      setAssignments(r.data);
+    } catch { toast.error('Failed to load R32 assignments'); }
+    finally { setLoading(false); }
+  };
+
+  const startEdit = (a: R32Assignment) => {
+    const hCode = a.home.match(/\((\w+)\)/)?.[1] ?? '';
+    const aCode = a.away.match(/\((\w+)\)/)?.[1] ?? '';
+    setEditing(a.match_number);
+    setHomeCode(hCode === 'TBD' ? '' : hCode);
+    setAwayCode(aCode === 'TBD' ? '' : aCode);
+  };
+
+  const save = async (matchNumber: number) => {
+    if (!homeCode && !awayCode) { toast.error('Enter at least one team code'); return; }
+    setSaving(true);
+    try {
+      await api.post('/admin/set-r32-teams', {
+        match_number: matchNumber,
+        home_team_code: homeCode || null,
+        away_team_code: awayCode || null,
+      });
+      toast.success(`M${matchNumber} updated`);
+      setEditing(null);
+      await load();
+      onSaved();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Save failed');
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="card p-4 border-orange-800/40 bg-orange-900/10">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-white">🔧 R32 Team Override</h3>
+        <button onClick={load} disabled={loading} className="btn-secondary py-1 text-xs">
+          {loading ? 'Loading…' : 'Load current assignments'}
+        </button>
+      </div>
+      <p className="text-xs text-gray-400 mb-3">
+        Manually fix individual R32 match teams using the 3-letter team code (e.g. PAR, GER, USA).
+        Use when auto-assign picks the wrong team due to DB standings not matching reality.
+      </p>
+      {assignments.length > 0 && (
+        <div className="space-y-1 max-h-96 overflow-y-auto">
+          {assignments.map(a => (
+            <div key={a.match_number} className="flex items-center gap-2 py-1.5 px-2 rounded bg-[#0d1117] text-sm">
+              <span className="text-gray-500 text-xs w-6 shrink-0">M{a.match_number}</span>
+              {editing === a.match_number ? (
+                <>
+                  <input value={homeCode} onChange={e => setHomeCode(e.target.value.toUpperCase())}
+                    placeholder="Home code" className="input w-20 py-0.5 text-xs font-mono" maxLength={3} />
+                  <span className="text-gray-600">vs</span>
+                  <input value={awayCode} onChange={e => setAwayCode(e.target.value.toUpperCase())}
+                    placeholder="Away code" className="input w-20 py-0.5 text-xs font-mono" maxLength={3} />
+                  <button onClick={() => save(a.match_number)} disabled={saving} className="btn-primary py-0.5 px-2 text-xs">
+                    {saving ? '…' : 'Save'}
+                  </button>
+                  <button onClick={() => setEditing(null)} className="text-gray-500 hover:text-white text-xs">Cancel</button>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1 text-gray-300 truncate">{a.home} <span className="text-gray-600">vs</span> {a.away}</span>
+                  <button onClick={() => startEdit(a)} className="text-blue-400 hover:text-blue-300 text-xs shrink-0">Edit</button>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -640,6 +936,174 @@ function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; user
   );
 }
 
+function ForceScorePanel({ onUpdated }: { onUpdated: () => void }) {
+  const [form, setForm] = useState({ match_number: '', home_score: '', away_score: '', home_score_pens: '', away_score_pens: '', lock: true });
+  const [saving, setSaving] = useState(false);
+  const [debugResult, setDebugResult] = useState<string | null>(null);
+  const [debugging, setDebugging] = useState(false);
+
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const mn = parseInt(form.match_number);
+    const h = parseInt(form.home_score), a = parseInt(form.away_score);
+    if (isNaN(mn) || isNaN(h) || isNaN(a)) { toast.error('Match number and scores are required'); return; }
+    const hp = form.home_score_pens !== '' ? parseInt(form.home_score_pens) : null;
+    const ap = form.away_score_pens !== '' ? parseInt(form.away_score_pens) : null;
+    setSaving(true);
+    try {
+      const r = await api.post('/admin/force-score', {
+        match_number: mn,
+        home_score: h,
+        away_score: a,
+        home_score_pens: hp,
+        away_score_pens: ap,
+        lock: form.lock,
+      });
+      toast.success(`M${mn} set to ${h}–${a}${hp !== null ? ` (pens ${hp}–${ap})` : ''} · ${r.data.locked ? 'locked' : 'unlocked'}`);
+      onUpdated();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Force score failed');
+    } finally { setSaving(false); }
+  };
+
+  const debugApi = async () => {
+    setDebugging(true);
+    setDebugResult(null);
+    try {
+      const r = await api.get('/admin/debug-api-scores');
+      setDebugResult(JSON.stringify(r.data, null, 2));
+    } catch (e: any) {
+      setDebugResult(`Error: ${e.response?.data?.detail ?? e.message}`);
+    } finally { setDebugging(false); }
+  };
+
+  return (
+    <div className="card p-4 border-red-800/40 bg-red-900/10">
+      <h3 className="font-semibold text-white mb-1">🔒 Force score (admin override)</h3>
+      <p className="text-xs text-gray-400 mb-3">
+        Manually set a match score — bypasses sync. Use for penalty matches where the API encodes scores incorrectly.
+        "Lock" prevents the auto-sync from overwriting this score.
+      </p>
+      <form onSubmit={submit} className="flex flex-wrap gap-2 items-end">
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Match #</label>
+          <input type="number" min={1} value={form.match_number} onChange={set('match_number')} className="input w-20 py-1 text-sm text-center" placeholder="73" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Home score (90+ET)</label>
+          <input type="number" min={0} max={20} value={form.home_score} onChange={set('home_score')} className="input w-16 py-1 text-sm text-center" placeholder="1" />
+        </div>
+        <span className="text-gray-600 self-end pb-1.5">–</span>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Away score (90+ET)</label>
+          <input type="number" min={0} max={20} value={form.away_score} onChange={set('away_score')} className="input w-16 py-1 text-sm text-center" placeholder="1" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Home pens (optional)</label>
+          <input type="number" min={0} max={20} value={form.home_score_pens} onChange={set('home_score_pens')} className="input w-16 py-1 text-sm text-center" placeholder="—" />
+        </div>
+        <span className="text-gray-600 self-end pb-1.5">–</span>
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-gray-500">Away pens (optional)</label>
+          <input type="number" min={0} max={20} value={form.away_score_pens} onChange={set('away_score_pens')} className="input w-16 py-1 text-sm text-center" placeholder="—" />
+        </div>
+        <label className="flex items-center gap-1 text-xs text-gray-400 cursor-pointer self-end pb-2">
+          <input type="checkbox" checked={form.lock} onChange={e => setForm(f => ({ ...f, lock: e.target.checked }))} />
+          Lock (prevent sync override)
+        </label>
+        <button type="submit" disabled={saving} className="btn-primary py-1.5 text-sm self-end">
+          {saving ? '…' : '🔒 Force score'}
+        </button>
+        <button type="button" onClick={debugApi} disabled={debugging} className="btn-secondary py-1.5 text-xs self-end">
+          {debugging ? '…' : '🔍 Debug API'}
+        </button>
+      </form>
+      {debugResult && (
+        <pre className="mt-3 text-xs text-gray-300 bg-[#0d1117] rounded p-3 overflow-auto max-h-64 border border-[#30363d]">
+          {debugResult}
+        </pre>
+      )}
+    </div>
+  );
+}
+
+function AuditLogPanel() {
+  const { data: log = [], isLoading } = useQuery<any[]>({
+    queryKey: ['score-audit'],
+    queryFn: () => api.get('/admin/score-audit').then(r => r.data),
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+  });
+
+  const fmtScore = (h: number | null, a: number | null, hp: number | null, ap: number | null) => {
+    if (h === null || a === null) return '—';
+    const pens = hp !== null && ap !== null ? ` (${hp}–${ap} pens)` : '';
+    return `${h}–${a}${pens}`;
+  };
+
+  return (
+    <div className="card p-4">
+      <h3 className="font-semibold text-white mb-3">🔍 Score change audit log</h3>
+      {isLoading && <p className="text-sm text-gray-500 text-center py-4">Loading…</p>}
+      {!isLoading && log.length === 0 && (
+        <p className="text-sm text-gray-600 text-center py-4">No score changes recorded yet</p>
+      )}
+      {log.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-xs">
+            <thead className="border-b border-[#30363d] text-gray-500 uppercase">
+              <tr>
+                <th className="text-left px-2 py-1.5">When</th>
+                <th className="text-left px-2 py-1.5">Who</th>
+                <th className="text-left px-2 py-1.5">Match</th>
+                <th className="text-left px-2 py-1.5">Before</th>
+                <th className="text-left px-2 py-1.5">After</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#21262d]">
+              {log.map((r: any) => {
+                const before = fmtScore(r.old_home_score, r.old_away_score, r.old_home_score_pens, r.old_away_score_pens);
+                const after  = fmtScore(r.new_home_score, r.new_away_score, r.new_home_score_pens, r.new_away_score_pens);
+                const statusChanged = r.old_status !== r.new_status;
+                const when = r.changed_at
+                  ? new Date(r.changed_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                  : '—';
+                return (
+                  <tr key={r.id} className="hover:bg-[#1c2128]">
+                    <td className="px-2 py-1.5 text-gray-400 whitespace-nowrap">{when}</td>
+                    <td className="px-2 py-1.5">
+                      <span className="text-white font-medium">{r.changed_by}</span>
+                      <span className="text-gray-600 ml-1">@{r.changed_by_username}</span>
+                    </td>
+                    <td className="px-2 py-1.5 whitespace-nowrap">
+                      <span className="text-gray-300">#{r.match_number} {r.home_team_flag}{r.home_team_code} vs {r.away_team_code}{r.away_team_flag}</span>
+                    </td>
+                    <td className="px-2 py-1.5 font-mono text-gray-500">
+                      {before}
+                      {r.old_status && <span className="text-gray-700 ml-1">({r.old_status})</span>}
+                    </td>
+                    <td className="px-2 py-1.5 font-mono">
+                      <span className={after !== before ? 'text-green-400' : 'text-gray-400'}>{after}</span>
+                      {statusChanged && (
+                        <span className={`ml-1 ${r.new_status === 'completed' ? 'text-green-500' : r.new_status === 'live' ? 'text-red-400' : 'text-gray-500'}`}>
+                          ({r.new_status})
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function UsersPanel({ users }: { users: any[] }) {
   return (
     <div className="card p-4">
@@ -697,11 +1161,20 @@ export default function AdminPage() {
         <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-0.5 rounded-full border border-yellow-500/30">Admin</span>
       </div>
 
+      <PointsManagementPanel onUpdated={invalidate} />
       <SeedPanel onSeeded={invalidate} />
+
+      <SeedR32Panel onSeeded={invalidate} />
+
+      <SeedR16Panel onSeeded={invalidate} />
+
+      <R32OverridePanel onSaved={invalidate} />
 
       <EspnGoalSyncPanel onSynced={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
+
+      <ForceScorePanel onUpdated={invalidate} />
 
       <PatchSchedulePanel onPatched={invalidate} />
 
@@ -710,6 +1183,8 @@ export default function AdminPage() {
       <RetroactivePredictionPanel matches={matches} users={users} />
 
       <CreateUserPanel onCreated={invalidateUsers} />
+
+      <AuditLogPanel />
 
       <UsersPanel users={users} />
 

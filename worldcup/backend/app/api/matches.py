@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from typing import Optional, List
 from app.database import get_db
-from app.models.worldcup import Match, Prediction, GoalEvent
+from app.models.worldcup import Match, Prediction, GoalEvent, ScoreAuditLog
 from app.models.user import User
 from app.schemas.worldcup import MatchOut, PredictionOut, ScoreUpdate, MatchPredictionEntry
 from app.auth import get_current_user, get_optional_user
@@ -23,6 +23,7 @@ _MATCH_OPTIONS = [
 async def list_matches(
     group: Optional[str] = None,
     matchday: Optional[int] = None,
+    stage: Optional[str] = None,
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_user),
 ):
@@ -31,6 +32,8 @@ async def list_matches(
         q = q.where(Match.group_letter == group.upper())
     if matchday:
         q = q.where(Match.matchday == matchday)
+    if stage:
+        q = q.where(Match.stage == stage)
 
     result = await db.execute(q)
     matches = result.scalars().all()
@@ -93,7 +96,9 @@ async def match_predictions(
     match = result.scalar_one_or_none()
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
-    if match.status == "scheduled":
+    from datetime import datetime, timezone
+    kickoff_passed = match.kickoff_utc and match.kickoff_utc <= datetime.now(timezone.utc)
+    if match.status == "scheduled" and not kickoff_passed:
         raise HTTPException(status_code=403, detail="Predictions hidden until match starts")
 
     preds = (await db.execute(
@@ -131,8 +136,27 @@ async def update_score(
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
 
+    # Write audit entry before applying changes
+    db.add(ScoreAuditLog(
+        id=str(__import__('uuid').uuid4()),
+        match_id=match_id,
+        changed_by_user_id=current_user.id,
+        old_home_score=match.home_score,
+        old_away_score=match.away_score,
+        old_status=match.status,
+        old_home_score_pens=match.home_score_pens,
+        old_away_score_pens=match.away_score_pens,
+        new_home_score=body.home_score,
+        new_away_score=body.away_score,
+        new_status=body.status,
+        new_home_score_pens=body.home_score_pens,
+        new_away_score_pens=body.away_score_pens,
+    ))
+
     match.home_score = body.home_score
     match.away_score = body.away_score
+    match.home_score_pens = body.home_score_pens
+    match.away_score_pens = body.away_score_pens
     match.status = body.status
     if body.kickoff_utc is not None:
         match.kickoff_utc = body.kickoff_utc

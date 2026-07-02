@@ -22,6 +22,7 @@ export default function LeaderboardPage() {
         <h1 className="text-2xl font-bold text-white">Leaderboard</h1>
         <div className="text-sm text-gray-500">{entries.length} players</div>
       </div>
+
       {isLoading && <div className="text-center py-12 text-gray-500">Loading…</div>}
       {!isLoading && entries.length === 0 && (
         <div className="card p-8 text-center text-gray-500">
@@ -34,7 +35,7 @@ export default function LeaderboardPage() {
           <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs text-gray-500 font-medium uppercase">
             <div className="col-span-1">#</div>
             <div className="col-span-6">Player</div>
-            <div className="col-span-2 text-center">Points</div>
+            <div className="col-span-2 text-center">Pts</div>
             <div className="col-span-3 text-center">Predictions</div>
           </div>
           {entries.map(e => {
@@ -57,6 +58,7 @@ export default function LeaderboardPage() {
                 </div>
                 <div className="col-span-2 text-center">
                   <span className="text-xl font-bold">{e.total_points}</span>
+                  <p className="text-[10px] text-yellow-600/80 leading-tight">+R32 soon</p>
                 </div>
                 <div className="col-span-3 text-center text-sm text-gray-500">
                   {(e as any).predictions ?? e.predictions_made ?? '—'}
