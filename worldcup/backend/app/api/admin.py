@@ -738,14 +738,14 @@ async def wipe_r32_points(admin: User = Depends(require_admin), db: AsyncSession
 # ─── R16 ─────────────────────────────────────────────────────────────────────
 
 _R16_SEED_DATA = [
-    (89, '2026-07-05T17:00:00+00:00', 'MetLife Stadium',       'East Rutherford, USA'),
-    (90, '2026-07-05T21:00:00+00:00', 'SoFi Stadium',          'Inglewood, USA'),
-    (91, '2026-07-06T17:00:00+00:00', 'AT&T Stadium',          'Arlington, USA'),
-    (92, '2026-07-06T21:00:00+00:00', 'Estadio Azteca',         'Mexico City, Mexico'),
-    (93, '2026-07-07T17:00:00+00:00', 'Lumen Field',           'Seattle, USA'),
-    (94, '2026-07-07T21:00:00+00:00', 'Rose Bowl Stadium',     'Pasadena, USA'),
-    (95, '2026-07-08T17:00:00+00:00', 'Hard Rock Stadium',     'Miami Gardens, USA'),
-    (96, '2026-07-08T21:00:00+00:00', 'Mercedes-Benz Stadium', 'Atlanta, USA'),
+    (89, '2026-07-04T21:00:00+00:00', 'Lincoln Financial Field', 'Philadelphia, USA'),
+    (90, '2026-07-04T17:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
+    (91, '2026-07-05T20:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
+    (92, '2026-07-06T00:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
+    (93, '2026-07-06T21:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
+    (94, '2026-07-06T19:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
+    (95, '2026-07-07T20:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
+    (96, '2026-07-07T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
 ]
 
 # (r16_match_num, r32_home_parent, r32_away_parent)
