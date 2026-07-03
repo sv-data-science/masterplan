@@ -886,7 +886,7 @@ async def patch_r16_schedule(admin: User = Depends(require_admin), db: AsyncSess
             m.city = city
             updated += 1
 
-    await db.flush()
+    await db.commit()
     return {"status": "ok", "updated": updated}
 
 
