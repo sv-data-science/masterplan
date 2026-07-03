@@ -160,14 +160,14 @@ function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
     <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
       <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
         <span className="text-[9px] text-gray-600 font-medium">M{entry.matchNumber}</span>
-        <span className="text-[9px] text-gray-600">{fmtDate(dbMatch?.kickoff_utc || entry.kickoff_utc)}</span>
+        <span className="text-[9px] text-gray-600">{fmtDate(entry.kickoff_utc)}</span>
       </div>
       <div className="flex-1 flex flex-col justify-around">
         <TeamRow info={home} />
         <div className="border-t border-[#21262d] mx-1.5" />
         <TeamRow info={away} border={false} />
       </div>
-      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {dbMatch?.city || entry.city}</div>
+      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
     </div>
   );
 }
