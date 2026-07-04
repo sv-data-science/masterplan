@@ -139,6 +139,17 @@ function BracketMatchCard({ entry, groupMatchMap, dbMatch, w, h }: {
   );
 }
 
+function r32Winner(m?: Match): Team | null {
+  if (!m || m.status !== 'completed' || m.home_score === null || m.away_score === null) return null;
+  if (m.home_score > m.away_score) return m.home_team;
+  if (m.away_score > m.home_score) return m.away_team;
+  if (m.home_score_pens != null && m.away_score_pens != null) {
+    if (m.home_score_pens > m.away_score_pens) return m.home_team;
+    if (m.away_score_pens > m.home_score_pens) return m.away_team;
+  }
+  return null;
+}
+
 function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
   entry: R16Entry;
   dbMatch?: Match;
@@ -147,10 +158,15 @@ function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
   h: number;
 }) {
   function slotFor(r32Num: number, dbTeam?: { code: string; flag: string; name: string } | null): SlotInfo {
+    // Derive winner from R32 result first — immune to stale DB R16 assignments
+    const r32m = r32MatchByNum.get(r32Num);
+    const winner = r32Winner(r32m);
+    if (winner && winner.code !== 'TBD') {
+      return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
+    }
     if (dbTeam && dbTeam.code !== 'TBD') {
       return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
     }
-    const r32m = r32MatchByNum.get(r32Num);
     const pending = r32m?.status === 'completed';
     return { flag: '', name: r16SlotLabel(r32Num), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
   }
