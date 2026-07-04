@@ -127,7 +127,11 @@ export function MatchCard({ match, queryKey, label, homeLabel, awayLabel }: {
     <div className="card p-4">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs text-gray-500 font-medium">
-          {label ?? (match.stage === 'r32' ? `R32 · Match ${match.match_number}` : `Group ${match.group_letter} · MD${match.matchday}`)}
+          {label ?? (
+            match.stage === 'r16' ? `R16 · M${match.match_number}` :
+            match.stage === 'r32' ? `R32 · M${match.match_number}` :
+            `Group ${match.group_letter} · MD${match.matchday}`
+          )}
         </span>
         {match.status === 'live' ? (
           <span className="flex items-center gap-1 text-xs text-red-400">🔴 Live</span>
