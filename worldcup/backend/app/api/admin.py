@@ -922,6 +922,40 @@ async def patch_r16_schedule(admin: User = Depends(require_admin), db: AsyncSess
     return {"status": "ok", "updated": updated}
 
 
+@router.post("/force-patch-r16-schedule")
+async def force_patch_r16_schedule(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Hard-coded correct R16 kickoff/venue data — bypasses _R16_SEED_DATA variable entirely."""
+    from app.models.worldcup import Match as MatchModel
+    from datetime import datetime
+
+    CORRECT = [
+        (89, '2026-07-04T21:00:00+00:00', 'Lincoln Financial Field', 'Philadelphia, USA'),
+        (90, '2026-07-04T17:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
+        (91, '2026-07-05T20:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
+        (92, '2026-07-06T00:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
+        (93, '2026-07-07T00:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
+        (94, '2026-07-06T19:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
+        (95, '2026-07-07T20:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
+        (96, '2026-07-07T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
+    ]
+
+    r16_db = {m.match_number: m for m in (await db.execute(
+        select(MatchModel).where(MatchModel.stage == 'r16')
+    )).scalars().all()}
+
+    updated = []
+    for match_number, kickoff_str, venue, city in CORRECT:
+        m = r16_db.get(match_number)
+        if m:
+            m.kickoff_utc = datetime.fromisoformat(kickoff_str)
+            m.venue = venue
+            m.city = city
+            updated.append(match_number)
+
+    await db.commit()
+    return {"status": "ok", "updated": len(updated), "match_numbers": updated}
+
+
 @router.get("/user-audit/{username}")
 async def user_audit(username: str, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Show all predictions for a user with points earned, grouped by stage. Useful for auditing totals."""

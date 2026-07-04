@@ -561,6 +561,17 @@ function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
     } finally { setPatching(false); }
   };
 
+  const forcePatch = async () => {
+    setPatching(true);
+    try {
+      const r = await api.post('/admin/force-patch-r16-schedule');
+      toast.success(`Force patched — M${r.data.match_numbers?.join(', M') || 0} updated`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Force patch failed');
+    } finally { setPatching(false); }
+  };
+
   return (
     <div className="card p-4 border-blue-800/40 bg-blue-900/10">
       <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏅 Round of 16 Setup</h3>
@@ -578,6 +589,9 @@ function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
         </button>
         <button onClick={patchSchedule} disabled={patching} className="btn-secondary py-1.5 text-sm">
           {patching ? '⏳ Patching…' : '3️⃣ Fix R16 kickoff times'}
+        </button>
+        <button onClick={forcePatch} disabled={patching} className="btn-primary py-1.5 text-sm">
+          {patching ? '⏳ Patching…' : '🔧 Force fix dates/venues'}
         </button>
       </div>
       {result && (
