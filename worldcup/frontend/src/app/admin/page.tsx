@@ -144,10 +144,12 @@ function ScoreRow({ match, onUpdated }: { match: Match; onUpdated: () => void })
 
   const save = async () => {
     const h = parseInt(home), a = parseInt(away);
-    if (isNaN(h) || isNaN(a)) { toast.error('Enter valid scores'); return; }
+    if (status === 'completed' && (isNaN(h) || isNaN(a))) { toast.error('Enter valid scores for completed match'); return; }
+    const scoreH = isNaN(h) ? (match.home_score ?? 0) : h;
+    const scoreA = isNaN(a) ? (match.away_score ?? 0) : a;
     setSaving(true);
     try {
-      await matchesApi.updateScore(match.id, h, a, status, kickoff || undefined, venue || undefined, city || undefined);
+      await matchesApi.updateScore(match.id, scoreH, scoreA, status, kickoff || undefined, venue || undefined, city || undefined);
       toast.success('Saved!');
       onUpdated();
     }
