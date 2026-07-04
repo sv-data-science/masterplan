@@ -154,7 +154,7 @@ async def lifespan(app: FastAPI):
                     (90, '2026-07-04T17:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
                     (91, '2026-07-05T20:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
                     (92, '2026-07-06T00:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
-                    (93, '2026-07-06T21:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
+                    (93, '2026-07-07T00:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
                     (94, '2026-07-06T19:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
                     (95, '2026-07-07T20:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
                     (96, '2026-07-07T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
