@@ -58,8 +58,8 @@ const R32_PAIRS: [number, number][] = [
   [79, 80],   // 1A + 1L
   [82, 81],   // Belgium/Senegal + USA/Bosnia
   [83, 84],   // Portugal/Croatia + Spain/Austria
-  [85, 87],   // 2B + 2G
-  [86, 88],   // 1J/2H + 2K
+  [85, 88],   // Switzerland + Colombia
+  [86, 87],   // Argentina + Egypt
 ];
 
 // ── Bracket tree geometry ───────────────────────────────────────────────────
