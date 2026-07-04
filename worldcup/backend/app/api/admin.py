@@ -901,16 +901,27 @@ async def assign_r16_winners(admin: User = Depends(require_admin), db: AsyncSess
 
 @router.post("/patch-r16-schedule")
 async def patch_r16_schedule(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    """Update R16 kickoff times/venues to official FIFA schedule."""
+    """Update R16 kickoff times/venues to official FIFA schedule (hardcoded correct values)."""
     from app.models.worldcup import Match as MatchModel
     from datetime import datetime
+
+    CORRECT = [
+        (89, '2026-07-04T21:00:00+00:00', 'Lincoln Financial Field', 'Philadelphia, USA'),
+        (90, '2026-07-04T17:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
+        (91, '2026-07-05T20:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
+        (92, '2026-07-06T00:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
+        (93, '2026-07-07T00:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
+        (94, '2026-07-06T19:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
+        (95, '2026-07-07T20:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
+        (96, '2026-07-07T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
+    ]
 
     r16_db = {m.match_number: m for m in (await db.execute(
         select(MatchModel).where(MatchModel.stage == 'r16')
     )).scalars().all()}
 
     updated = 0
-    for match_number, kickoff_str, venue, city in _R16_SEED_DATA:
+    for match_number, kickoff_str, venue, city in CORRECT:
         m = r16_db.get(match_number)
         if m:
             m.kickoff_utc = datetime.fromisoformat(kickoff_str)
