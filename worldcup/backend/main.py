@@ -172,7 +172,7 @@ async def lifespan(app: FastAPI):
                     log.info("Auto-seeded %d R16 matches", created)
 
             # Auto-assign R32 winners to R16 slots where both R32 parents are complete
-            _R16_PAIRS = [(89,74,77),(90,73,75),(91,76,78),(92,79,80),(93,82,81),(94,83,84),(95,85,87),(96,86,88)]
+            _R16_PAIRS = [(89,74,77),(90,73,75),(91,76,78),(92,79,80),(93,82,81),(94,83,84),(95,85,88),(96,86,87)]
             async with AsyncSessionLocal() as _s2:
                 _r32 = {m.match_number: m for m in (await _s2.execute(
                     select(_Match).options(_sli(_Match.home_team), _sli(_Match.away_team))

@@ -14,8 +14,8 @@ export const R16: R16Entry[] = [
   { matchNumber: 92, r32HomeMatch: 79, r32AwayMatch: 80, kickoff_utc: '2026-07-06T00:00:00Z', venue: 'Estadio Azteca',          city: 'Mexico City, Mexico' },
   { matchNumber: 93, r32HomeMatch: 82, r32AwayMatch: 81, kickoff_utc: '2026-07-06T21:00:00Z', venue: 'Lumen Field',             city: 'Seattle, USA' },
   { matchNumber: 94, r32HomeMatch: 83, r32AwayMatch: 84, kickoff_utc: '2026-07-06T19:00:00Z', venue: 'AT&T Stadium',            city: 'Arlington, USA' },
-  { matchNumber: 95, r32HomeMatch: 85, r32AwayMatch: 87, kickoff_utc: '2026-07-07T20:00:00Z', venue: 'BC Place',                city: 'Vancouver, Canada' },
-  { matchNumber: 96, r32HomeMatch: 86, r32AwayMatch: 88, kickoff_utc: '2026-07-07T16:00:00Z', venue: 'Mercedes-Benz Stadium',   city: 'Atlanta, USA' },
+  { matchNumber: 95, r32HomeMatch: 85, r32AwayMatch: 88, kickoff_utc: '2026-07-07T20:00:00Z', venue: 'BC Place',                city: 'Vancouver, Canada' },
+  { matchNumber: 96, r32HomeMatch: 86, r32AwayMatch: 87, kickoff_utc: '2026-07-07T16:00:00Z', venue: 'Mercedes-Benz Stadium',   city: 'Atlanta, USA' },
 ];
 
 export const R16_BY_MATCH_NUMBER = new Map<number, R16Entry>(R16.map(e => [e.matchNumber, e]));
