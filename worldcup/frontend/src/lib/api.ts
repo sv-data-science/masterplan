@@ -52,7 +52,7 @@ export const predictionsApi = {
 };
 
 export const leaderboardApi = {
-  get: () => api.get('/leaderboard'),
+  get: (stage?: string) => api.get('/leaderboard', { params: stage ? { stage } : undefined }),
 };
 
 export const goalsApi = {
