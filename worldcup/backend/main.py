@@ -208,6 +208,36 @@ async def lifespan(app: FastAPI):
                 if assigned:
                     await _s2.commit()
                     log.info("Auto-assigned %d R16 team slots from R32 results", assigned)
+
+            # Always apply correct R16 kickoff times/venues on startup
+            _CORRECT_SCHEDULE = [
+                (89, '2026-07-04T21:00:00+00:00', 'Lincoln Financial Field', 'Philadelphia, USA'),
+                (90, '2026-07-04T17:00:00+00:00', 'NRG Stadium',             'Houston, USA'),
+                (91, '2026-07-05T20:00:00+00:00', 'MetLife Stadium',         'East Rutherford, USA'),
+                (92, '2026-07-06T00:00:00+00:00', 'Estadio Azteca',          'Mexico City, Mexico'),
+                (93, '2026-07-07T00:00:00+00:00', 'Lumen Field',             'Seattle, USA'),
+                (94, '2026-07-06T19:00:00+00:00', 'AT&T Stadium',            'Arlington, USA'),
+                (95, '2026-07-07T20:00:00+00:00', 'BC Place',                'Vancouver, Canada'),
+                (96, '2026-07-07T16:00:00+00:00', 'Mercedes-Benz Stadium',   'Atlanta, USA'),
+            ]
+            async with AsyncSessionLocal() as _s3:
+                _r16_by_num = {m.match_number: m for m in (await _s3.execute(
+                    select(_Match).where(_Match.stage == 'r16')
+                )).scalars().all()}
+                _sched_fixed = 0
+                for _mn, _ks, _venue, _city in _CORRECT_SCHEDULE:
+                    _m = _r16_by_num.get(_mn)
+                    if not _m:
+                        continue
+                    _correct_dt = _dt.fromisoformat(_ks)
+                    if _m.kickoff_utc != _correct_dt or _m.venue != _venue or _m.city != _city:
+                        _m.kickoff_utc = _correct_dt
+                        _m.venue = _venue
+                        _m.city = _city
+                        _sched_fixed += 1
+                if _sched_fixed:
+                    await _s3.commit()
+                    log.info("Auto-fixed %d R16 kickoff/venue records on startup", _sched_fixed)
     except Exception as _e:
         log.warning("R16 auto-setup skipped: %s", _e)
 
