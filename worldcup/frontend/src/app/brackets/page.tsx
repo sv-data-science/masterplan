@@ -164,8 +164,11 @@ function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
     if (winner && winner.code !== 'TBD') {
       return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
     }
-    if (dbTeam && dbTeam.code !== 'TBD') {
-      return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    // Only trust DB team if it's actually one of the two R32 participants —
+    // prevents stale wrong assignments (e.g. Colombia appearing for an Aus/Egypt match)
+    if (dbTeam && dbTeam.code !== 'TBD' && r32m) {
+      const isParticipant = dbTeam.code === r32m.home_team?.code || dbTeam.code === r32m.away_team?.code;
+      if (isParticipant) return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
     }
     const pending = r32m?.status === 'completed';
     return { flag: '', name: r16SlotLabel(r32Num), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
