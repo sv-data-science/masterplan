@@ -188,19 +188,19 @@ async def sync_scores() -> dict:
             # football-data.org WC2026 score encoding per duration:
             #   REGULAR:           fullTime = 90-min final score
             #   EXTRA_TIME:        fullTime = 90-min score, extraTime = goals in ET period only (additive)
-            #   PENALTY_SHOOTOUT:  fullTime = TOTAL AGGREGATE (90+ET+pen goals combined)
+            #   PENALTY_SHOOTOUT:  fullTime = 90-min score only (same as EXTRA_TIME case)
+            #                      extraTime = goals in ET period only
             #                      penalties = pen-shootout goals only
-            #                      90+ET score = fullTime - penalties (used for prediction scoring)
             # Penalty counts go into home_score_pens/away_score_pens (display only, never for points).
             if duration == "PENALTY_SHOOTOUT":
                 hs_pens = pens.get("home")
                 as_pens = pens.get("away")
-                if ft.get("home") is not None and hs_pens is not None:
-                    hs  = (ft.get("home") or 0) - hs_pens
-                    as_ = (ft.get("away") or 0) - as_pens
+                if ft.get("home") is not None:
+                    hs  = (ft.get("home") or 0) + (et.get("home") or 0)
+                    as_ = (ft.get("away") or 0) + (et.get("away") or 0)
                 else:
-                    hs  = ft.get("home")
-                    as_ = ft.get("away")
+                    hs  = None
+                    as_ = None
             elif duration == "EXTRA_TIME" and ft.get("home") is not None:
                 hs      = (ft.get("home") or 0) + (et.get("home") or 0)
                 as_     = (ft.get("away") or 0) + (et.get("away") or 0)
