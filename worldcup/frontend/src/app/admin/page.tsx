@@ -302,6 +302,7 @@ function SyncPanel({ onSynced }: { onSynced: () => void }) {
 function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
   const [recalculating, setRecalculating] = useState(false);
   const [recalcR32, setRecalcR32] = useState(false);
+  const [recalcR16, setRecalcR16] = useState(false);
   const [wipingR32, setWipingR32] = useState(false);
   const [wipingEarly, setWipingEarly] = useState(false);
 
@@ -323,6 +324,16 @@ function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
       onUpdated();
     } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
     finally { setRecalcR32(false); }
+  };
+
+  const recalculateR16 = async () => {
+    setRecalcR16(true);
+    try {
+      const r = await api.post('/admin/recalculate-r16-points');
+      toast.success(`R16 points recalculated — ${r.data.matches_recalculated} matches`);
+      onUpdated();
+    } catch (e: any) { toast.error(e.response?.data?.detail ?? 'Failed'); }
+    finally { setRecalcR16(false); }
   };
 
   const wipeR32 = async () => {
@@ -349,7 +360,7 @@ function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
     <div id="points-management" className="card p-4 border-yellow-600/50 bg-yellow-900/15">
       <h3 className="font-semibold text-white mb-1">🏆 Points management</h3>
       <p className="text-xs text-gray-400 mb-3">
-        M1–M4 are permanently excluded from scoring. R32 uses 90+ET result — penalty shootout outcome is ignored.
+        M1–M4 are excluded from scoring. Knockout rounds use 90+ET result — penalty shootout outcome is ignored.
       </p>
       <div className="grid grid-cols-2 gap-2">
         <button onClick={recalculateAll} disabled={recalculating} className="btn-secondary py-2 text-sm w-full">
@@ -357,6 +368,9 @@ function PointsManagementPanel({ onUpdated }: { onUpdated: () => void }) {
         </button>
         <button onClick={recalculateR32} disabled={recalcR32} className="btn-primary py-2 text-sm w-full">
           {recalcR32 ? '⏳ Working…' : '🏆 Recalculate R32'}
+        </button>
+        <button onClick={recalculateR16} disabled={recalcR16} className="btn-primary py-2 text-sm w-full">
+          {recalcR16 ? '⏳ Working…' : '🏆 Recalculate R16'}
         </button>
         <button onClick={wipeR32} disabled={wipingR32} className="btn-secondary py-2 text-sm w-full">
           {wipingR32 ? '⏳ Working…' : '🗑️ Wipe R32 points'}

@@ -713,6 +713,38 @@ async def recalculate_r32_points(admin: User = Depends(require_admin), db: Async
     return {"status": "ok", "matches_recalculated": recalculated, "matches": details}
 
 
+@router.post("/recalculate-r16-points")
+async def recalculate_r16_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Recalculate points for completed R16 matches. Scoring basis: 90+ET result; penalty shootout outcome ignored."""
+    from sqlalchemy.orm import selectinload
+    from app.services.scoring import recalculate_match_points
+    from app.models.worldcup import Match as MatchModel
+
+    matches = (await db.execute(
+        select(MatchModel)
+        .options(selectinload(MatchModel.predictions))
+        .where(
+            MatchModel.stage == 'r16',
+            MatchModel.status == 'completed',
+            MatchModel.home_score.is_not(None),
+        )
+    )).scalars().all()
+
+    recalculated = 0
+    details = []
+    for m in matches:
+        await recalculate_match_points(m, db)
+        recalculated += 1
+        details.append({
+            "match_number": m.match_number,
+            "score": f"{m.home_score}-{m.away_score}",
+            "pens": f"{m.home_score_pens}-{m.away_score_pens}" if m.home_score_pens is not None else None,
+        })
+
+    await db.flush()
+    return {"status": "ok", "matches_recalculated": recalculated, "matches": details}
+
+
 @router.post("/wipe-r32-points")
 async def wipe_r32_points(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Set points_earned = NULL for all R32 predictions. Scores stay intact. Use to reset until R32 scoring is verified."""
