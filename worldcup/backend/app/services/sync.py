@@ -274,6 +274,9 @@ async def sync_scores() -> dict:
 
             if changed:
                 updated += 1
+                if new_status == "completed" and hs is not None and as_ is not None:
+                    from app.services.scoring import recalculate_match_points
+                    await recalculate_match_points(match, db)
 
         await db.commit()
 
