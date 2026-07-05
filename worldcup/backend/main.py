@@ -171,6 +171,42 @@ async def lifespan(app: FastAPI):
                 if created:
                     log.info("Auto-seeded %d R16 matches", created)
 
+            # Ensure all R32 matches have correct teams (hardcoded official FIFA bracket)
+            _R32_OFFICIAL = [
+                (73,'RSA','CAN'),(74,'GER','PAR'),(75,'NED','MAR'),(76,'BRA','JPN'),
+                (77,'FRA','SWE'),(78,'CIV','NOR'),(79,'MEX','ECU'),(80,'ENG','COD'),
+                (81,'USA','BIH'),(82,'BEL','SEN'),(83,'POR','CRO'),(84,'ESP','AUT'),
+                (85,'SUI','ALG'),(86,'ARG','CPV'),(87,'AUS','EGY'),(88,'COL','GHA'),
+            ]
+            async with AsyncSessionLocal() as _sr:
+                _tc = {t.code: t for t in (await _sr.execute(select(_Team))).scalars().all()}
+                _r32m = {m.match_number: m for m in (await _sr.execute(
+                    select(_Match).where(_Match.stage == 'r32')
+                )).scalars().all()}
+                _tbd3 = _tc.get('TBD')
+                _tbd3_id = _tbd3.id if _tbd3 else None
+                _r32_fixed = 0
+                for _mn, _hc, _ac in _R32_OFFICIAL:
+                    _m = _r32m.get(_mn)
+                    if not _m: continue
+                    _ht, _at = _tc.get(_hc), _tc.get(_ac)
+                    _ch = False
+                    if _ht and _m.home_team_id == _tbd3_id: _m.home_team_id = _ht.id; _ch = True
+                    if _at and _m.away_team_id == _tbd3_id: _m.away_team_id = _at.id; _ch = True
+                    if _ch: _r32_fixed += 1
+                if _r32_fixed:
+                    await _sr.commit()
+                    log.info("Auto-assigned correct teams to %d R32 matches", _r32_fixed)
+
+            # Sync scores from API so newly-assigned R32 matches get completed status
+            try:
+                from app.services.sync import sync_scores
+                _sync_res = await sync_scores()
+                if _sync_res.get("updated"):
+                    log.info("Startup sync: %d matches updated", _sync_res["updated"])
+            except Exception as _se:
+                log.warning("Startup sync failed: %s", _se)
+
             # Auto-assign R32 winners to R16 slots where both R32 parents are complete
             _R16_PAIRS = [(89,74,77),(90,73,75),(91,76,78),(92,79,80),(93,82,81),(94,83,84),(95,85,88),(96,86,87)]
             async with AsyncSessionLocal() as _s2:
