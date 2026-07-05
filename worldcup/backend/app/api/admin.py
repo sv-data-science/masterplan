@@ -298,6 +298,25 @@ async def list_users(
     return users
 
 
+class ResetPasswordRequest(BaseModel):
+    username: str
+    new_password: str
+
+
+@router.post("/reset-password")
+async def reset_password(
+    body: ResetPasswordRequest,
+    admin: User = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    user = (await db.execute(select(User).where(User.username == body.username))).scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User '{body.username}' not found")
+    user.hashed_password = hash_password(body.new_password)
+    await db.flush()
+    return {"status": "ok", "username": user.username}
+
+
 class AdminPredictionSet(BaseModel):
     username: str
     match_id: str

@@ -888,6 +888,53 @@ function CreateUserPanel({ onCreated }: { onCreated: () => void }) {
   );
 }
 
+function ResetPasswordPanel({ users }: { users: any[] }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) { toast.error('Username and new password required'); return; }
+    setSaving(true);
+    try {
+      await api.post('/admin/reset-password', { username, new_password: password });
+      toast.success(`Password reset for ${username}`);
+      setUsername(''); setPassword('');
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Failed');
+    } finally { setSaving(false); }
+  };
+
+  return (
+    <div className="card p-4 border-yellow-800/40 bg-yellow-900/10">
+      <h3 className="font-semibold text-white mb-3">🔑 Reset user password</h3>
+      <form onSubmit={submit} className="flex flex-wrap gap-3 items-end">
+        <select
+          className="input text-sm py-1.5 flex-1 min-w-[160px]"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+        >
+          <option value="">Select user…</option>
+          {users.map((u: any) => (
+            <option key={u.username} value={u.username}>{u.display_name} ({u.username})</option>
+          ))}
+        </select>
+        <input
+          className="input text-sm py-1.5 flex-1 min-w-[160px]"
+          placeholder="New password"
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+        />
+        <button type="submit" disabled={saving} className="btn-primary py-1.5 text-sm">
+          {saving ? '⏳ Saving…' : '🔑 Reset password'}
+        </button>
+      </form>
+    </div>
+  );
+}
+
 function RetroactivePredictionPanel({ matches, users }: { matches: Match[]; users: any[] }) {
   const completedMatches = matches.filter(m => m.status === 'completed' || m.status === 'live');
   const [form, setForm] = useState({ username: '', match_id: '', pred_home: '', pred_away: '' });
@@ -1213,6 +1260,8 @@ export default function AdminPage() {
       <RetroactivePredictionPanel matches={matches} users={users} />
 
       <CreateUserPanel onCreated={invalidateUsers} />
+
+      <ResetPasswordPanel users={users} />
 
       <AuditLogPanel />
 
