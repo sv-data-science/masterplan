@@ -66,14 +66,17 @@ function getWinner(m?: Match | null): Team | null {
   return null;
 }
 
-// Ring 2 shows R16 participants (assigned to M89-M96), not R32 match winners.
-// This way teams appear as soon as R16 assignments exist, even before R32 is "marked complete".
-function ring2Team(k: number, r16: (Match | null)[]): Team | null {
+// Ring 2: R16 assigned participant, falling back to R32 match winner.
+// Returns null when neither is known (match pending) → split circle is shown instead.
+function ring2Team(k: number, r16: (Match | null)[], r32: (Match | null)[]): Team | null {
+  // Primary: R16 assigned team (as soon as admin assigns R16 participants)
   const r16m = r16[Math.floor(k / 2)];
-  if (!r16m) return null;
-  const t = k % 2 === 0 ? r16m.home_team : r16m.away_team;
-  if (!t || t.code === 'TBD') return null;
-  return t;
+  if (r16m) {
+    const t = k % 2 === 0 ? r16m.home_team : r16m.away_team;
+    if (t && t.code !== 'TBD') return t;
+  }
+  // Fallback: R32 match winner (if R32 is completed but R16 not yet assigned)
+  return getWinner(r32[k]);
 }
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -124,6 +127,51 @@ function TBDCircle({ cx, cy, r }: { cx: number; cy: number; r: number }) {
   return (
     <circle cx={cx} cy={cy} r={r} fill="rgba(255,255,255,0.02)"
       stroke="rgba(255,255,255,0.13)" strokeWidth="0.8" strokeDasharray="3 2" />
+  );
+}
+
+// Split circle: shows both competing teams (left/right halves) when winner not yet known
+function SplitCircle({ cx, cy, r, codeL, codeR, clipId }: {
+  cx: number; cy: number; r: number;
+  codeL?: string | null; codeR?: string | null; clipId: string;
+}) {
+  const urlL = codeL ? flagUrl(codeL) : null;
+  const urlR = codeR ? flagUrl(codeR) : null;
+  const rr = r - 0.5;
+  // Half-circle clip paths using SVG arc
+  const leftPath  = `M ${cx} ${cy - rr} A ${rr} ${rr} 0 1 0 ${cx} ${cy + rr} Z`;
+  const rightPath = `M ${cx} ${cy - rr} A ${rr} ${rr} 0 1 1 ${cx} ${cy + rr} Z`;
+  return (
+    <g>
+      <defs>
+        <clipPath id={`${clipId}L`}><path d={leftPath} /></clipPath>
+        <clipPath id={`${clipId}R`}><path d={rightPath} /></clipPath>
+      </defs>
+      <circle cx={cx} cy={cy} r={r} fill="#161b22" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
+      {urlL && (
+        <image href={urlL} x={cx - r} y={cy - r * 0.75} width={r * 2} height={r * 1.5}
+          clipPath={`url(#${clipId}L)`} opacity="0.85" />
+      )}
+      {!urlL && codeL && (
+        <text x={cx - r * 0.35} y={cy + 3} textAnchor="middle" fontSize={r * 0.55}
+          fontWeight="700" fill="rgba(255,255,255,0.55)" fontFamily="monospace">
+          {codeL.slice(0, 3)}
+        </text>
+      )}
+      {urlR && (
+        <image href={urlR} x={cx - r} y={cy - r * 0.75} width={r * 2} height={r * 1.5}
+          clipPath={`url(#${clipId}R)`} opacity="0.85" />
+      )}
+      {!urlR && codeR && (
+        <text x={cx + r * 0.35} y={cy + 3} textAnchor="middle" fontSize={r * 0.55}
+          fontWeight="700" fill="rgba(255,255,255,0.55)" fontFamily="monospace">
+          {codeR.slice(0, 3)}
+        </text>
+      )}
+      {/* Centre divider */}
+      <line x1={cx} y1={cy - rr} x2={cx} y2={cy + rr}
+        stroke="rgba(0,0,0,0.5)" strokeWidth="0.8" />
+    </g>
   );
 }
 
@@ -224,10 +272,10 @@ export default function RoadToFinalPage() {
 
                 {/* ══ Connection lines ══════════════════════════════════════ */}
 
-                {/* Ring 1 → Ring 2 (R32 team → their R16 slot) */}
+                {/* Ring 1 → Ring 2 */}
                 {R32_SLOTS.map((_, k) => {
                   const match = r32[k];
-                  const r2t = ring2Team(k, r16);        // team assigned to ring 2 pos k
+                  const r2t = ring2Team(k, r16, r32);
                   const mp  = toXY(RADII.r32, r32Angle(k));
                   return [0, 1].map(side => {
                     const outerTeam = side === 0 ? match?.home_team : match?.away_team;
@@ -242,19 +290,19 @@ export default function RoadToFinalPage() {
                   });
                 })}
 
-                {/* Ring 2 → Ring 3 (R16 participant → QF slot) */}
+                {/* Ring 2 → Ring 3 */}
                 {R16_SLOTS.map((_, m) => {
                   const r16w = getWinner(r16[m]);
                   const mp   = toXY(RADII.r16, r16Angle(m));
                   return [0, 1].map(side => {
-                    const r2t = ring2Team(m * 2 + side, r16);
+                    const r2t = ring2Team(m * 2 + side, r16, r32);
                     const p   = toXY(RADII.r32, r32Angle(m * 2 + side));
                     const isWin  = !!(r16w && r2t && r16w.id === r2t.id);
                     const isElim = !!(r16w && r2t && r16w.id !== r2t.id);
                     return (
                       <Connector key={`r16c-${m}-${side}`}
                         x1={p.x} y1={p.y} x2={mp.x} y2={mp.y}
-                        gold={isWin} active={!isElim && !!r2t} />
+                        gold={isWin} active={!isElim} />
                     );
                   });
                 })}
@@ -309,7 +357,7 @@ export default function RoadToFinalPage() {
                 {/* ══ Ring 1 — R32 teams (outer) ═══════════════════════════ */}
                 {R32_SLOTS.map((_, k) => {
                   const match = r32[k];
-                  const r2t   = ring2Team(k, r16);
+                  const r2t   = ring2Team(k, r16, r32);
                   return [0, 1].map(side => {
                     const team = side === 0 ? match?.home_team : match?.away_team;
                     const code = team?.code ?? R32_TEAMS[k][side];
@@ -331,7 +379,7 @@ export default function RoadToFinalPage() {
                 {R32_SLOTS.map((_, k) =>
                   [0, 1].map(side => {
                     const match = r32[k];
-                    const r2t   = ring2Team(k, r16);
+                    const r2t   = ring2Team(k, r16, r32);
                     const team  = side === 0 ? match?.home_team : match?.away_team;
                     const code  = team?.code ?? R32_TEAMS[k][side];
                     const isElim = !!(r2t && team && r2t.id !== team.id);
@@ -354,23 +402,32 @@ export default function RoadToFinalPage() {
                   })
                 )}
 
-                {/* ══ Ring 2 — R16 participants ════════════════════════════ */}
-                {/* Shows the 16 teams assigned to R16 matches (2 per match). */}
-                {/* Each position k corresponds to R16 match floor(k/2), home if k even. */}
+                {/* ══ Ring 2 — R16 participants (or split R32 matchup) ═════ */}
+                {/* If R16 team is known: show their flag. */}
+                {/* If not yet assigned: show split circle with both R32 competitors. */}
                 {R32_SLOTS.map((_, k) => {
-                  const t   = ring2Team(k, r16);
+                  const t    = ring2Team(k, r16, r32);
                   const r16w = getWinner(r16[Math.floor(k / 2)]);
-                  const pos = toXY(RADII.r32, r32Angle(k));
-                  if (!t) return <TBDCircle key={`r2-${k}`} cx={pos.x} cy={pos.y} r={NODE_R.r32} />;
-                  const isWin  = !!(r16w && r16w.id === t.id);
-                  const isElim = !!(r16w && r16w.id !== t.id);
+                  const pos  = toXY(RADII.r32, r32Angle(k));
+                  if (t) {
+                    const isWin  = !!(r16w && r16w.id === t.id);
+                    const isElim = !!(r16w && r16w.id !== t.id);
+                    return (
+                      <g key={`r2-${k}`}>
+                        <title>{t.name}</title>
+                        <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.r32}
+                          code={t.code} dim={isElim} winner={isWin}
+                          clipId={`clip-r32w-${k}`} />
+                      </g>
+                    );
+                  }
+                  // No winner yet → show both R32 teams as split circle
+                  const match = r32[k];
+                  const codeL = match?.home_team?.code ?? R32_TEAMS[k][0];
+                  const codeR = match?.away_team?.code ?? R32_TEAMS[k][1];
                   return (
-                    <g key={`r2-${k}`}>
-                      <title>{t.name}</title>
-                      <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.r32}
-                        code={t.code} dim={isElim} winner={isWin}
-                        clipId={`clip-r32w-${k}`} />
-                    </g>
+                    <SplitCircle key={`r2-${k}`} cx={pos.x} cy={pos.y} r={NODE_R.r32}
+                      codeL={codeL} codeR={codeR} clipId={`clip-r32w-${k}`} />
                   );
                 })}
 
