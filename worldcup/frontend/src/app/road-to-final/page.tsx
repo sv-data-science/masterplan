@@ -148,26 +148,38 @@ function Connector({ x1, y1, x2, y2, gold, active }: ConnectorProps) {
   );
 }
 
+const QUERY_OPTS = { refetchInterval: 30_000, staleTime: 20_000 };
+
 // ── Main page ──────────────────────────────────────────────────────────────
 export default function RoadToFinalPage() {
-  const { data: allMatches = [], isLoading, dataUpdatedAt } = useQuery({
-    queryKey: ['all-matches-rtf'],
-    queryFn: () => matchesApi.list().then(r => r.data as Match[]),
-    refetchInterval: 30_000,
-    staleTime: 20_000,
+  const { data: r32Matches = [], isLoading: l32, dataUpdatedAt } = useQuery({
+    queryKey: ['rtf-r32'], queryFn: () => matchesApi.list({ stage: 'r32' }).then(r => r.data as Match[]), ...QUERY_OPTS,
+  });
+  const { data: r16Matches = [], isLoading: l16 } = useQuery({
+    queryKey: ['rtf-r16'], queryFn: () => matchesApi.list({ stage: 'r16' }).then(r => r.data as Match[]), ...QUERY_OPTS,
+  });
+  const { data: qfMatches = [], isLoading: lqf } = useQuery({
+    queryKey: ['rtf-qf'],  queryFn: () => matchesApi.list({ stage: 'qf'  }).then(r => r.data as Match[]), ...QUERY_OPTS,
+  });
+  const { data: sfMatches = [], isLoading: lsf } = useQuery({
+    queryKey: ['rtf-sf'],  queryFn: () => matchesApi.list({ stage: 'sf'  }).then(r => r.data as Match[]), ...QUERY_OPTS,
+  });
+  const { data: fMatches  = [], isLoading: lf  } = useQuery({
+    queryKey: ['rtf-f'],   queryFn: () => matchesApi.list({ stage: 'f'   }).then(r => r.data as Match[]), ...QUERY_OPTS,
   });
 
-  const byNum = new Map(allMatches.map(m => [m.match_number, m]));
-  const r32  = R32_SLOTS.map(n => byNum.get(n) ?? null);
-  const r16  = R16_SLOTS.map(n => byNum.get(n) ?? null);
-  const qf   = QF_SLOTS.map(n => byNum.get(n) ?? null);
-  const sf   = SF_SLOTS.map(n => byNum.get(n) ?? null);
-  const final = byNum.get(FINAL_NUM) ?? null;
+  const isLoading = l32 || l16 || lqf || lsf || lf;
+
+  const r32 = R32_SLOTS.map(n => r32Matches.find(m => m.match_number === n) ?? null);
+  const r16 = R16_SLOTS.map(n => r16Matches.find(m => m.match_number === n) ?? null);
+  const qf  = QF_SLOTS.map( n => qfMatches.find( m => m.match_number === n) ?? null);
+  const sf  = SF_SLOTS.map( n => sfMatches.find( m => m.match_number === n) ?? null);
+  const final = fMatches.find(m => m.match_number === FINAL_NUM) ?? null;
 
   const champion = getWinner(final);
 
-  const r16Loaded = r16.filter(Boolean).length;
-  const r32Loaded = r32.filter(Boolean).length;
+  const r32Loaded = r32Matches.length;
+  const r16Loaded = r16Matches.length;
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
