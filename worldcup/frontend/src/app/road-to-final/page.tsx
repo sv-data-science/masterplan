@@ -146,9 +146,11 @@ function Connector({ x1, y1, x2, y2, gold, active }: ConnectorProps) {
 
 // ── Main page ──────────────────────────────────────────────────────────────
 export default function RoadToFinalPage() {
-  const { data: allMatches = [], isLoading } = useQuery({
+  const { data: allMatches = [], isLoading, dataUpdatedAt } = useQuery({
     queryKey: ['all-matches-rtf'],
     queryFn: () => matchesApi.list().then(r => r.data as Match[]),
+    refetchInterval: 30_000,
+    staleTime: 20_000,
   });
 
   const byNum = new Map(allMatches.map(m => [m.match_number, m]));
@@ -172,6 +174,9 @@ export default function RoadToFinalPage() {
           {!isLoading && (
             <p className="text-gray-600 text-xs mt-0.5">
               {r32Loaded} R32 · {r16Loaded} R16 loaded
+              {dataUpdatedAt > 0 && (
+                <> · updated {new Date(dataUpdatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</>
+              )}
             </p>
           )}
         </div>
