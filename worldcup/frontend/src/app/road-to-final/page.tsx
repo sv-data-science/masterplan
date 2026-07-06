@@ -23,26 +23,22 @@ const qfAngle   = (q: number) => BASE_DEG + 39.375 + q * 90;
 const sfAngle   = (s: number) => BASE_DEG + 84.375 + s * 180;
 
 // ── Bracket structure ──────────────────────────────────────────────────────
+// R32 match slots (0..15): angular order around the circle
 const R32_SLOTS = [74, 77, 73, 75, 76, 78, 79, 80, 82, 81, 83, 84, 85, 88, 86, 87];
-// Fallback team codes per slot when match data unavailable [home, away]
+// Fallback team codes per R32 slot [home, away] when API data unavailable
 const R32_TEAMS: [string, string][] = [
   ['GER','PAR'],['FRA','SWE'],['RSA','CAN'],['NED','MAR'],
   ['BRA','JPN'],['CIV','NOR'],['MEX','ECU'],['ENG','COD'],
   ['BEL','SEN'],['USA','BIH'],['POR','CRO'],['ESP','AUT'],
   ['SUI','ALG'],['COL','GHA'],['ARG','CPV'],['AUS','EGY'],
 ];
+
+// R16 match slots (0..7): paired with R32 slots (slot m pairs with R32 slots m*2 and m*2+1)
+// Ring 2 position k = R16 match floor(k/2), home team if k even, away if k odd
 const R16_SLOTS = [89, 90, 91, 92, 93, 94, 95, 96];
 const QF_SLOTS  = [97, 98, 99, 100];
 const SF_SLOTS  = [101, 102];
 const FINAL_NUM = 103;
-
-// ── Clip ID scheme (deterministic, no mutable counter) ─────────────────────
-// R32 teams:    clip_team_{k}_{side}   (k=0..15, side=0|1)
-// R32 winners:  clip_r32w_{k}          (k=0..15)
-// R16 winners:  clip_r16w_{m}          (m=0..7)
-// QF winners:   clip_qfw_{q}           (q=0..3)
-// SF winners:   clip_sfw_{s}           (s=0..1)
-// Champion:     clip_champion
 
 // ── Flag ISO mapping ───────────────────────────────────────────────────────
 const TEAM_ISO: Record<string, string> = {
@@ -70,18 +66,28 @@ function getWinner(m?: Match | null): Team | null {
   return null;
 }
 
+// Ring 2 shows R16 participants (assigned to M89-M96), not R32 match winners.
+// This way teams appear as soon as R16 assignments exist, even before R32 is "marked complete".
+function ring2Team(k: number, r16: (Match | null)[]): Team | null {
+  const r16m = r16[Math.floor(k / 2)];
+  if (!r16m) return null;
+  const t = k % 2 === 0 ? r16m.home_team : r16m.away_team;
+  if (!t || t.code === 'TBD') return null;
+  return t;
+}
+
 // ── Sub-components ─────────────────────────────────────────────────────────
 function FlagCircle({
-  cx, cy, r, code, flag, dim, winner, clipId,
+  cx, cy, r, code, dim, winner, clipId,
 }: {
-  cx: number; cy: number; r: number; code?: string | null; flag?: string | null;
+  cx: number; cy: number; r: number; code?: string | null;
   dim?: boolean; winner?: boolean; clipId: string;
 }) {
   const url = code ? flagUrl(code) : null;
   const stroke = winner ? '#FFD700' : dim ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.28)';
   const strokeW = winner ? 2 : 0.8;
   const bg = dim ? '#13161b' : '#1c2128';
-  const textOpacity = dim ? 0.22 : 0.7;
+  const textFill = `rgba(255,255,255,${dim ? 0.22 : 0.7})`;
   const displayCode = code && code !== 'TBD' ? code.slice(0, 3) : '?';
   return (
     <g>
@@ -93,11 +99,10 @@ function FlagCircle({
       <circle cx={cx} cy={cy} r={r} fill={bg} stroke={stroke} strokeWidth={strokeW} />
       {/* Team code always visible as fallback */}
       <text x={cx} y={cy + r * 0.38} textAnchor="middle" fontSize={r * 0.62}
-        fontWeight="700" fill={`rgba(255,255,255,${textOpacity})`}
-        fontFamily="monospace">
+        fontWeight="700" fill={textFill} fontFamily="monospace">
         {displayCode}
       </text>
-      {/* Flag image layered on top — if it loads it replaces the text */}
+      {/* Flag image layered on top — covers the text when it loads */}
       {url && (
         <image
           href={url}
@@ -147,13 +152,16 @@ export default function RoadToFinalPage() {
   });
 
   const byNum = new Map(allMatches.map(m => [m.match_number, m]));
-  const r32 = R32_SLOTS.map(n => byNum.get(n) ?? null);
-  const r16 = R16_SLOTS.map(n => byNum.get(n) ?? null);
-  const qf  = QF_SLOTS.map(n => byNum.get(n) ?? null);
-  const sf  = SF_SLOTS.map(n => byNum.get(n) ?? null);
+  const r32  = R32_SLOTS.map(n => byNum.get(n) ?? null);
+  const r16  = R16_SLOTS.map(n => byNum.get(n) ?? null);
+  const qf   = QF_SLOTS.map(n => byNum.get(n) ?? null);
+  const sf   = SF_SLOTS.map(n => byNum.get(n) ?? null);
   const final = byNum.get(FINAL_NUM) ?? null;
 
   const champion = getWinner(final);
+
+  const r16Loaded = r16.filter(Boolean).length;
+  const r32Loaded = r32.filter(Boolean).length;
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white">
@@ -163,7 +171,7 @@ export default function RoadToFinalPage() {
           <p className="text-gray-400 text-sm mt-1">FIFA World Cup 2026 — knockout stage</p>
           {!isLoading && (
             <p className="text-gray-600 text-xs mt-0.5">
-              {allMatches.filter(m => m.stage === 'r32').length} R32 · {allMatches.filter(m => m.stage === 'r16').length} R16 matches loaded
+              {r32Loaded} R32 · {r16Loaded} R16 loaded
             </p>
           )}
         </div>
@@ -185,7 +193,6 @@ export default function RoadToFinalPage() {
                   </radialGradient>
                 </defs>
 
-                {/* Background */}
                 <rect width="900" height="900" fill="url(#bg-grad)" />
                 <circle cx={CX} cy={CY} r={70} fill="url(#center-glow)" />
 
@@ -196,13 +203,13 @@ export default function RoadToFinalPage() {
                     fill="none" stroke="rgba(255,255,255,0.035)" strokeWidth="0.8" />
                 ))}
 
-                {/* Round labels (top and bottom of each ring) */}
+                {/* Round labels */}
                 {[
                   { r: RADII.team + 13, label: 'R32' },
                   { r: RADII.r32 - 22, label: 'R16' },
-                  { r: RADII.r16 - 22, label: 'QF' },
-                  { r: RADII.qf - 22, label: 'SF' },
-                  { r: RADII.sf - 26, label: 'Final' },
+                  { r: RADII.r16 - 24, label: 'QF' },
+                  { r: RADII.qf - 24, label: 'SF' },
+                  { r: RADII.sf - 28, label: 'Final' },
                 ].flatMap(({ r, label }) => [
                   <text key={`${label}-r`} x={CX + r} y={CY + 4} textAnchor="middle"
                     fontSize="8.5" fill="rgba(255,255,255,0.16)" fontWeight="600">{label}</text>,
@@ -210,53 +217,51 @@ export default function RoadToFinalPage() {
                     fontSize="8.5" fill="rgba(255,255,255,0.16)" fontWeight="600">{label}</text>,
                 ])}
 
-                {/* ── Connection lines ──────────────────────────────────── */}
+                {/* ══ Connection lines ══════════════════════════════════════ */}
 
-                {/* R32 team → R32 winner position */}
+                {/* Ring 1 → Ring 2 (R32 team → their R16 slot) */}
                 {R32_SLOTS.map((_, k) => {
                   const match = r32[k];
-                  const winner = getWinner(match);
-                  const mp = toXY(RADII.r32, r32Angle(k));
+                  const r2t = ring2Team(k, r16);        // team assigned to ring 2 pos k
+                  const mp  = toXY(RADII.r32, r32Angle(k));
                   return [0, 1].map(side => {
-                    const team = side === 0 ? match?.home_team : match?.away_team;
+                    const outerTeam = side === 0 ? match?.home_team : match?.away_team;
                     const tp = toXY(RADII.team, teamAngle(k * 2 + side));
-                    const isWin = !!(winner && team && winner.id === team.id);
-                    const isElim = !!(winner && team && winner.id !== team.id);
+                    const isAdvancing = !!(r2t && outerTeam && r2t.id === outerTeam.id);
+                    const isElim      = !!(r2t && outerTeam && r2t.id !== outerTeam.id);
                     return (
                       <Connector key={`rc-${k}-${side}`}
                         x1={tp.x} y1={tp.y} x2={mp.x} y2={mp.y}
-                        gold={isWin} active={!isElim && !!match} />
+                        gold={isAdvancing} active={!isElim} />
                     );
                   });
                 })}
 
-                {/* R32 winner → R16 winner position */}
+                {/* Ring 2 → Ring 3 (R16 participant → QF slot) */}
                 {R16_SLOTS.map((_, m) => {
-                  const r16m = r16[m];
-                  const r16w = getWinner(r16m);
-                  const mp = toXY(RADII.r16, r16Angle(m));
+                  const r16w = getWinner(r16[m]);
+                  const mp   = toXY(RADII.r16, r16Angle(m));
                   return [0, 1].map(side => {
-                    const r32w = getWinner(r32[m * 2 + side]);
-                    const p = toXY(RADII.r32, r32Angle(m * 2 + side));
-                    const isWin = !!(r16w && r32w && r16w.id === r32w.id);
-                    const isElim = !!(r16w && r32w && r16w.id !== r32w.id);
+                    const r2t = ring2Team(m * 2 + side, r16);
+                    const p   = toXY(RADII.r32, r32Angle(m * 2 + side));
+                    const isWin  = !!(r16w && r2t && r16w.id === r2t.id);
+                    const isElim = !!(r16w && r2t && r16w.id !== r2t.id);
                     return (
                       <Connector key={`r16c-${m}-${side}`}
                         x1={p.x} y1={p.y} x2={mp.x} y2={mp.y}
-                        gold={isWin} active={!isElim && !!r32w} />
+                        gold={isWin} active={!isElim && !!r2t} />
                     );
                   });
                 })}
 
-                {/* R16 winner → QF position */}
+                {/* Ring 3 → Ring 4 (R16 winner → QF slot) */}
                 {QF_SLOTS.map((_, q) => {
-                  const qfm = qf[q];
-                  const qfw = getWinner(qfm);
-                  const mp = toXY(RADII.qf, qfAngle(q));
+                  const qfw = getWinner(qf[q]);
+                  const mp  = toXY(RADII.qf, qfAngle(q));
                   return [0, 1].map(side => {
                     const r16w = getWinner(r16[q * 2 + side]);
-                    const p = toXY(RADII.r16, r16Angle(q * 2 + side));
-                    const isWin = !!(qfw && r16w && qfw.id === r16w.id);
+                    const p    = toXY(RADII.r16, r16Angle(q * 2 + side));
+                    const isWin  = !!(qfw && r16w && qfw.id === r16w.id);
                     const isElim = !!(qfw && r16w && qfw.id !== r16w.id);
                     return (
                       <Connector key={`qfc-${q}-${side}`}
@@ -266,15 +271,14 @@ export default function RoadToFinalPage() {
                   });
                 })}
 
-                {/* QF winner → SF position */}
+                {/* Ring 4 → Ring 5 (QF winner → SF slot) */}
                 {SF_SLOTS.map((_, s) => {
-                  const sfm = sf[s];
-                  const sfw = getWinner(sfm);
-                  const mp = toXY(RADII.sf, sfAngle(s));
+                  const sfw = getWinner(sf[s]);
+                  const mp  = toXY(RADII.sf, sfAngle(s));
                   return [0, 1].map(side => {
                     const qfw = getWinner(qf[s * 2 + side]);
-                    const p = toXY(RADII.qf, qfAngle(s * 2 + side));
-                    const isWin = !!(sfw && qfw && sfw.id === qfw.id);
+                    const p   = toXY(RADII.qf, qfAngle(s * 2 + side));
+                    const isWin  = !!(sfw && qfw && sfw.id === qfw.id);
                     const isElim = !!(sfw && qfw && sfw.id !== qfw.id);
                     return (
                       <Connector key={`sfc-${s}-${side}`}
@@ -284,10 +288,10 @@ export default function RoadToFinalPage() {
                   });
                 })}
 
-                {/* SF winner → Center */}
+                {/* Ring 5 → Center (SF winner → Final) */}
                 {SF_SLOTS.map((_, s) => {
                   const sfw = getWinner(sf[s]);
-                  const isWin = !!(champion && sfw && champion.id === sfw.id);
+                  const isWin  = !!(champion && sfw && champion.id === sfw.id);
                   const isElim = !!(champion && sfw && champion.id !== sfw.id);
                   const p = toXY(RADII.sf, sfAngle(s));
                   return (
@@ -297,43 +301,40 @@ export default function RoadToFinalPage() {
                   );
                 })}
 
-                {/* ── R32 team nodes ────────────────────────────────────── */}
+                {/* ══ Ring 1 — R32 teams (outer) ═══════════════════════════ */}
                 {R32_SLOTS.map((_, k) => {
                   const match = r32[k];
-                  const winner = getWinner(match);
+                  const r2t   = ring2Team(k, r16);
                   return [0, 1].map(side => {
                     const team = side === 0 ? match?.home_team : match?.away_team;
                     const code = team?.code ?? R32_TEAMS[k][side];
-                    const pos = toXY(RADII.team, teamAngle(k * 2 + side));
-                    const isWin = !!(winner && team && winner.id === team.id);
-                    const isElim = !!(winner && team && winner.id !== team.id);
+                    const pos  = toXY(RADII.team, teamAngle(k * 2 + side));
+                    const isAdvancing = !!(r2t && team && r2t.id === team.id);
+                    const isElim      = !!(r2t && team && r2t.id !== team.id);
                     return (
                       <g key={`t-${k}-${side}`}>
                         <title>{team?.name ?? code}</title>
                         <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.team}
-                          code={code} dim={isElim} winner={isWin}
+                          code={code} dim={isElim} winner={isAdvancing}
                           clipId={`clip-team-${k}-${side}`} />
                       </g>
                     );
                   });
                 })}
 
-                {/* ── Team name labels (outside each team circle) ──────── */}
+                {/* ══ Team code labels (outside outer ring) ════════════════ */}
                 {R32_SLOTS.map((_, k) =>
                   [0, 1].map(side => {
                     const match = r32[k];
-                    const winner = getWinner(match);
-                    const team = side === 0 ? match?.home_team : match?.away_team;
-                    const code = team?.code ?? R32_TEAMS[k][side];
-                    const isElim = !!(winner && team && winner.id !== team.id);
-                    const deg = teamAngle(k * 2 + side);
+                    const r2t   = ring2Team(k, r16);
+                    const team  = side === 0 ? match?.home_team : match?.away_team;
+                    const code  = team?.code ?? R32_TEAMS[k][side];
+                    const isElim = !!(r2t && team && r2t.id !== team.id);
+                    const deg  = teamAngle(k * 2 + side);
                     const normDeg = ((deg % 360) + 360) % 360;
                     const labelR = RADII.team + NODE_R.team + 10;
                     const pos = toXY(labelR, deg);
-                    // Rotate text so it's tangential and always readable
-                    const textRot = normDeg > 90 && normDeg < 270
-                      ? deg + 90   // left half: flip so text reads outward
-                      : deg - 90;  // right half: normal outward reading
+                    const textRot = normDeg > 90 && normDeg < 270 ? deg + 90 : deg - 90;
                     return (
                       <text key={`lbl-${k}-${side}`}
                         x={pos.x} y={pos.y}
@@ -348,27 +349,33 @@ export default function RoadToFinalPage() {
                   })
                 )}
 
-                {/* ── R32 winner nodes ──────────────────────────────────── */}
+                {/* ══ Ring 2 — R16 participants ════════════════════════════ */}
+                {/* Shows the 16 teams assigned to R16 matches (2 per match). */}
+                {/* Each position k corresponds to R16 match floor(k/2), home if k even. */}
                 {R32_SLOTS.map((_, k) => {
-                  const winner = getWinner(r32[k]);
+                  const t   = ring2Team(k, r16);
+                  const r16w = getWinner(r16[Math.floor(k / 2)]);
                   const pos = toXY(RADII.r32, r32Angle(k));
-                  if (!winner) return <TBDCircle key={`r32w-${k}`} cx={pos.x} cy={pos.y} r={NODE_R.r32} />;
+                  if (!t) return <TBDCircle key={`r2-${k}`} cx={pos.x} cy={pos.y} r={NODE_R.r32} />;
+                  const isWin  = !!(r16w && r16w.id === t.id);
+                  const isElim = !!(r16w && r16w.id !== t.id);
                   return (
-                    <g key={`r32w-${k}`}>
-                      <title>{winner.name}</title>
+                    <g key={`r2-${k}`}>
+                      <title>{t.name}</title>
                       <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.r32}
-                        code={winner.code} winner clipId={`clip-r32w-${k}`} />
+                        code={t.code} dim={isElim} winner={isWin}
+                        clipId={`clip-r32w-${k}`} />
                     </g>
                   );
                 })}
 
-                {/* ── R16 winner nodes ──────────────────────────────────── */}
+                {/* ══ Ring 3 — R16 winners ═════════════════════════════════ */}
                 {R16_SLOTS.map((_, m) => {
                   const winner = getWinner(r16[m]);
-                  const pos = toXY(RADII.r16, r16Angle(m));
-                  if (!winner) return <TBDCircle key={`r16w-${m}`} cx={pos.x} cy={pos.y} r={NODE_R.r16} />;
+                  const pos    = toXY(RADII.r16, r16Angle(m));
+                  if (!winner) return <TBDCircle key={`r3-${m}`} cx={pos.x} cy={pos.y} r={NODE_R.r16} />;
                   return (
-                    <g key={`r16w-${m}`}>
+                    <g key={`r3-${m}`}>
                       <title>{winner.name}</title>
                       <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.r16}
                         code={winner.code} winner clipId={`clip-r16w-${m}`} />
@@ -376,13 +383,13 @@ export default function RoadToFinalPage() {
                   );
                 })}
 
-                {/* ── QF winner nodes ───────────────────────────────────── */}
+                {/* ══ Ring 4 — QF winners ══════════════════════════════════ */}
                 {QF_SLOTS.map((_, q) => {
                   const winner = getWinner(qf[q]);
-                  const pos = toXY(RADII.qf, qfAngle(q));
-                  if (!winner) return <TBDCircle key={`qfw-${q}`} cx={pos.x} cy={pos.y} r={NODE_R.qf} />;
+                  const pos    = toXY(RADII.qf, qfAngle(q));
+                  if (!winner) return <TBDCircle key={`r4-${q}`} cx={pos.x} cy={pos.y} r={NODE_R.qf} />;
                   return (
-                    <g key={`qfw-${q}`}>
+                    <g key={`r4-${q}`}>
                       <title>{winner.name}</title>
                       <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.qf}
                         code={winner.code} winner clipId={`clip-qfw-${q}`} />
@@ -390,13 +397,13 @@ export default function RoadToFinalPage() {
                   );
                 })}
 
-                {/* ── SF (finalist) nodes ───────────────────────────────── */}
+                {/* ══ Ring 5 — SF winners / Finalists ═════════════════════ */}
                 {SF_SLOTS.map((_, s) => {
                   const winner = getWinner(sf[s]);
-                  const pos = toXY(RADII.sf, sfAngle(s));
-                  if (!winner) return <TBDCircle key={`sfw-${s}`} cx={pos.x} cy={pos.y} r={NODE_R.sf} />;
+                  const pos    = toXY(RADII.sf, sfAngle(s));
+                  if (!winner) return <TBDCircle key={`r5-${s}`} cx={pos.x} cy={pos.y} r={NODE_R.sf} />;
                   return (
-                    <g key={`sfw-${s}`}>
+                    <g key={`r5-${s}`}>
                       <title>{winner.name}</title>
                       <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.sf}
                         code={winner.code} winner clipId={`clip-sfw-${s}`} />
@@ -404,7 +411,7 @@ export default function RoadToFinalPage() {
                   );
                 })}
 
-                {/* ── Champion / Trophy at center ───────────────────────── */}
+                {/* ══ Center — Champion / Trophy ═══════════════════════════ */}
                 {champion ? (
                   <g>
                     <FlagCircle cx={CX} cy={CY} r={NODE_R.center}
@@ -424,13 +431,12 @@ export default function RoadToFinalPage() {
               </svg>
             </div>
 
-            {/* Legend */}
             <div className="flex justify-center gap-6 mt-2 text-xs text-gray-500">
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-5 h-px bg-yellow-400 opacity-65" /> Winner
+                <span className="inline-block w-5 h-px bg-yellow-400 opacity-65" /> Advancing
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="inline-block w-5 h-px bg-white opacity-16" /> Played
+                <span className="inline-block w-5 h-px bg-white opacity-16" /> Assigned
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-block w-5 h-px border-t border-dashed border-white opacity-13" /> TBD
