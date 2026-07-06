@@ -72,15 +72,17 @@ function getWinner(m?: Match | null): Team | null {
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 function FlagCircle({
-  cx, cy, r, code, dim, winner, clipId,
+  cx, cy, r, code, flag, dim, winner, clipId,
 }: {
-  cx: number; cy: number; r: number; code?: string | null;
+  cx: number; cy: number; r: number; code?: string | null; flag?: string | null;
   dim?: boolean; winner?: boolean; clipId: string;
 }) {
   const url = code ? flagUrl(code) : null;
   const stroke = winner ? '#FFD700' : dim ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.28)';
   const strokeW = winner ? 2 : 0.8;
   const bg = dim ? '#13161b' : '#1c2128';
+  const textOpacity = dim ? 0.22 : 0.7;
+  const displayCode = code && code !== 'TBD' ? code.slice(0, 3) : '?';
   return (
     <g>
       <defs>
@@ -89,17 +91,21 @@ function FlagCircle({
         </clipPath>
       </defs>
       <circle cx={cx} cy={cy} r={r} fill={bg} stroke={stroke} strokeWidth={strokeW} />
-      {url ? (
+      {/* Team code always visible as fallback */}
+      <text x={cx} y={cy + r * 0.38} textAnchor="middle" fontSize={r * 0.62}
+        fontWeight="700" fill={`rgba(255,255,255,${textOpacity})`}
+        fontFamily="monospace">
+        {displayCode}
+      </text>
+      {/* Flag image layered on top — if it loads it replaces the text */}
+      {url && (
         <image
           href={url}
           x={cx - r} y={cy - r * 0.75}
           width={r * 2} height={r * 1.5}
           clipPath={`url(#${clipId})`}
-          style={{ opacity: dim ? 0.3 : 1 }}
+          style={{ opacity: dim ? 0.35 : 1 }}
         />
-      ) : (
-        <text x={cx} y={cy + 3.5} textAnchor="middle" fontSize={r * 0.9}
-          fill={dim ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.45)'}>?</text>
       )}
       {winner && (
         <circle cx={cx} cy={cy} r={r + 3} fill="none"
@@ -155,6 +161,11 @@ export default function RoadToFinalPage() {
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-white">Road to the Final</h1>
           <p className="text-gray-400 text-sm mt-1">FIFA World Cup 2026 — knockout stage</p>
+          {!isLoading && (
+            <p className="text-gray-600 text-xs mt-0.5">
+              {allMatches.filter(m => m.stage === 'r32').length} R32 · {allMatches.filter(m => m.stage === 'r16').length} R16 matches loaded
+            </p>
+          )}
         </div>
 
         {isLoading ? (
@@ -307,7 +318,7 @@ export default function RoadToFinalPage() {
                   });
                 })}
 
-                {/* ── Team name labels ──────────────────────────────────── */}
+                {/* ── Team name labels (outside each team circle) ──────── */}
                 {R32_SLOTS.map((_, k) =>
                   [0, 1].map(side => {
                     const match = r32[k];
@@ -316,16 +327,20 @@ export default function RoadToFinalPage() {
                     const code = team?.code ?? R32_TEAMS[k][side];
                     const isElim = !!(winner && team && winner.id !== team.id);
                     const deg = teamAngle(k * 2 + side);
+                    const normDeg = ((deg % 360) + 360) % 360;
                     const labelR = RADII.team + NODE_R.team + 10;
                     const pos = toXY(labelR, deg);
-                    const flip = deg > 90 && deg < 270;
+                    // Rotate text so it's tangential and always readable
+                    const textRot = normDeg > 90 && normDeg < 270
+                      ? deg + 90   // left half: flip so text reads outward
+                      : deg - 90;  // right half: normal outward reading
                     return (
                       <text key={`lbl-${k}-${side}`}
                         x={pos.x} y={pos.y}
                         textAnchor="middle" dominantBaseline="middle"
-                        fontSize="7" fontWeight="600"
-                        fill={isElim ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.6)'}
-                        transform={`rotate(${flip ? deg + 90 : deg - 90}, ${pos.x}, ${pos.y})`}
+                        fontSize="7.5" fontWeight="700" letterSpacing="0.5"
+                        fill={isElim ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.65)'}
+                        transform={`rotate(${textRot}, ${pos.x}, ${pos.y})`}
                       >
                         {code}
                       </text>
