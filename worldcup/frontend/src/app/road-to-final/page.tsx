@@ -177,7 +177,7 @@ export default function RoadToFinalPage() {
           <p className="text-gray-400 text-sm mt-1">FIFA World Cup 2026 — knockout stage</p>
           {!isLoading && (
             <p className="text-gray-600 text-xs mt-0.5">
-              {r32Loaded} R32 · {r16Loaded} R16 loaded
+              {allMatches.length} total · {r32Loaded} R32 · {r16Loaded} R16
               {dataUpdatedAt > 0 && (
                 <> · updated {new Date(dataUpdatedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</>
               )}
