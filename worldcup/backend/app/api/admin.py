@@ -714,11 +714,16 @@ async def get_r16_assignments(admin: User = Depends(require_admin), db: AsyncSes
         .order_by(MatchModel.match_number)
     )).scalars().all()
 
+    def fmt(t):
+        if not t:
+            return "? TBD (TBD)"
+        return f"{t.flag} {t.code} ({t.name})"
+
     return [
         {
             "match_number": m.match_number,
-            "home": f"{m.home_team.flag} {m.home_team.code} ({m.home_team.name})",
-            "away": f"{m.away_team.flag} {m.away_team.code} ({m.away_team.name})",
+            "home": fmt(m.home_team),
+            "away": fmt(m.away_team),
             "kickoff_utc": m.kickoff_utc.isoformat() if m.kickoff_utc else None,
         }
         for m in matches
