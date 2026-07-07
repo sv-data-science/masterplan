@@ -368,6 +368,26 @@ async def score_audit_log(
     ]
 
 
+@router.post("/fix-match-number-shift")
+async def fix_match_number_shift(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Fix match numbers stuck at 1073-1096 after a reseed (subtract 1000 to restore 73-96)."""
+    from app.models.worldcup import Match as MatchModel
+    from sqlalchemy import update
+
+    result = await db.execute(
+        select(MatchModel).where(MatchModel.match_number >= 1073, MatchModel.match_number <= 1096)
+    )
+    shifted = result.scalars().all()
+    if not shifted:
+        return {"status": "nothing_to_fix", "fixed": 0}
+
+    for m in shifted:
+        m.match_number = m.match_number - 1000
+
+    await db.flush()
+    return {"status": "ok", "fixed": len(shifted), "matches": sorted(m.match_number for m in shifted)}
+
+
 @router.post("/patch-r32-schedule")
 async def patch_r32_schedule(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Update kickoff times for R32 matches to match the official FIFA schedule."""

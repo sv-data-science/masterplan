@@ -524,6 +524,7 @@ function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
   const [seeding, setSeeding] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [patching, setPatching] = useState(false);
+  const [fixing, setFixing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
 
   const seed = async () => {
@@ -574,6 +575,18 @@ function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
     } finally { setPatching(false); }
   };
 
+  const fixShift = async () => {
+    setFixing(true);
+    try {
+      const r = await api.post('/admin/fix-match-number-shift');
+      if (r.data.status === 'nothing_to_fix') toast('No shifted matches found (already fixed)');
+      else toast.success(`Fixed ${r.data.fixed} matches — numbers restored to 73–96`);
+      onSeeded();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Fix failed');
+    } finally { setFixing(false); }
+  };
+
   return (
     <div className="card p-4 border-blue-800/40 bg-blue-900/10">
       <h3 className="font-semibold text-white flex items-center gap-2 mb-1">🏅 Round of 16 Setup</h3>
@@ -594,6 +607,9 @@ function SeedR16Panel({ onSeeded }: { onSeeded: () => void }) {
         </button>
         <button onClick={forcePatch} disabled={patching} className="btn-primary py-1.5 text-sm">
           {patching ? '⏳ Patching…' : '🔧 Force fix dates/venues'}
+        </button>
+        <button onClick={fixShift} disabled={fixing} className="btn-secondary py-1.5 text-sm border-red-700 text-red-400 hover:text-red-300">
+          {fixing ? '⏳ Fixing…' : '🔢 Fix shifted match numbers'}
         </button>
       </div>
       {result && (
