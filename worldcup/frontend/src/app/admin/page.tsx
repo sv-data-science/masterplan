@@ -702,9 +702,15 @@ function R16OverridePanel({ onSaved }: { onSaved: () => void }) {
   const load = async () => {
     setLoading(true);
     try {
-      const r = await api.get('/admin/r16-assignments');
-      setAssignments(r.data);
-    } catch { toast.error('Failed to load R16 assignments'); }
+      const r = await matchesApi.list({ stage: 'r16' });
+      const mapped: R32Assignment[] = (r.data as any[]).map((m: any) => ({
+        match_number: m.match_number,
+        home: `${m.home_team?.flag ?? ''} ${m.home_team?.code ?? 'TBD'} (${m.home_team?.name ?? 'TBD'})`,
+        away: `${m.away_team?.flag ?? ''} ${m.away_team?.code ?? 'TBD'} (${m.away_team?.name ?? 'TBD'})`,
+        kickoff_utc: m.kickoff_utc,
+      }));
+      setAssignments(mapped);
+    } catch { toast.error('Failed to load R16 matches'); }
     finally { setLoading(false); }
   };
 
@@ -720,7 +726,7 @@ function R16OverridePanel({ onSaved }: { onSaved: () => void }) {
     if (!homeCode && !awayCode) { toast.error('Enter at least one team code'); return; }
     setSaving(true);
     try {
-      await api.post('/admin/set-r16-teams', {
+      await api.post('/admin/set-r32-teams', {
         match_number: matchNumber,
         home_team_code: homeCode || null,
         away_team_code: awayCode || null,

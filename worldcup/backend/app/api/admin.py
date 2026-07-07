@@ -623,14 +623,14 @@ class R32TeamOverride(BaseModel):
 
 @router.post("/set-r32-teams")
 async def set_r32_teams(body: R32TeamOverride, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    """Manually set home/away team for a specific R32 match by team code. Pass None to leave unchanged."""
+    """Manually set home/away team for any knockout match by match number and team code."""
     from app.models.worldcup import Team, Match as MatchModel
 
     match = (await db.execute(
-        select(MatchModel).where(MatchModel.match_number == body.match_number, MatchModel.stage == 'r32')
+        select(MatchModel).where(MatchModel.match_number == body.match_number)
     )).scalar_one_or_none()
     if not match:
-        raise HTTPException(status_code=404, detail=f"R32 match {body.match_number} not found")
+        raise HTTPException(status_code=404, detail=f"Match {body.match_number} not found")
 
     if body.home_team_code:
         team = (await db.execute(select(Team).where(Team.code == body.home_team_code))).scalar_one_or_none()
