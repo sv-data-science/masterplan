@@ -21,8 +21,9 @@ export default function HomePage() {
   const TZ = 'America/New_York';
   const r32Matches = (matches ?? []).filter(m => m.stage === 'r32').sort((a, b) => a.match_number - b.match_number);
   const { upcoming, upcomingDayLabel } = (() => {
+    const now = Date.now();
     const scheduled = (matches ?? [])
-      .filter(m => m.status === 'scheduled' && m.kickoff_utc && m.stage !== 'r32')
+      .filter(m => m.status === 'scheduled' && m.kickoff_utc && m.stage !== 'r32' && new Date(m.kickoff_utc).getTime() > now)
       .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime());
     if (!scheduled.length) return { upcoming: [], upcomingDayLabel: '' };
     const first = scheduled[0].kickoff_utc!;
