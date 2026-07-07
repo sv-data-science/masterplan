@@ -368,6 +368,26 @@ async def score_audit_log(
     ]
 
 
+@router.post("/fix-match-number-shift")
+async def fix_match_number_shift(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Fix match numbers stuck at 1073-1096 after a reseed (subtract 1000 to restore 73-96)."""
+    from app.models.worldcup import Match as MatchModel
+    from sqlalchemy import update
+
+    result = await db.execute(
+        select(MatchModel).where(MatchModel.match_number >= 1073, MatchModel.match_number <= 1096)
+    )
+    shifted = result.scalars().all()
+    if not shifted:
+        return {"status": "nothing_to_fix", "fixed": 0}
+
+    for m in shifted:
+        m.match_number = m.match_number - 1000
+
+    await db.flush()
+    return {"status": "ok", "fixed": len(shifted), "matches": sorted(m.match_number for m in shifted)}
+
+
 @router.post("/patch-r32-schedule")
 async def patch_r32_schedule(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
     """Update kickoff times for R32 matches to match the official FIFA schedule."""
@@ -623,14 +643,14 @@ class R32TeamOverride(BaseModel):
 
 @router.post("/set-r32-teams")
 async def set_r32_teams(body: R32TeamOverride, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
-    """Manually set home/away team for a specific R32 match by team code. Pass None to leave unchanged."""
+    """Manually set home/away team for any knockout match by match number and team code."""
     from app.models.worldcup import Team, Match as MatchModel
 
     match = (await db.execute(
-        select(MatchModel).where(MatchModel.match_number == body.match_number, MatchModel.stage == 'r32')
+        select(MatchModel).where(MatchModel.match_number == body.match_number)
     )).scalar_one_or_none()
     if not match:
-        raise HTTPException(status_code=404, detail=f"R32 match {body.match_number} not found")
+        raise HTTPException(status_code=404, detail=f"Match {body.match_number} not found")
 
     if body.home_team_code:
         team = (await db.execute(select(Team).where(Team.code == body.home_team_code))).scalar_one_or_none()
@@ -667,6 +687,63 @@ async def get_r32_assignments(admin: User = Depends(require_admin), db: AsyncSes
             "match_number": m.match_number,
             "home": f"{m.home_team.flag} {m.home_team.code} ({m.home_team.name})",
             "away": f"{m.away_team.flag} {m.away_team.code} ({m.away_team.name})",
+            "kickoff_utc": m.kickoff_utc.isoformat() if m.kickoff_utc else None,
+        }
+        for m in matches
+    ]
+
+
+@router.post("/set-r16-teams")
+async def set_r16_teams(body: R32TeamOverride, admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Manually set home/away team for a specific R16 match by team code. Pass None to leave unchanged."""
+    from app.models.worldcup import Team, Match as MatchModel
+
+    match = (await db.execute(
+        select(MatchModel).where(MatchModel.match_number == body.match_number, MatchModel.stage == 'r16')
+    )).scalar_one_or_none()
+    if not match:
+        raise HTTPException(status_code=404, detail=f"R16 match {body.match_number} not found")
+
+    if body.home_team_code:
+        team = (await db.execute(select(Team).where(Team.code == body.home_team_code))).scalar_one_or_none()
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team '{body.home_team_code}' not found")
+        match.home_team_id = team.id
+
+    if body.away_team_code:
+        team = (await db.execute(select(Team).where(Team.code == body.away_team_code))).scalar_one_or_none()
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team '{body.away_team_code}' not found")
+        match.away_team_id = team.id
+
+    await db.flush()
+    return {"status": "ok", "match_number": body.match_number,
+            "home_team_code": body.home_team_code, "away_team_code": body.away_team_code}
+
+
+@router.get("/r16-assignments")
+async def get_r16_assignments(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Return current team assignments for all R16 matches."""
+    from sqlalchemy.orm import selectinload
+    from app.models.worldcup import Match as MatchModel
+
+    matches = (await db.execute(
+        select(MatchModel)
+        .options(selectinload(MatchModel.home_team), selectinload(MatchModel.away_team))
+        .where(MatchModel.stage == 'r16')
+        .order_by(MatchModel.match_number)
+    )).scalars().all()
+
+    def fmt(t):
+        if not t:
+            return "? TBD (TBD)"
+        return f"{t.flag} {t.code} ({t.name})"
+
+    return [
+        {
+            "match_number": m.match_number,
+            "home": fmt(m.home_team),
+            "away": fmt(m.away_team),
             "kickoff_utc": m.kickoff_utc.isoformat() if m.kickoff_utc else None,
         }
         for m in matches

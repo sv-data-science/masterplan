@@ -284,13 +284,15 @@ async def patch_schedule():
         team_map: dict[str, str] = {t.name: t.id for t in teams}
 
         existing_matches = (await db.execute(select(Match))).scalars().all()
+        # Only shift group-stage matches (1–72) to avoid conflicts — leave knockout matches alone
+        group_matches = [m for m in existing_matches if m.match_number <= 72]
         pair_to_match: dict[frozenset, Match] = {
-            frozenset({m.home_team_id, m.away_team_id}): m for m in existing_matches
+            frozenset({m.home_team_id, m.away_team_id}): m for m in group_matches
         }
 
-        # Shift all match_numbers into a safe range (1001-1072) to avoid unique conflicts
+        # Shift group-stage match_numbers into a safe range (1001-1072) to avoid unique conflicts
         # when we reassign them below. PostgreSQL enforces uniqueness per-statement.
-        for m in existing_matches:
+        for m in group_matches:
             m.match_number = m.match_number + 1000
         await db.flush()
 
