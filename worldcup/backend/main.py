@@ -16,7 +16,7 @@ from app.models import user, worldcup  # noqa: register models
 from app.models.user import User
 from app.models.worldcup import Meme, MemeReaction
 from app.auth import get_current_user, get_optional_current_user
-from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia
+from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia, scores
 
 logging.basicConfig(
     level=logging.INFO,
@@ -311,6 +311,7 @@ app.include_router(leaderboard.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(goals.router, prefix="/api/v1")
 app.include_router(trivia.router, prefix="/api/v1")
+app.include_router(scores.router, prefix="/api/v1")
 
 # ── Memes (inlined to avoid any module-import issues on Railway) ──────────────
 _ALLOWED_EMOJIS = {"👍", "❤️", "😂", "🔥", "🙈", "😮", "👏", "😭", "🤣", "😡"}
