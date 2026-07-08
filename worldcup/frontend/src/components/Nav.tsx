@@ -29,6 +29,7 @@ export function Nav() {
     { href: '/memes', label: '😂 Memes' },
     { href: '/history', label: '📖 WC History' },
     { href: '/brackets', label: '🏆 Bracket' },
+    { href: '/results', label: '📋 Results' },
     { href: '/road-to-final', label: '🌐 Road to Final', badge: 'New' },
     { href: '/scores', label: '📊 Score Matrix', badge: 'New' },
     { href: '/matches', label: 'Matches' },
