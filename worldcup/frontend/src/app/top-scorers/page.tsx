@@ -55,8 +55,7 @@ export default function TopScorersPage() {
         <div className="card divide-y divide-[#30363d]">
           <div className="grid grid-cols-12 gap-2 px-4 py-2 text-xs text-gray-500 font-medium uppercase">
             <div className="col-span-1">#</div>
-            <div className="col-span-7">Player</div>
-            <div className="col-span-2 text-center">Group</div>
+            <div className="col-span-9">Player</div>
             <div className="col-span-2 text-center">Goals</div>
           </div>
           {scorers.map((s, i) => {
@@ -66,11 +65,10 @@ export default function TopScorersPage() {
                 <div className={`col-span-1 font-bold text-sm ${rank === 1 ? 'text-yellow-400' : rank === 2 ? 'text-gray-300' : rank === 3 ? 'text-orange-400' : 'text-gray-500'}`}>
                   {icon(rank)}
                 </div>
-                <div className="col-span-7">
+                <div className="col-span-9">
                   <p className="font-semibold text-sm text-white">{s.player_name}</p>
                   <p className="text-xs text-gray-500">{s.team_flag} {s.team_name}</p>
                 </div>
-                <div className="col-span-2 text-center text-xs text-gray-400">Grp {s.group_letter}</div>
                 <div className="col-span-2 text-center">
                   <span className="text-xl font-bold text-white">{s.goals}</span>
                   <span className="text-xs text-gray-500 ml-1">⚽</span>
