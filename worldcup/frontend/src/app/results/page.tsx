@@ -68,7 +68,7 @@ export default function ResultsPage() {
       if (!map.has(k)) map.set(k, []);
       map.get(k)!.push(m);
     }
-    return [...map.entries()].sort(([a], [b]) => b.localeCompare(a)); // newest first
+    return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a)); // newest first
   }, [stageMatches, resolvedStage]);
 
   return (
@@ -113,7 +113,7 @@ export default function ResultsPage() {
       )}
 
       {/* Group stage: grouped by day (newest first) */}
-      {groupedByDay && groupedByDay.map(([, dayMatches]) => (
+      {groupedByDay && groupedByDay.map(([, dayMatches]: [string, Match[]]) => (
         <div key={dayMatches[0].kickoff_utc}>
           <p className="text-sm font-semibold text-gray-400 mb-2">
             {dayMatches[0].kickoff_utc ? dayLabel(dayMatches[0].kickoff_utc) : ''}
