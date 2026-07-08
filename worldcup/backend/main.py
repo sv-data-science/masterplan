@@ -39,6 +39,19 @@ async def _auto_sync_loop():
             log.error("Auto-sync error: %s", e)
 
 
+async def _auto_sync_goals_loop():
+    """Sync goal scorers from ESPN once per hour (runs in background, never blocks startup)."""
+    await asyncio.sleep(60)  # brief delay so DB/seed is ready
+    while True:
+        try:
+            from app.services.sync import sync_goals_espn
+            result = await sync_goals_espn()
+            log.info("Auto goal-sync: %d goals across %d matches", result.get("goals_synced", 0), result.get("matches_updated", 0))
+        except Exception as e:
+            log.error("Auto goal-sync error: %s", e)
+        await asyncio.sleep(3600)  # hourly
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log.info("Starting up — DB URL scheme: %s", settings.async_database_url.split("@")[0].split("://")[0])
@@ -282,10 +295,14 @@ async def lifespan(app: FastAPI):
         task = asyncio.create_task(_auto_sync_loop())
         log.info("Auto-sync started (every %d min)", settings.SYNC_INTERVAL_MINUTES)
 
+    goals_task = asyncio.create_task(_auto_sync_goals_loop())
+    log.info("Auto goal-sync started (hourly)")
+
     yield
 
     if task:
         task.cancel()
+    goals_task.cancel()
 
 
 app = FastAPI(

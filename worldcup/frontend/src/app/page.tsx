@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { MatchCard } from '@/components/MatchCard';
 import { KitSVG } from '@/components/KitSVG';
 import { useAuthStore } from '@/store/auth';
-import { R32_BY_MATCH_NUMBER, slotLabel } from '@/lib/r32Data';
 
 export default function HomePage() {
   const { user } = useAuthStore();
@@ -15,47 +14,50 @@ export default function HomePage() {
   const { data: triviaStats } = useQuery({ queryKey: ['trivia-my-stats'], queryFn: () => triviaApi.myStats().then(r => r.data), enabled: !!user, staleTime: 60_000 });
   const { data: triviaLeaderboard } = useQuery({ queryKey: ['trivia-leaderboard'], queryFn: () => api.get('/trivia/leaderboard').then(r => r.data), staleTime: 60_000 });
 
-  // All scheduled matches on the nearest upcoming match day (no cap — show full day's slate)
-  // Day grouping uses America/New_York so late-night UTC matches (e.g. 02:00 UTC = 10 PM EDT)
-  // stay on the correct local calendar date instead of rolling to the next UTC day.
   const TZ = 'America/New_York';
-  const r32Matches = (matches ?? []).filter(m => m.stage === 'r32').sort((a, b) => a.match_number - b.match_number);
-  const { upcoming, upcomingDayLabel } = (() => {
-    const scheduled = (matches ?? [])
-      .filter(m => m.status === 'scheduled' && m.kickoff_utc && m.stage !== 'r32')
-      .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime());
-    if (!scheduled.length) return { upcoming: [], upcomingDayLabel: '' };
-    const first = scheduled[0].kickoff_utc!;
-    // en-CA gives YYYY-MM-DD — reliable key without locale quirks
-    const dayKey = new Date(first).toLocaleDateString('en-CA', { timeZone: TZ });
-    const day = scheduled.filter(m =>
-      new Date(m.kickoff_utc!).toLocaleDateString('en-CA', { timeZone: TZ }) === dayKey
-    );
-    const todayKey = new Date().toLocaleDateString('en-CA', { timeZone: TZ });
-    const isToday = dayKey === todayKey;
-    const label = isToday
-      ? "Today's Matches"
-      : `Matches · ${new Date(first).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: TZ })}`;
-    return { upcoming: day, upcomingDayLabel: label };
-  })();
-  const recent = matches?.filter(m => m.status !== 'scheduled').sort((a,b) => new Date(b.kickoff_utc??0).getTime()-new Date(a.kickoff_utc??0).getTime()).slice(0,4)??[];
+  const now = Date.now();
+  const todayKey    = new Date().toLocaleDateString('en-CA', { timeZone: TZ });
+  const tomorrowKey = new Date(now + 86_400_000).toLocaleDateString('en-CA', { timeZone: TZ });
+
+  // Recent results: all matches from the most recent completed day
+  const completedMatches = (matches ?? []).filter(m => m.status !== 'scheduled' && m.kickoff_utc);
+  const latestCompleted = completedMatches.reduce<Match | null>((acc, m) =>
+    !acc || new Date(m.kickoff_utc!) > new Date(acc.kickoff_utc!) ? m : acc, null
+  );
+  const recentDayKey = latestCompleted
+    ? new Date(latestCompleted.kickoff_utc!).toLocaleDateString('en-CA', { timeZone: TZ })
+    : null;
+  const recent = recentDayKey
+    ? completedMatches
+        .filter(m => new Date(m.kickoff_utc!).toLocaleDateString('en-CA', { timeZone: TZ }) === recentDayKey)
+        .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime())
+    : [];
+  const recentLabel = latestCompleted
+    ? new Date(latestCompleted.kickoff_utc!).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: TZ })
+    : '';
+
+  // Upcoming: today's and tomorrow's scheduled non-R32 future matches
+  const scheduledFuture = (matches ?? [])
+    .filter(m => m.status === 'scheduled' && m.kickoff_utc && m.stage !== 'r32' && new Date(m.kickoff_utc).getTime() > now)
+    .sort((a, b) => new Date(a.kickoff_utc!).getTime() - new Date(b.kickoff_utc!).getTime());
+  const todayMatches    = scheduledFuture.filter(m => new Date(m.kickoff_utc!).toLocaleDateString('en-CA', { timeZone: TZ }) === todayKey);
+  const tomorrowMatches = scheduledFuture.filter(m => new Date(m.kickoff_utc!).toLocaleDateString('en-CA', { timeZone: TZ }) === tomorrowKey);
+  const tomorrowLabel   = tomorrowMatches[0]
+    ? new Date(tomorrowMatches[0].kickoff_utc!).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: TZ })
+    : '';
   const top5 = leaderboard?.slice(0,5)??[];
   const myRank = leaderboard?.find(e => e.user_id === user?.id);
 
-  // Prediction nudge: find scheduled matches kicking off today or tomorrow (Eastern time)
+  // Prediction nudge: today or tomorrow non-R32 upcoming matches
   const nudge = (() => {
     if (!user || !matches?.length) return null;
-    const now = new Date();
-    const todayKey    = now.toLocaleDateString('en-CA', { timeZone: TZ });
-    const tomorrowKey = new Date(now.getTime() + 86_400_000).toLocaleDateString('en-CA', { timeZone: TZ });
-
     const todayMs = matches.filter(m => {
-      if (!m.kickoff_utc || m.status !== 'scheduled') return false;
+      if (!m.kickoff_utc || m.status !== 'scheduled' || m.stage === 'r32') return false;
       const k = new Date(m.kickoff_utc);
-      return k > now && k.toLocaleDateString('en-CA', { timeZone: TZ }) === todayKey;
+      return k.getTime() > now && k.toLocaleDateString('en-CA', { timeZone: TZ }) === todayKey;
     });
     const tomorrowMs = matches.filter(m => {
-      if (!m.kickoff_utc || m.status !== 'scheduled') return false;
+      if (!m.kickoff_utc || m.status !== 'scheduled' || m.stage === 'r32') return false;
       return new Date(m.kickoff_utc).toLocaleDateString('en-CA', { timeZone: TZ }) === tomorrowKey;
     });
 
@@ -111,36 +113,29 @@ export default function HomePage() {
         <div className="lg:col-span-2 space-y-6">
           {recent.length > 0 && (
             <section>
-              <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">Recent Results</h2><Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link></div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold text-lg text-white">Results · {recentLabel}</h2>
+                <Link href="/results" className="text-sm text-green-400 hover:underline">All results →</Link>
+              </div>
               <div className="grid sm:grid-cols-2 gap-3">{recent.map(m => <MatchCard key={m.id} match={m} queryKey={['matches','home']} />)}</div>
             </section>
           )}
-          {upcoming.length > 0 && (
-            <section>
-              <div className="flex items-center justify-between mb-3"><h2 className="font-bold text-lg text-white">{upcomingDayLabel}</h2><Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link></div>
-              <div className="grid sm:grid-cols-2 gap-3">{upcoming.map(m => <MatchCard key={m.id} match={m} queryKey={['matches','home']} />)}</div>
-            </section>
-          )}
-          {r32Matches.length > 0 && user && (
+          {todayMatches.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h2 className="font-bold text-lg text-white">🏆 Knockout Predictions</h2>
-                  <p className="text-xs text-gray-500 mt-0.5">Round of 32 · {r32Matches.filter(m => m.my_prediction).length}/{r32Matches.length} predicted</p>
-                </div>
-                <Link href="/brackets" className="text-sm text-green-400 hover:underline">Bracket →</Link>
+                <h2 className="font-bold text-lg text-white">Today's Matches</h2>
+                <Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link>
               </div>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {r32Matches.map(m => {
-                  const entry = R32_BY_MATCH_NUMBER.get(m.match_number);
-                  return (
-                    <MatchCard key={m.id} match={m} queryKey={['matches', 'home']}
-                      homeLabel={entry && m.home_team.code === 'TBD' ? slotLabel(entry.home) : undefined}
-                      awayLabel={entry && m.away_team.code === 'TBD' ? slotLabel(entry.away) : undefined}
-                    />
-                  );
-                })}
+              <div className="grid sm:grid-cols-2 gap-3">{todayMatches.map(m => <MatchCard key={m.id} match={m} queryKey={['matches','home']} />)}</div>
+            </section>
+          )}
+          {tomorrowMatches.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-bold text-lg text-white">Tomorrow · {tomorrowLabel}</h2>
+                <Link href="/matches" className="text-sm text-green-400 hover:underline">All matches →</Link>
               </div>
+              <div className="grid sm:grid-cols-2 gap-3">{tomorrowMatches.map(m => <MatchCard key={m.id} match={m} queryKey={['matches','home']} />)}</div>
             </section>
           )}
         </div>
