@@ -154,6 +154,15 @@ function R32PredictRow({ match, onSaved }: { match: Match; onSaved: () => void }
   );
 }
 
+const STAGE_TABS = [
+  { key: 'group', label: 'Group Stage', short: 'Groups' },
+  { key: 'r32',   label: 'Round of 32', short: 'R32' },
+  { key: 'r16',   label: 'Round of 16', short: 'R16' },
+  { key: 'qf',    label: 'Quarter-Finals', short: 'QF' },
+  { key: 'sf',    label: 'Semi-Finals', short: 'SF' },
+  { key: 'f',     label: 'Final', short: 'Final' },
+];
+
 export default function MyPredictionsPage() {
   const { user } = useAuthStore();
   const router = useRouter();
@@ -167,18 +176,30 @@ export default function MyPredictionsPage() {
     enabled: !!user,
   });
 
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+
   const refresh = () => qc.invalidateQueries({ queryKey: ['matches', 'my-preds'] });
 
-  const groupMatches = matches.filter(m => m.stage !== 'r32');
-  const r32Matches = matches.filter(m => m.stage === 'r32').sort((a, b) => a.match_number - b.match_number);
+  const stagesPresent = new Set(matches.map(m => m.stage ?? 'group'));
+
+  const resolvedTab = activeTab ?? (['qf', 'sf', 'f', 'r16', 'r32', 'group'].find(s => stagesPresent.has(s)) ?? 'group');
+
+  const tabMatches = matches.filter(m => {
+    if (resolvedTab === 'group') return !m.stage || m.stage === 'group';
+    return m.stage === resolvedTab;
+  });
+
+  const isKnockout = resolvedTab === 'r32' || resolvedTab === 'r16' || resolvedTab === 'qf' || resolvedTab === 'sf' || resolvedTab === 'f';
 
   const predicted = matches.filter(m => m.my_prediction);
   const completed = predicted.filter(m => m.status === 'completed');
   const totalPts = completed.reduce((s, m) => s + (m.my_prediction?.points_earned ?? 0), 0);
   const exact = completed.filter(m => m.my_prediction?.points_earned === 3).length;
   const correct = completed.filter(m => m.my_prediction?.points_earned === 2 || m.my_prediction?.points_earned === 1).length;
-  const unpredicted = groupMatches.filter(m => !m.my_prediction);
-  const scheduled = groupMatches.filter(m => m.status === 'scheduled' && m.my_prediction);
+
+  const unpredicted = tabMatches.filter(m => !m.my_prediction && m.status === 'scheduled');
+  const scheduled = tabMatches.filter(m => m.status === 'scheduled' && m.my_prediction);
+  const tabCompleted = tabMatches.filter(m => m.status === 'completed');
 
   if (!user) return null;
 
@@ -200,13 +221,33 @@ export default function MyPredictionsPage() {
         ))}
       </div>
 
+      {/* Stage tabs */}
+      <div className="flex gap-2 overflow-x-auto pb-1">
+        {STAGE_TABS.filter(t => stagesPresent.has(t.key)).map(t => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className={`px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap border transition-colors shrink-0 ${
+              resolvedTab === t.key
+                ? 'bg-green-600 border-green-600 text-white'
+                : 'border-[#30363d] text-gray-300 hover:text-white hover:border-gray-500'
+            }`}
+          >
+            <span className="hidden sm:inline">{t.label}</span>
+            <span className="sm:hidden">{t.short}</span>
+          </button>
+        ))}
+      </div>
+
       {unpredicted.length > 0 && (
         <section>
           <h2 className="font-semibold text-orange-400 mb-3">Missing predictions ({unpredicted.length})</h2>
           <div className="card divide-y divide-[#30363d]">
             {unpredicted
               .sort((a, b) => new Date(a.kickoff_utc ?? 0).getTime() - new Date(b.kickoff_utc ?? 0).getTime())
-              .map(m => <PredictRow key={m.id} match={m} onSaved={refresh} />)}
+              .map(m => isKnockout
+                ? <R32PredictRow key={m.id} match={m} onSaved={refresh} />
+                : <PredictRow key={m.id} match={m} onSaved={refresh} />)}
           </div>
         </section>
       )}
@@ -217,28 +258,20 @@ export default function MyPredictionsPage() {
           <div className="card divide-y divide-[#30363d]">
             {scheduled
               .sort((a, b) => new Date(a.kickoff_utc ?? 0).getTime() - new Date(b.kickoff_utc ?? 0).getTime())
-              .map(m => <PredictRow key={m.id} match={m} onSaved={refresh} />)}
+              .map(m => isKnockout
+                ? <R32PredictRow key={m.id} match={m} onSaved={refresh} />
+                : <PredictRow key={m.id} match={m} onSaved={refresh} />)}
           </div>
         </section>
       )}
 
-      {completed.length > 0 && (
+      {tabCompleted.length > 0 && (
         <section>
-          <h2 className="font-semibold text-gray-300 mb-3">Completed ({completed.length})</h2>
+          <h2 className="font-semibold text-gray-300 mb-3">Completed ({tabCompleted.length})</h2>
           <div className="card divide-y divide-[#30363d]">
-            {completed
+            {tabCompleted
               .sort((a, b) => new Date(b.kickoff_utc ?? 0).getTime() - new Date(a.kickoff_utc ?? 0).getTime())
               .map(m => <CompletedRow key={m.id} match={m} />)}
-          </div>
-        </section>
-      )}
-
-      {r32Matches.length > 0 && (
-        <section>
-          <h2 className="font-semibold text-white mb-1">🏆 Round of 32 ({r32Matches.filter(m => m.my_prediction).length}/{r32Matches.length} predicted)</h2>
-          <p className="text-xs text-gray-500 mb-3">Predictions use 90-min / extra-time score. Same scoring: 3/2/1/0 pts.</p>
-          <div className="card divide-y divide-[#30363d]">
-            {r32Matches.map(m => <R32PredictRow key={m.id} match={m} onSaved={refresh} />)}
           </div>
         </section>
       )}
