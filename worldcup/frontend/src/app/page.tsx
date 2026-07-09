@@ -19,8 +19,8 @@ export default function HomePage() {
   const todayKey    = new Date().toLocaleDateString('en-CA', { timeZone: TZ });
   const tomorrowKey = new Date(now + 86_400_000).toLocaleDateString('en-CA', { timeZone: TZ });
 
-  // Recent results: all matches from the most recent completed day
-  const completedMatches = (matches ?? []).filter(m => m.status !== 'scheduled' && m.kickoff_utc);
+  // Recent results: most recent completed day, group stage only
+  const completedMatches = (matches ?? []).filter(m => m.status !== 'scheduled' && m.kickoff_utc && (!m.stage || m.stage === 'group'));
   const latestCompleted = completedMatches.reduce<Match | null>((acc, m) =>
     !acc || new Date(m.kickoff_utc!) > new Date(acc.kickoff_utc!) ? m : acc, null
   );
