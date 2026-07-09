@@ -6,6 +6,8 @@ import { Match, Team } from '@/types';
 import { MatchCard } from '@/components/MatchCard';
 import { R32, R32Entry, R32_BY_MATCH_NUMBER, SlotDef, slotLabel } from '@/lib/r32Data';
 import { R16, R16Entry, R16_BY_MATCH_NUMBER, r16SlotLabel } from '@/lib/r16Data';
+import { QF, QFEntry, qfSlotLabel } from '@/lib/qfData';
+import { SF, SFEntry, sfSlotLabel } from '@/lib/sfData';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
@@ -189,6 +191,74 @@ function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
   );
 }
 
+function QFBracketMatchCard({ entry, dbMatch, r16MatchByNum, w, h }: {
+  entry: QFEntry;
+  dbMatch?: Match;
+  r16MatchByNum: Map<number, Match>;
+  w: number;
+  h: number;
+}) {
+  function slotFor(r16Num: number, dbTeam?: { code: string; flag: string; name: string } | null): SlotInfo {
+    const r16m = r16MatchByNum.get(r16Num);
+    const winner = r32Winner(r16m);
+    if (winner && winner.code !== 'TBD') return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
+    if (dbTeam && dbTeam.code !== 'TBD') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    const pending = r16m?.status === 'completed';
+    return { flag: '', name: qfSlotLabel(r16Num), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
+  }
+  const home = slotFor(entry.r16HomeMatch, dbMatch?.home_team);
+  const away = slotFor(entry.r16AwayMatch, dbMatch?.away_team);
+  const kickoff = dbMatch?.kickoff_utc ?? entry.kickoff_utc;
+  return (
+    <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
+      <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
+        <span className="text-[9px] text-gray-600 font-medium">M{entry.matchNumber}</span>
+        <span className="text-[9px] text-gray-600">{fmtDate(kickoff)}</span>
+      </div>
+      <div className="flex-1 flex flex-col justify-around">
+        <TeamRow info={home} />
+        <div className="border-t border-[#21262d] mx-1.5" />
+        <TeamRow info={away} border={false} />
+      </div>
+      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
+    </div>
+  );
+}
+
+function SFBracketMatchCard({ entry, dbMatch, qfMatchByNum, w, h }: {
+  entry: SFEntry;
+  dbMatch?: Match;
+  qfMatchByNum: Map<number, Match>;
+  w: number;
+  h: number;
+}) {
+  function slotFor(qfNum: number, dbTeam?: { code: string; flag: string; name: string } | null): SlotInfo {
+    const qfm = qfMatchByNum.get(qfNum);
+    const winner = r32Winner(qfm);
+    if (winner && winner.code !== 'TBD') return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
+    if (dbTeam && dbTeam.code !== 'TBD') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    const pending = qfm?.status === 'completed';
+    return { flag: '', name: sfSlotLabel(qfNum), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
+  }
+  const home = slotFor(entry.qfHomeMatch, dbMatch?.home_team);
+  const away = slotFor(entry.qfAwayMatch, dbMatch?.away_team);
+  const kickoff = dbMatch?.kickoff_utc ?? entry.kickoff_utc;
+  return (
+    <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
+      <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
+        <span className="text-[9px] text-gray-600 font-medium">M{entry.matchNumber}</span>
+        <span className="text-[9px] text-gray-600">{fmtDate(kickoff)}</span>
+      </div>
+      <div className="flex-1 flex flex-col justify-around">
+        <TeamRow info={home} />
+        <div className="border-t border-[#21262d] mx-1.5" />
+        <TeamRow info={away} border={false} />
+      </div>
+      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
+    </div>
+  );
+}
+
 function TBDCard({ label, w, h }: { label: string; w: number; h: number }) {
   return (
     <div className="bg-[#0d1117] border border-[#21262d] rounded-lg flex flex-col items-center justify-center gap-0.5" style={{ width: w, height: h }}>
@@ -235,10 +305,12 @@ function Connectors({ fromCenters, toCenters, w, h }: {
 }
 
 // ── Full bracket tree ───────────────────────────────────────────────────────
-function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber }: {
+function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber, qfDbMatchByNumber, sfDbMatchByNumber }: {
   groupMatchMap: Map<string, Match[]>;
   r32DbMatchByNumber: Map<number, Match>;
   r16DbMatchByNumber: Map<number, Match>;
+  qfDbMatchByNumber: Map<number, Match>;
+  sfDbMatchByNumber: Map<number, Match>;
 }) {
   const r32Map = new Map(R32.map(e => [e.matchNumber, e]));
 
@@ -311,9 +383,15 @@ function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber
         </div>
 
         {/* QF cards */}
-        {qfCenters.map((cy, i) => (
-          <div key={i} className="absolute" style={{ top: cy - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW, width: BK.qfW, height: BK.cardH }}>
-            <TBDCard label={`QF · #${i + 1}`} w={BK.qfW} h={BK.cardH} />
+        {QF.map((entry, i) => (
+          <div key={entry.matchNumber} className="absolute" style={{ top: qfCenters[i] - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW, width: BK.qfW, height: BK.cardH }}>
+            <QFBracketMatchCard
+              entry={entry}
+              dbMatch={qfDbMatchByNumber.get(entry.matchNumber)}
+              r16MatchByNum={r16DbMatchByNumber}
+              w={BK.qfW}
+              h={BK.cardH}
+            />
           </div>
         ))}
 
@@ -323,9 +401,15 @@ function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber
         </div>
 
         {/* SF cards */}
-        {sfCenters.map((cy, i) => (
-          <div key={i} className="absolute" style={{ top: cy - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW + BK.connW, width: BK.sfW, height: BK.cardH }}>
-            <TBDCard label={`Semifinal · #${i + 1}`} w={BK.sfW} h={BK.cardH} />
+        {SF.map((entry, i) => (
+          <div key={entry.matchNumber} className="absolute" style={{ top: sfCenters[i] - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW + BK.connW, width: BK.sfW, height: BK.cardH }}>
+            <SFBracketMatchCard
+              entry={entry}
+              dbMatch={sfDbMatchByNumber.get(entry.matchNumber)}
+              qfMatchByNum={qfDbMatchByNumber}
+              w={BK.sfW}
+              h={BK.cardH}
+            />
           </div>
         ))}
 
@@ -432,9 +516,13 @@ export default function BracketsPage() {
   const groupMatchMap = new Map<string, Match[]>();
   const r32DbMatchByNumber = new Map<number, Match>();
   const r16DbMatchByNumber = new Map<number, Match>();
+  const qfDbMatchByNumber  = new Map<number, Match>();
+  const sfDbMatchByNumber  = new Map<number, Match>();
   for (const m of allMatches) {
     if (m.stage === 'r32') { r32DbMatchByNumber.set(m.match_number, m); continue; }
     if (m.stage === 'r16') { r16DbMatchByNumber.set(m.match_number, m); continue; }
+    if (m.stage === 'qf')  { qfDbMatchByNumber.set(m.match_number, m);  continue; }
+    if (m.stage === 'sf')  { sfDbMatchByNumber.set(m.match_number, m);  continue; }
     if (!m.group_letter) continue;
     if (!groupMatchMap.has(m.group_letter)) groupMatchMap.set(m.group_letter, []);
     groupMatchMap.get(m.group_letter)!.push(m);
@@ -479,7 +567,7 @@ export default function BracketsPage() {
 
       {/* ── Bracket view ── */}
       {view === 'bracket' && (
-        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} r16DbMatchByNumber={r16DbMatchByNumber} />
+        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} r16DbMatchByNumber={r16DbMatchByNumber} qfDbMatchByNumber={qfDbMatchByNumber} sfDbMatchByNumber={sfDbMatchByNumber} />
       )}
 
       {/* ── List view ── */}
