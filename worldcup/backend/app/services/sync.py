@@ -266,7 +266,7 @@ async def sync_scores() -> dict:
 
                 # Sync goal scorers — always refresh so corrections propagate
                 api_goals = api_m.get("goals")
-                if api_goals is not None:
+                if api_goals:  # skip empty list — free tier returns [] not null
                     matches_with_goals_in_api += 1
                     n = await _sync_goals(db, match, api_goals, team_by_name)
                     goals_synced += n
