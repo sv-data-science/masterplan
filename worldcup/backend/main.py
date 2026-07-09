@@ -290,6 +290,82 @@ async def lifespan(app: FastAPI):
     except Exception as _e:
         log.warning("R16 auto-setup skipped: %s", _e)
 
+    # Auto-seed QF matches and assign winners from completed R16 results
+    try:
+        from sqlalchemy import func
+        from app.models.worldcup import Match as _Match, Team as _Team
+        from sqlalchemy.orm import selectinload as _sli
+        import uuid as _uuid
+        from datetime import datetime as _dt
+
+        async with AsyncSessionLocal() as _qs:
+            qf_count = (await _qs.execute(
+                select(func.count()).select_from(_Match).where(_Match.stage == 'qf')
+            )).scalar() or 0
+
+            if qf_count < 4:
+                _tbd = (await _qs.execute(select(_Team).where(_Team.code == 'TBD'))).scalar_one_or_none()
+                if not _tbd:
+                    _tbd = _Team(id=str(_uuid.uuid4()), name='TBD', code='TBD', group_letter='?', flag='🏳️')
+                    _qs.add(_tbd)
+                    await _qs.flush()
+                _QF_DATA = [
+                    (97,  '2026-07-10T00:00:00+00:00', 'MetLife Stadium',    'East Rutherford, USA'),
+                    (98,  '2026-07-09T20:00:00+00:00', 'SoFi Stadium',       'Inglewood, USA'),
+                    (99,  '2026-07-11T00:00:00+00:00', 'AT&T Stadium',       'Arlington, USA'),
+                    (100, '2026-07-10T20:00:00+00:00', 'Arrowhead Stadium',  'Kansas City, USA'),
+                ]
+                created = 0
+                for _mn, _ks, _venue, _city in _QF_DATA:
+                    if not (await _qs.execute(select(_Match).where(_Match.match_number == _mn))).scalar_one_or_none():
+                        _qs.add(_Match(id=str(_uuid.uuid4()), match_number=_mn, group_letter='?',
+                                       matchday=6, home_team_id=_tbd.id, away_team_id=_tbd.id,
+                                       kickoff_utc=_dt.fromisoformat(_ks), venue=_venue, city=_city,
+                                       status='scheduled', stage='qf'))
+                        created += 1
+                await _qs.commit()
+                if created:
+                    log.info("Auto-seeded %d QF matches", created)
+
+            # Auto-assign R16 winners to QF slots
+            _QF_PAIRS = [(97, 89, 90), (98, 91, 92), (99, 93, 94), (100, 95, 96)]
+            async with AsyncSessionLocal() as _qs2:
+                _r16 = {m.match_number: m for m in (await _qs2.execute(
+                    select(_Match).options(_sli(_Match.home_team), _sli(_Match.away_team))
+                    .where(_Match.stage == 'r16')
+                )).scalars().all()}
+                _qf = {m.match_number: m for m in (await _qs2.execute(
+                    select(_Match).where(_Match.stage == 'qf')
+                )).scalars().all()}
+                _tbd2 = (await _qs2.execute(select(_Team).where(_Team.code == 'TBD'))).scalar_one_or_none()
+                _tbd_id = _tbd2.id if _tbd2 else None
+
+                def _qf_winner(m):
+                    if not m or m.status != 'completed' or m.home_score is None: return None
+                    if m.home_score > m.away_score: return m.home_team
+                    if m.away_score > m.home_score: return m.away_team
+                    if m.home_score_pens is not None and m.away_score_pens is not None:
+                        if m.home_score_pens > m.away_score_pens: return m.home_team
+                        if m.away_score_pens > m.home_score_pens: return m.away_team
+                    return None
+
+                qf_assigned = 0
+                for _qfn, _h16, _a16 in _QF_PAIRS:
+                    _qfm = _qf.get(_qfn)
+                    if not _qfm: continue
+                    _hw = _qf_winner(_r16.get(_h16))
+                    _aw = _qf_winner(_r16.get(_a16))
+                    if _hw and _qfm.home_team_id == _tbd_id:
+                        _qfm.home_team_id = _hw.id; qf_assigned += 1
+                    if _aw and _qfm.away_team_id == _tbd_id:
+                        _qfm.away_team_id = _aw.id; qf_assigned += 1
+                if qf_assigned:
+                    await _qs2.commit()
+                    log.info("Auto-assigned %d QF team slots from R16 results", qf_assigned)
+
+    except Exception as _qe:
+        log.warning("QF auto-setup skipped: %s", _qe)
+
     task = None
     if settings.FOOTBALL_DATA_API_KEY and settings.SYNC_INTERVAL_MINUTES > 0:
         task = asyncio.create_task(_auto_sync_loop())
