@@ -1313,6 +1313,7 @@ export default function AdminPage() {
 
   const [filterGroup, setFilterGroup] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterStage, setFilterStage] = useState('');
 
   const { data: matches = [], isLoading } = useQuery<Match[]>({
     queryKey: ['matches', 'admin'],
@@ -1326,10 +1327,13 @@ export default function AdminPage() {
     staleTime: 30_000,
   });
 
-  const filtered = matches.filter(m =>
-    (!filterGroup || m.group_letter === filterGroup) &&
-    (!filterStatus || m.status === filterStatus)
-  );
+  const filtered = matches.filter(m => {
+    if (filterStage === 'group') { if (m.stage && m.stage !== 'group') return false; }
+    else if (filterStage) { if (m.stage !== filterStage) return false; }
+    if (filterGroup && m.group_letter !== filterGroup) return false;
+    if (filterStatus && m.status !== filterStatus) return false;
+    return true;
+  });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ['matches'] });
   const invalidateUsers = () => qc.invalidateQueries({ queryKey: ['admin-users'] });
@@ -1382,6 +1386,15 @@ export default function AdminPage() {
       </p>
 
       <div className="flex flex-wrap gap-3">
+        <select value={filterStage} onChange={e => { setFilterStage(e.target.value); setFilterGroup(''); }} className="input py-1.5 text-sm w-auto">
+          <option value="">All Stages</option>
+          <option value="group">Group Stage</option>
+          <option value="r32">Round of 32</option>
+          <option value="r16">Round of 16</option>
+          <option value="qf">Quarter-Finals</option>
+          <option value="sf">Semi-Finals</option>
+          <option value="f">Final</option>
+        </select>
         <select value={filterGroup} onChange={e => setFilterGroup(e.target.value)} className="input py-1.5 text-sm w-auto">
           <option value="">All Groups</option>
           {GROUPS.map(g => <option key={g} value={g}>Group {g}</option>)}
