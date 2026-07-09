@@ -363,8 +363,111 @@ async def lifespan(app: FastAPI):
                     await _qs2.commit()
                     log.info("Auto-assigned %d QF team slots from R16 results", qf_assigned)
 
+        # Always patch QF to correct schedule, venue, and teams
+        _QF_CORRECT = [
+            (97,  '2026-07-10T00:00:00+00:00', 'Gillette Stadium',   'Foxborough, USA',    'FRA', 'MAR'),
+            (98,  '2026-07-11T00:00:00+00:00', 'SoFi Stadium',       'Inglewood, USA',     'ESP', 'BEL'),
+            (99,  '2026-07-11T20:00:00+00:00', 'Hard Rock Stadium',  'Miami Gardens, USA', 'NOR', 'ENG'),
+            (100, '2026-07-12T00:00:00+00:00', 'Arrowhead Stadium',  'Kansas City, USA',   'ARG', 'SUI'),
+        ]
+        async with AsyncSessionLocal() as _qs3:
+            _tc3 = {t.code: t for t in (await _qs3.execute(select(_Team))).scalars().all()}
+            _qf3 = {m.match_number: m for m in (await _qs3.execute(
+                select(_Match).where(_Match.stage == 'qf')
+            )).scalars().all()}
+            _qf_fixed = 0
+            for _mn, _ks, _venue, _city, _hc, _ac in _QF_CORRECT:
+                _m = _qf3.get(_mn)
+                if not _m: continue
+                _correct_dt = _dt.fromisoformat(_ks)
+                _ht = _tc3.get(_hc)
+                _at = _tc3.get(_ac)
+                if _m.kickoff_utc != _correct_dt or _m.venue != _venue or _m.city != _city:
+                    _m.kickoff_utc = _correct_dt; _m.venue = _venue; _m.city = _city; _qf_fixed += 1
+                if _ht and _m.home_team_id != _ht.id:
+                    _m.home_team_id = _ht.id; _qf_fixed += 1
+                if _at and _m.away_team_id != _at.id:
+                    _m.away_team_id = _at.id; _qf_fixed += 1
+            if _qf_fixed:
+                await _qs3.commit()
+                log.info("Patched QF schedule/teams (%d changes)", _qf_fixed)
+
     except Exception as _qe:
         log.warning("QF auto-setup skipped: %s", _qe)
+
+    # Auto-seed SF matches and assign winners from completed QF results
+    try:
+        from sqlalchemy import func
+        from app.models.worldcup import Match as _Match, Team as _Team
+        from sqlalchemy.orm import selectinload as _sli
+        import uuid as _uuid
+        from datetime import datetime as _dt
+
+        async with AsyncSessionLocal() as _ss:
+            sf_count = (await _ss.execute(
+                select(func.count()).select_from(_Match).where(_Match.stage == 'sf')
+            )).scalar() or 0
+
+            if sf_count < 2:
+                _tbd = (await _ss.execute(select(_Team).where(_Team.code == 'TBD'))).scalar_one_or_none()
+                if not _tbd:
+                    _tbd = _Team(id=str(_uuid.uuid4()), name='TBD', code='TBD', group_letter='?', flag='🏳️')
+                    _ss.add(_tbd)
+                    await _ss.flush()
+                _SF_DATA = [
+                    (101, '2026-07-15T00:00:00+00:00', 'AT&T Stadium',          'Arlington, USA'),
+                    (102, '2026-07-16T00:00:00+00:00', 'Mercedes-Benz Stadium', 'Atlanta, USA'),
+                ]
+                created = 0
+                for _mn, _ks, _venue, _city in _SF_DATA:
+                    if not (await _ss.execute(select(_Match).where(_Match.match_number == _mn))).scalar_one_or_none():
+                        _ss.add(_Match(id=str(_uuid.uuid4()), match_number=_mn, group_letter='?',
+                                       matchday=7, home_team_id=_tbd.id, away_team_id=_tbd.id,
+                                       kickoff_utc=_dt.fromisoformat(_ks), venue=_venue, city=_city,
+                                       status='scheduled', stage='sf'))
+                        created += 1
+                await _ss.commit()
+                if created:
+                    log.info("Auto-seeded %d SF matches", created)
+
+            # Auto-assign QF winners to SF slots
+            _SF_PAIRS = [(101, 97, 98), (102, 99, 100)]
+            async with AsyncSessionLocal() as _ss2:
+                _qf2 = {m.match_number: m for m in (await _ss2.execute(
+                    select(_Match).options(_sli(_Match.home_team), _sli(_Match.away_team))
+                    .where(_Match.stage == 'qf')
+                )).scalars().all()}
+                _sf2 = {m.match_number: m for m in (await _ss2.execute(
+                    select(_Match).where(_Match.stage == 'sf')
+                )).scalars().all()}
+                _tbd2 = (await _ss2.execute(select(_Team).where(_Team.code == 'TBD'))).scalar_one_or_none()
+                _tbd_id2 = _tbd2.id if _tbd2 else None
+
+                def _sf_winner(m):
+                    if not m or m.status != 'completed' or m.home_score is None: return None
+                    if m.home_score > m.away_score: return m.home_team
+                    if m.away_score > m.home_score: return m.away_team
+                    if m.home_score_pens is not None and m.away_score_pens is not None:
+                        if m.home_score_pens > m.away_score_pens: return m.home_team
+                        if m.away_score_pens > m.home_score_pens: return m.away_team
+                    return None
+
+                sf_assigned = 0
+                for _sfn, _hqf, _aqf in _SF_PAIRS:
+                    _sfm = _sf2.get(_sfn)
+                    if not _sfm: continue
+                    _hw = _sf_winner(_qf2.get(_hqf))
+                    _aw = _sf_winner(_qf2.get(_aqf))
+                    if _hw and _sfm.home_team_id == _tbd_id2:
+                        _sfm.home_team_id = _hw.id; sf_assigned += 1
+                    if _aw and _sfm.away_team_id == _tbd_id2:
+                        _sfm.away_team_id = _aw.id; sf_assigned += 1
+                if sf_assigned:
+                    await _ss2.commit()
+                    log.info("Auto-assigned %d SF team slots from QF results", sf_assigned)
+
+    except Exception as _se:
+        log.warning("SF auto-setup skipped: %s", _se)
 
     task = None
     if settings.FOOTBALL_DATA_API_KEY and settings.SYNC_INTERVAL_MINUTES > 0:
