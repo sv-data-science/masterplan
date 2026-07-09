@@ -17,7 +17,7 @@ const TZ = 'America/New_York';
   const tomorrowKey = new Date(now + 86_400_000).toLocaleDateString('en-CA', { timeZone: TZ });
 
   // Recent results: most recent completed day, group stage only
-  const completedMatches = (matches ?? []).filter(m => m.status !== 'scheduled' && m.kickoff_utc && (!m.stage || m.stage === 'group'));
+  const completedMatches = (matches ?? []).filter(m => m.status !== 'scheduled' && m.kickoff_utc && m.stage !== 'r32');
   const latestCompleted = completedMatches.reduce<Match | null>((acc, m) =>
     !acc || new Date(m.kickoff_utc!) > new Date(acc.kickoff_utc!) ? m : acc, null
   );
