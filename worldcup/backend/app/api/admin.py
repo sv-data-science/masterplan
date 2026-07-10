@@ -97,6 +97,100 @@ async def trigger_sync_goals(admin: User = Depends(require_admin)):
     return await sync_goals_espn()
 
 
+# Official FIFA WC2026 top scorer data — update as tournament progresses
+_OFFICIAL_SCORERS = [
+    ("Kylian Mbappé",    "FRA", 8),
+    ("Lionel Messi",     "ARG", 8),
+    ("Erling Haaland",   "NOR", 7),
+    ("Harry Kane",       "ENG", 6),
+    ("Ousmane Dembélé",  "FRA", 5),
+    ("Ismaila Sarr",     "SEN", 4),
+    ("Mikel Oyarzabal",  "ESP", 4),
+    ("Julián Quiñones",  "MEX", 4),
+    ("Jude Bellingham",  "ENG", 4),
+]
+
+_ADJ_MATCH_NUMBER = 9999  # sentinel — ESPN sync never touches status='adj' matches
+
+
+@router.post("/seed-top-scorers")
+async def seed_top_scorers(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Pin top-scorer goal counts to official FIFA data using an adjustment match.
+    The adjustment match has status='adj' so ESPN sync never wipes it.
+    Re-running recalculates the gap so real ESPN goals + adj goals = official total."""
+    from sqlalchemy import func, delete as sa_delete
+    from app.models.worldcup import GoalEvent, Match, Team
+
+    # Ensure TBD team exists
+    tbd = (await db.execute(select(Team).where(Team.code == "TBD"))).scalar_one_or_none()
+    if not tbd:
+        tbd = Team(id=str(uuid.uuid4()), name="TBD", code="TBD", group_letter="?", flag="🏳️")
+        db.add(tbd)
+        await db.flush()
+
+    # Ensure adjustment match exists
+    adj = (await db.execute(select(Match).where(Match.match_number == _ADJ_MATCH_NUMBER))).scalar_one_or_none()
+    if not adj:
+        adj = Match(
+            id=str(uuid.uuid4()),
+            match_number=_ADJ_MATCH_NUMBER,
+            group_letter="?",
+            matchday=0,
+            home_team_id=tbd.id,
+            away_team_id=tbd.id,
+            kickoff_utc=None,
+            venue="Manual Adjustment",
+            city="",
+            status="adj",
+            stage="adj",
+        )
+        db.add(adj)
+        await db.flush()
+
+    teams = {t.code: t for t in (await db.execute(select(Team))).scalars().all()}
+
+    total_added = 0
+    details = []
+    for player_name, team_code, official_total in _OFFICIAL_SCORERS:
+        team = teams.get(team_code)
+        if not team:
+            details.append({"player": player_name, "error": f"team {team_code} not found"})
+            continue
+
+        # Goals from real (non-adj) matches
+        real = (await db.execute(
+            select(func.count(GoalEvent.id))
+            .where(GoalEvent.player_name == player_name, GoalEvent.team_id == team.id,
+                   GoalEvent.is_own_goal == False, GoalEvent.match_id != adj.id)  # noqa: E712
+        )).scalar() or 0
+
+        # Wipe old adj goals for this player then re-add correct amount
+        await db.execute(
+            sa_delete(GoalEvent).where(
+                GoalEvent.player_name == player_name,
+                GoalEvent.team_id == team.id,
+                GoalEvent.match_id == adj.id,
+            )
+        )
+
+        gap = max(0, official_total - real)
+        for _ in range(gap):
+            db.add(GoalEvent(
+                id=str(uuid.uuid4()),
+                match_id=adj.id,
+                team_id=team.id,
+                player_name=player_name,
+                minute=None,
+                is_own_goal=False,
+                is_penalty=False,
+            ))
+        total_added += gap
+        details.append({"player": player_name, "real": real, "adj": gap, "total": real + gap})
+
+    await db.commit()
+    return {"status": "ok", "total_added": total_added, "details": details}
+
+
 @router.get("/debug-espn")
 async def debug_espn(admin: User = Depends(require_admin)):
     """Hit ESPN for June 11 and return raw response structure for diagnosis."""
