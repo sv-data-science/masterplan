@@ -101,17 +101,18 @@ function slotInfo(slot: SlotDef, groupMatchMap: Map<string, Match[]>): SlotInfo 
 }
 
 // ── Bracket card components ─────────────────────────────────────────────────
-function TeamRow({ info, border }: { info: SlotInfo; border?: boolean }) {
+function TeamRow({ info, border, highlight }: { info: SlotInfo; border?: boolean; highlight?: 'won' | 'lost' }) {
   return (
-    <div className={`flex items-center gap-1.5 px-2 py-1 min-w-0 ${border ? 'border-t border-[#21262d]' : ''}`}>
+    <div className={`flex items-center gap-1.5 px-2 py-1 min-w-0 ${border ? 'border-t border-[#21262d]' : ''} ${highlight === 'lost' ? 'opacity-25' : ''}`}>
       {info.flag
         ? <span className="text-sm leading-none shrink-0 w-5 text-center">{info.flag}</span>
         : <span className="w-5 h-5 rounded shrink-0 bg-[#30363d] flex items-center justify-center text-[9px] text-gray-600">?</span>
       }
       <div className={`flex-1 min-w-0 ${info.confirmed ? '' : 'opacity-60'}`}>
-        <div className="text-xs font-semibold text-white truncate leading-tight">{info.name}</div>
+        <div className={`text-xs font-semibold truncate leading-tight ${highlight === 'won' ? 'text-green-400' : 'text-white'}`}>{info.name}</div>
         {!info.confirmed && <div className="text-[9px] text-gray-600 leading-tight truncate">{info.sub}</div>}
       </div>
+      {highlight === 'won' && <span className="text-[8px] text-green-500 shrink-0">→</span>}
     </div>
   );
 }
@@ -125,6 +126,9 @@ function BracketMatchCard({ entry, groupMatchMap, dbMatch, w, h }: {
   const away = dbMatch && dbMatch.away_team.code !== 'TBD'
     ? { flag: dbMatch.away_team.flag, name: dbMatch.away_team.name, sub: '', confirmed: true }
     : slotInfo(entry.away, groupMatchMap);
+  const winner = dbMatch ? r32Winner(dbMatch) : null;
+  const homeH = winner ? (winner.id === dbMatch!.home_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
+  const awayH = winner ? (winner.id === dbMatch!.away_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
   return (
     <div className="bg-[#161b22] border border-[#30363d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
       <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
@@ -132,9 +136,9 @@ function BracketMatchCard({ entry, groupMatchMap, dbMatch, w, h }: {
         <span className="text-[9px] text-gray-600">{fmtDate(entry.kickoff_utc)}</span>
       </div>
       <div className="flex-1 flex flex-col justify-around">
-        <TeamRow info={home} />
+        <TeamRow info={home} highlight={homeH} />
         <div className="border-t border-[#21262d] mx-1.5" />
-        <TeamRow info={away} border={false} />
+        <TeamRow info={away} border={false} highlight={awayH} />
       </div>
       <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
     </div>
@@ -175,6 +179,9 @@ function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
   }
   const home = slotFor(entry.r32HomeMatch, dbMatch?.home_team);
   const away = slotFor(entry.r32AwayMatch, dbMatch?.away_team);
+  const winner = dbMatch ? r32Winner(dbMatch) : null;
+  const homeH = winner ? (winner.id === dbMatch!.home_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
+  const awayH = winner ? (winner.id === dbMatch!.away_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
   return (
     <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
       <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
@@ -182,9 +189,9 @@ function R16BracketMatchCard({ entry, dbMatch, r32MatchByNum, w, h }: {
         <span className="text-[9px] text-gray-600">{fmtDate(entry.kickoff_utc)}</span>
       </div>
       <div className="flex-1 flex flex-col justify-around">
-        <TeamRow info={home} />
+        <TeamRow info={home} highlight={homeH} />
         <div className="border-t border-[#21262d] mx-1.5" />
-        <TeamRow info={away} border={false} />
+        <TeamRow info={away} border={false} highlight={awayH} />
       </div>
       <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
     </div>
@@ -198,16 +205,20 @@ function QFBracketMatchCard({ entry, dbMatch, r16MatchByNum, w, h }: {
   w: number;
   h: number;
 }) {
-  function slotFor(r16Num: number, dbTeam?: { code: string; flag: string; name: string } | null): SlotInfo {
+  function slotFor(r16Num: number, dbTeam?: { code: string; flag: string; name: string; id: string } | null): SlotInfo {
     const r16m = r16MatchByNum.get(r16Num);
     const winner = r32Winner(r16m);
     if (winner && winner.code !== 'TBD') return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
-    if (dbTeam && dbTeam.code !== 'TBD') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    // Only trust DB assignment if the R16 match is actually completed
+    if (dbTeam && dbTeam.code !== 'TBD' && r16m?.status === 'completed') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
     const pending = r16m?.status === 'completed';
     return { flag: '', name: qfSlotLabel(r16Num), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
   }
   const home = slotFor(entry.r16HomeMatch, dbMatch?.home_team);
   const away = slotFor(entry.r16AwayMatch, dbMatch?.away_team);
+  const winner = dbMatch ? r32Winner(dbMatch) : null;
+  const homeH = winner ? (winner.id === dbMatch!.home_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
+  const awayH = winner ? (winner.id === dbMatch!.away_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
   const kickoff = dbMatch?.kickoff_utc ?? entry.kickoff_utc;
   return (
     <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
@@ -216,9 +227,9 @@ function QFBracketMatchCard({ entry, dbMatch, r16MatchByNum, w, h }: {
         <span className="text-[9px] text-gray-600">{fmtDate(kickoff)}</span>
       </div>
       <div className="flex-1 flex flex-col justify-around">
-        <TeamRow info={home} />
+        <TeamRow info={home} highlight={homeH} />
         <div className="border-t border-[#21262d] mx-1.5" />
-        <TeamRow info={away} border={false} />
+        <TeamRow info={away} border={false} highlight={awayH} />
       </div>
       <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
     </div>
@@ -232,16 +243,20 @@ function SFBracketMatchCard({ entry, dbMatch, qfMatchByNum, w, h }: {
   w: number;
   h: number;
 }) {
-  function slotFor(qfNum: number, dbTeam?: { code: string; flag: string; name: string } | null): SlotInfo {
+  function slotFor(qfNum: number, dbTeam?: { code: string; flag: string; name: string; id: string } | null): SlotInfo {
     const qfm = qfMatchByNum.get(qfNum);
     const winner = r32Winner(qfm);
     if (winner && winner.code !== 'TBD') return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
-    if (dbTeam && dbTeam.code !== 'TBD') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    // Only trust DB assignment if the QF match is actually completed
+    if (dbTeam && dbTeam.code !== 'TBD' && qfm?.status === 'completed') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
     const pending = qfm?.status === 'completed';
     return { flag: '', name: sfSlotLabel(qfNum), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
   }
   const home = slotFor(entry.qfHomeMatch, dbMatch?.home_team);
   const away = slotFor(entry.qfAwayMatch, dbMatch?.away_team);
+  const winner = dbMatch ? r32Winner(dbMatch) : null;
+  const homeH = winner ? (winner.id === dbMatch!.home_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
+  const awayH = winner ? (winner.id === dbMatch!.away_team.id ? 'won' : 'lost') as 'won' | 'lost' : undefined;
   const kickoff = dbMatch?.kickoff_utc ?? entry.kickoff_utc;
   return (
     <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
@@ -250,9 +265,9 @@ function SFBracketMatchCard({ entry, dbMatch, qfMatchByNum, w, h }: {
         <span className="text-[9px] text-gray-600">{fmtDate(kickoff)}</span>
       </div>
       <div className="flex-1 flex flex-col justify-around">
-        <TeamRow info={home} />
+        <TeamRow info={home} highlight={homeH} />
         <div className="border-t border-[#21262d] mx-1.5" />
-        <TeamRow info={away} border={false} />
+        <TeamRow info={away} border={false} highlight={awayH} />
       </div>
       <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
     </div>
