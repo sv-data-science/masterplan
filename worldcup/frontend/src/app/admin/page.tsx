@@ -451,6 +451,49 @@ function EspnGoalSyncPanel({ onSynced }: { onSynced: () => void }) {
   );
 }
 
+function FixTopScorersPanel({ onFixed }: { onFixed: () => void }) {
+  const [fixing, setFixing] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const fix = async () => {
+    setFixing(true);
+    setResult(null);
+    try {
+      const r = await api.post('/admin/seed-top-scorers');
+      const { total_added, details } = r.data;
+      setResult(details.map((d: any) =>
+        d.error ? `✗ ${d.player}: ${d.error}` : `${d.player}: real ${d.real} + adj ${d.adj} = ${d.total}`
+      ).join('\n'));
+      toast.success(`Top scorers fixed — ${total_added} adjustment goal${total_added !== 1 ? 's' : ''} added`);
+      onFixed();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Failed');
+    } finally { setFixing(false); }
+  };
+
+  return (
+    <div className="card p-4 border-yellow-800/40 bg-yellow-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">🏅 Fix top scorers (FIFA official)</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            Pins goal counts to the official FIFA table using an adjustment entry that ESPN sync can't wipe.
+            Safe to re-run — recalculates the gap each time.
+          </p>
+        </div>
+        <button onClick={fix} disabled={fixing} className="btn-primary py-1.5 text-sm">
+          {fixing ? '⏳ Fixing…' : '🏅 Fix scorers'}
+        </button>
+      </div>
+      {result && (
+        <pre className="mt-3 text-xs text-gray-300 bg-[#0d1117] rounded p-3 overflow-auto max-h-40 border border-[#30363d]">
+          {result}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   const [seeding, setSeeding] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -1362,6 +1405,8 @@ export default function AdminPage() {
       <R16OverridePanel onSaved={invalidate} />
 
       <EspnGoalSyncPanel onSynced={invalidate} />
+
+      <FixTopScorersPanel onFixed={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
 
