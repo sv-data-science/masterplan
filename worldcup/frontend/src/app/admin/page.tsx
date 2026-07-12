@@ -494,6 +494,46 @@ function FixTopScorersPanel({ onFixed }: { onFixed: () => void }) {
   );
 }
 
+function FixAETScoresPanel({ onFixed }: { onFixed: () => void }) {
+  const [fixing, setFixing] = useState(false);
+  const [result, setResult] = useState<string | null>(null);
+
+  const fix = async () => {
+    setFixing(true);
+    setResult(null);
+    try {
+      const r = await api.post('/admin/fix-aet-scores');
+      const { fixed } = r.data;
+      setResult(fixed.map((f: any) => `M${f.match_number}: ${f.score} ✓`).join('\n'));
+      toast.success(`AET scores fixed for ${fixed.length} match${fixed.length !== 1 ? 'es' : ''}`);
+      onFixed();
+    } catch (e: any) {
+      toast.error(e.response?.data?.detail ?? 'Failed');
+    } finally { setFixing(false); }
+  };
+
+  return (
+    <div className="card p-4 border-orange-800/40 bg-orange-900/10">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h3 className="font-semibold text-white flex items-center gap-2">⏱️ Fix AET scores</h3>
+          <p className="text-xs text-gray-400 mt-0.5">
+            The sync API double-counts extra-time goals. Fixes M99 Norway 1–2 England and M100 Argentina 3–1 Switzerland with the correct official scores and locks them.
+          </p>
+        </div>
+        <button onClick={fix} disabled={fixing} className="btn-primary py-1.5 text-sm bg-orange-700 hover:bg-orange-600 border-orange-700">
+          {fixing ? '⏳ Fixing…' : '⏱️ Fix AET scores'}
+        </button>
+      </div>
+      {result && (
+        <pre className="mt-3 text-xs text-gray-300 bg-[#0d1117] rounded p-3 overflow-auto max-h-24 border border-[#30363d]">
+          {result}
+        </pre>
+      )}
+    </div>
+  );
+}
+
 function SeedR32Panel({ onSeeded }: { onSeeded: () => void }) {
   const [seeding, setSeeding] = useState(false);
   const [assigning, setAssigning] = useState(false);
@@ -1407,6 +1447,8 @@ export default function AdminPage() {
       <EspnGoalSyncPanel onSynced={invalidate} />
 
       <FixTopScorersPanel onFixed={invalidate} />
+
+      <FixAETScoresPanel onFixed={invalidate} />
 
       <SyncPanel onSynced={invalidate} />
 
