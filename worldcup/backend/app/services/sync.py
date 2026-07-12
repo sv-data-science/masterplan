@@ -185,25 +185,29 @@ async def sync_scores() -> dict:
             et   = score_block.get("extraTime")  or {}
             pens = score_block.get("penalties")  or {}
 
-            # football-data.org WC2026 score encoding per duration:
+            # football-data.org v4 score encoding:
             #   REGULAR:           fullTime = 90-min final score
-            #   EXTRA_TIME:        fullTime = 90-min score, extraTime = goals in ET period only (additive)
-            #   PENALTY_SHOOTOUT:  fullTime = 90-min score only (same as EXTRA_TIME case)
-            #                      extraTime = goals in ET period only
+            #   EXTRA_TIME:        fullTime = 90-min score; extraTime = CUMULATIVE score at end of ET
+            #   PENALTY_SHOOTOUT:  fullTime = 90-min score; extraTime = CUMULATIVE AET score;
             #                      penalties = pen-shootout goals only
-            # Penalty counts go into home_score_pens/away_score_pens (display only, never for points).
+            # Use extraTime directly for AET — do NOT add fullTime+extraTime (double-counts 90-min goals).
             if duration == "PENALTY_SHOOTOUT":
                 hs_pens = pens.get("home")
                 as_pens = pens.get("away")
-                if ft.get("home") is not None:
-                    hs  = (ft.get("home") or 0) + (et.get("home") or 0)
-                    as_ = (ft.get("away") or 0) + (et.get("away") or 0)
+                # extraTime is the cumulative AET score (includes 90-min goals)
+                if et.get("home") is not None:
+                    hs  = et.get("home")
+                    as_ = et.get("away")
+                elif ft.get("home") is not None:
+                    hs  = ft.get("home")
+                    as_ = ft.get("away")
                 else:
                     hs  = None
                     as_ = None
-            elif duration == "EXTRA_TIME" and ft.get("home") is not None:
-                hs      = (ft.get("home") or 0) + (et.get("home") or 0)
-                as_     = (ft.get("away") or 0) + (et.get("away") or 0)
+            elif duration == "EXTRA_TIME":
+                # extraTime is the cumulative AET score (includes 90-min goals)
+                hs      = et.get("home") if et.get("home") is not None else ft.get("home")
+                as_     = et.get("away") if et.get("away") is not None else ft.get("away")
                 hs_pens = None
                 as_pens = None
             else:

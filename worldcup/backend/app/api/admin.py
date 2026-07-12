@@ -331,6 +331,41 @@ async def force_match_score(
     }
 
 
+# Official AET results — add each match as it's confirmed. match_number: (home, away, home_pens, away_pens)
+_OFFICIAL_AET_RESULTS: dict[int, tuple[int, int, int | None, int | None]] = {
+    99:  (1, 2, None, None),   # Norway 1 – England 2 (AET)
+    100: (3, 1, None, None),   # Argentina 3 – Switzerland 1 (AET)
+}
+
+
+@router.post("/fix-aet-scores")
+async def fix_aet_scores(admin: User = Depends(require_admin), db: AsyncSession = Depends(get_db)):
+    """Force-set official AET/pen results that the API encodes incorrectly, then recalculate points."""
+    from sqlalchemy.orm import selectinload
+    from app.services.scoring import recalculate_match_points
+
+    fixed = []
+    for match_number, (hs, as_, hp, ap) in _OFFICIAL_AET_RESULTS.items():
+        match = (await db.execute(
+            select(Match)
+            .options(selectinload(Match.predictions))
+            .where(Match.match_number == match_number)
+        )).scalar_one_or_none()
+        if not match:
+            continue
+        match.home_score = hs
+        match.away_score = as_
+        match.home_score_pens = hp
+        match.away_score_pens = ap
+        match.status = "completed"
+        match.score_locked = True
+        await recalculate_match_points(match, db)
+        fixed.append({"match_number": match_number, "score": f"{hs}–{as_}"})
+
+    await db.commit()
+    return {"status": "ok", "fixed": fixed}
+
+
 @router.post("/unlock-score")
 async def unlock_match_score(
     match_number: int,
