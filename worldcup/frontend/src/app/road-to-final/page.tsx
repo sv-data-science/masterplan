@@ -24,12 +24,12 @@ const sfAngle   = (s: number) => BASE_DEG + 84.375 + s * 180;
 
 // ── Bracket structure ──────────────────────────────────────────────────────
 // R32 match slots (0..15): angular order around the circle
-const R32_SLOTS = [74, 77, 73, 75, 76, 78, 79, 80, 82, 81, 83, 84, 85, 88, 86, 87];
+const R32_SLOTS = [74, 77, 73, 75, 76, 78, 79, 84, 82, 81, 83, 80, 85, 88, 86, 87];
 // Fallback team codes per R32 slot [home, away] when API data unavailable
 const R32_TEAMS: [string, string][] = [
   ['GER','PAR'],['FRA','SWE'],['RSA','CAN'],['NED','MAR'],
-  ['BRA','JPN'],['CIV','NOR'],['MEX','ECU'],['ENG','COD'],
-  ['BEL','SEN'],['USA','BIH'],['POR','CRO'],['ESP','AUT'],
+  ['BRA','JPN'],['CIV','NOR'],['MEX','ECU'],['ESP','AUT'],
+  ['BEL','SEN'],['USA','BIH'],['POR','CRO'],['ENG','COD'],
   ['SUI','ALG'],['COL','GHA'],['ARG','CPV'],['AUS','EGY'],
 ];
 
