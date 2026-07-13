@@ -36,7 +36,7 @@ const R32_TEAMS: [string, string][] = [
 // R16 match slots (0..7): paired with R32 slots (slot m pairs with R32 slots m*2 and m*2+1)
 // Ring 2 position k = R16 match floor(k/2), home team if k even, away if k odd
 const R16_SLOTS = [89, 90, 91, 92, 93, 94, 95, 96];
-const QF_SLOTS  = [97, 98, 99, 100];
+const QF_SLOTS  = [97, 99, 98, 100];
 const SF_SLOTS  = [101, 102];
 const FINAL_NUM = 103;
 
