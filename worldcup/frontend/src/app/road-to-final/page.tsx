@@ -26,7 +26,7 @@ const sfAngle   = (s: number) => BASE_DEG + 84.375 + s * 180;
 // R32 match slots (0..15): angular order around the circle
 // Slot order derived from actual 2026 WC bracket chains:
 //   RIGHT half (0°): England (M80→M92→M98→SF M102) + Argentina (M86→M96→M100→SF M102)
-//   LEFT  half (180°): France (M77→M89→M97→SF M101) + Spain (M84→M94→M99→SF M101)
+//   LEFT  half (180°): Spain (M84→M94→M99→SF M101) + France (M77→M89→M97→SF M101)
 const R32_SLOTS = [76, 78, 79, 80, 85, 88, 86, 87, 82, 81, 83, 84, 74, 77, 73, 75];
 // Fallback team codes per R32 slot [home, away] when API data unavailable
 const R32_TEAMS: [string, string][] = [
@@ -40,7 +40,7 @@ const R32_TEAMS: [string, string][] = [
 // Ring 2 position k = R16 match floor(k/2), home team if k even, away if k odd
 const R16_SLOTS = [91, 92, 95, 96, 93, 94, 89, 90];
 const QF_SLOTS  = [98, 100, 99, 97];
-const SF_SLOTS  = [101, 102];
+const SF_SLOTS  = [102, 101];
 const FINAL_NUM = 103;
 
 // ── Flag ISO mapping ───────────────────────────────────────────────────────
