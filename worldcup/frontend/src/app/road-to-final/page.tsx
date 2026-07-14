@@ -40,7 +40,7 @@ const R32_TEAMS: [string, string][] = [
 // Ring 2 position k = R16 match floor(k/2), home team if k even, away if k odd
 const R16_SLOTS = [91, 92, 95, 96, 93, 94, 89, 90];
 const QF_SLOTS  = [98, 100, 99, 97];
-const SF_SLOTS  = [102, 101];
+const SF_SLOTS  = [101, 102];
 const FINAL_NUM = 103;
 
 // ── Flag ISO mapping ───────────────────────────────────────────────────────
