@@ -224,12 +224,11 @@ export default function RoadToFinalV2Page() {
                   return [0, 1].map(side => {
                     const outerTeam = side === 0 ? r32m?.home_team : r32m?.away_team;
                     const tp = toXY(RADII.team, teamAngle(k * 2 + side));
-                    const isAdv  = !!(r2t && outerTeam && r2t.id === outerTeam.id);
-                    const isElim = !!(r2t && outerTeam && r2t.id !== outerTeam.id);
+                    const isAdv = !!(r2t && outerTeam && r2t.id === outerTeam.id);
                     return (
                       <Connector key={`rc-${k}-${side}`}
                         x1={tp.x} y1={tp.y} x2={mp.x} y2={mp.y}
-                        gold={isAdv} active={!isElim} />
+                        gold={isAdv} active={!!(outerTeam && outerTeam.code !== 'TBD')} />
                     );
                   });
                 })}
@@ -241,12 +240,11 @@ export default function RoadToFinalV2Page() {
                   return [0, 1].map(side => {
                     const r32w = getWinner(r32[m * 2 + side]);
                     const p    = toXY(RADII.r32, r32Angle(m * 2 + side));
-                    const isWin  = !!(r16w && r32w && r16w.id === r32w.id);
-                    const isElim = !!(r16w && r32w && r16w.id !== r32w.id);
+                    const isWin = !!(r16w && r32w && r16w.id === r32w.id);
                     return (
                       <Connector key={`r16c-${m}-${side}`}
                         x1={p.x} y1={p.y} x2={mp.x} y2={mp.y}
-                        gold={isWin} active={!isElim && !!r32w} />
+                        gold={isWin} active={!!r32w} />
                     );
                   });
                 })}
@@ -258,12 +256,11 @@ export default function RoadToFinalV2Page() {
                   return [0, 1].map(side => {
                     const r16w = getWinner(r16[q * 2 + side]);
                     const p    = toXY(RADII.r16, r16Angle(q * 2 + side));
-                    const isWin  = !!(qfw && r16w && qfw.id === r16w.id);
-                    const isElim = !!(qfw && r16w && qfw.id !== r16w.id);
+                    const isWin = !!(qfw && r16w && qfw.id === r16w.id);
                     return (
                       <Connector key={`qfc-${q}-${side}`}
                         x1={p.x} y1={p.y} x2={mp.x} y2={mp.y}
-                        gold={isWin} active={!isElim && !!r16w} />
+                        gold={isWin} active={!!r16w} />
                     );
                   });
                 })}
@@ -276,26 +273,24 @@ export default function RoadToFinalV2Page() {
                     const qIdx = s * 2 + side;
                     const qfw  = getWinner(qf[qIdx]);
                     const p    = toXY(RADII.qf, qfAngle(qIdx));
-                    const isWin  = !!(sfw && qfw && sfw.id === qfw.id);
-                    const isElim = !!(sfw && qfw && sfw.id !== qfw.id);
+                    const isWin = !!(sfw && qfw && sfw.id === qfw.id);
                     return (
                       <Connector key={`sfc-${s}-${side}`}
                         x1={p.x} y1={p.y} x2={mp.x} y2={mp.y}
-                        gold={isWin} active={!isElim && !!qfw} />
+                        gold={isWin} active={!!qfw} />
                     );
                   });
                 })}
 
                 {/* Ring 5 → Center (SF finalist → Final) */}
                 {([0, 1] as const).map(s => {
-                  const sfw    = getWinner(sf[s]);
-                  const isWin  = !!(champion && sfw && champion.id === sfw.id);
-                  const isElim = !!(champion && sfw && champion.id !== sfw.id);
+                  const sfw   = getWinner(sf[s]);
+                  const isWin = !!(champion && sfw && champion.id === sfw.id);
                   const p = toXY(RADII.sf, sfAngle(s));
                   return (
                     <Connector key={`finc-${s}`}
                       x1={p.x} y1={p.y} x2={CX} y2={CY}
-                      gold={isWin} active={!isElim && !!sfw} />
+                      gold={isWin} active={!!sfw} />
                   );
                 })}
 
@@ -309,13 +304,12 @@ export default function RoadToFinalV2Page() {
                     const pos  = toXY(RADII.team, teamAngle(k * 2 + side));
                     if (!team || team.code === 'TBD')
                       return <TBDCircle key={`t-${k}-${side}`} cx={pos.x} cy={pos.y} r={NODE_R.team} />;
-                    const isAdv  = !!(r2t && r2t.id === team.id);
-                    const isElim = !!(r2t && r2t.id !== team.id);
+                    const isAdv = !!(r2t && r2t.id === team.id);
                     return (
                       <g key={`t-${k}-${side}`}>
                         <title>{team.name}</title>
                         <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.team}
-                          code={team.code} dim={isElim} winner={isAdv}
+                          code={team.code} winner={isAdv}
                           clipId={`v2-clip-team-${k}-${side}`} />
                       </g>
                     );
@@ -325,10 +319,8 @@ export default function RoadToFinalV2Page() {
                 {/* Team code labels (outer ring) */}
                 {r32.map((r32m, k) =>
                   [0, 1].map(side => {
-                    const r2t  = getWinner(r32m);
                     const team = side === 0 ? r32m?.home_team : r32m?.away_team;
                     if (!team || team.code === 'TBD') return null;
-                    const isElim = !!(r2t && r2t.id !== team.id);
                     const deg     = teamAngle(k * 2 + side);
                     const normDeg = ((deg % 360) + 360) % 360;
                     const labelR  = RADII.team + NODE_R.team + 10;
@@ -339,7 +331,7 @@ export default function RoadToFinalV2Page() {
                         x={pos.x} y={pos.y}
                         textAnchor="middle" dominantBaseline="middle"
                         fontSize="7.5" fontWeight="700" letterSpacing="0.5"
-                        fill={isElim ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.65)'}
+                        fill="rgba(255,255,255,0.65)"
                         transform={`rotate(${textRot}, ${pos.x}, ${pos.y})`}
                       >
                         {team.code}
@@ -354,13 +346,12 @@ export default function RoadToFinalV2Page() {
                   const r16w = getWinner(r16[Math.floor(k / 2)]);
                   const pos  = toXY(RADII.r32, r32Angle(k));
                   if (!t) return <TBDCircle key={`r2-${k}`} cx={pos.x} cy={pos.y} r={NODE_R.r32} />;
-                  const isWin  = !!(r16w && r16w.id === t.id);
-                  const isElim = !!(r16w && r16w.id !== t.id);
+                  const isWin = !!(r16w && r16w.id === t.id);
                   return (
                     <g key={`r2-${k}`}>
                       <title>{t.name}</title>
                       <FlagCircle cx={pos.x} cy={pos.y} r={NODE_R.r32}
-                        code={t.code} dim={isElim} winner={isWin}
+                        code={t.code} winner={isWin}
                         clipId={`v2-clip-r32w-${k}`} />
                     </g>
                   );
