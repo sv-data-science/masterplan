@@ -160,7 +160,8 @@ const STAGE_TABS = [
   { key: 'r16',   label: 'Round of 16', short: 'R16' },
   { key: 'qf',    label: 'Quarter-Finals', short: 'QF' },
   { key: 'sf',    label: 'Semi-Finals', short: 'SF' },
-  { key: 'f',     label: 'Final', short: 'Final' },
+  { key: 'final', label: 'Final', short: 'Final' },
+  { key: '3rd',   label: '3rd Place', short: '3rd' },
 ];
 
 export default function MyPredictionsPage() {
@@ -182,14 +183,14 @@ export default function MyPredictionsPage() {
 
   const stagesPresent = new Set(matches.map(m => m.stage ?? 'group'));
 
-  const resolvedTab = activeTab ?? (['qf', 'sf', 'f', 'r16', 'r32', 'group'].find(s => stagesPresent.has(s)) ?? 'group');
+  const resolvedTab = activeTab ?? (['final', '3rd', 'sf', 'qf', 'r16', 'r32', 'group'].find(s => stagesPresent.has(s)) ?? 'group');
 
   const tabMatches = matches.filter(m => {
     if (resolvedTab === 'group') return !m.stage || m.stage === 'group';
     return m.stage === resolvedTab;
   });
 
-  const isKnockout = resolvedTab === 'r32' || resolvedTab === 'r16' || resolvedTab === 'qf' || resolvedTab === 'sf' || resolvedTab === 'f';
+  const isKnockout = resolvedTab === 'r32' || resolvedTab === 'r16' || resolvedTab === 'qf' || resolvedTab === 'sf' || resolvedTab === 'final' || resolvedTab === '3rd';
 
   const predicted = matches.filter(m => m.my_prediction);
   const completed = predicted.filter(m => m.status === 'completed');

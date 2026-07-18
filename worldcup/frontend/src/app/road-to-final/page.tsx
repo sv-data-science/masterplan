@@ -25,7 +25,7 @@ const sfAngle   = (s: number) => BASE_DEG + 84.375 + s * 180;
 // ── Bracket structure ──────────────────────────────────────────────────────
 // R32 match slots (0..15): angular order around the circle
 // Visual layout: England upper-right, Argentina lower-right, Spain lower-left, France upper-left
-// Actual SF bracket: M101=France(QF97)+England(QF98), M102=Spain(QF99)+Argentina(QF100)
+// Actual SF bracket: M101=Spain(QF99)+France(QF97) at LEFT, M102=England(QF98)+Argentina(QF100) at RIGHT
 const R32_SLOTS = [76, 78, 79, 80, 85, 88, 86, 87, 82, 81, 83, 84, 74, 77, 73, 75];
 // Fallback team codes per R32 slot [home, away] when API data unavailable
 const R32_TEAMS: [string, string][] = [
@@ -39,11 +39,12 @@ const R32_TEAMS: [string, string][] = [
 // Ring 2 position k = R16 match floor(k/2), home team if k even, away if k odd
 const R16_SLOTS = [91, 92, 95, 96, 93, 94, 89, 90];
 const QF_SLOTS  = [98, 100, 99, 97];
-const SF_SLOTS  = [101, 102];
-// QF indices that feed each SF slot (backend: M101=QF97+QF98, M102=QF99+QF100)
+const SF_SLOTS  = [102, 101];
+// Actual bracket: left-side QFs (Spain+France) play in M101; right-side QFs (England+Argentina) play in M102
 // QF_SLOTS=[98,100,99,97] → qf[0]=M98(ENG), qf[1]=M100(ARG), qf[2]=M99(ESP), qf[3]=M97(FRA)
-// M101 draws from qf[3]=FRA and qf[0]=ENG; M102 draws from qf[2]=ESP and qf[1]=ARG
-const SF_QF_PAIRS = [[3, 0], [2, 1]] as const;
+// sf[0]=M102 at RIGHT draws from qf[0]=ENG + qf[1]=ARG (right side)
+// sf[1]=M101 at LEFT  draws from qf[2]=ESP + qf[3]=FRA (left side)
+const SF_QF_PAIRS = [[0, 1], [2, 3]] as const;
 const FINAL_NUM = 103;
 
 // ── Flag ISO mapping ───────────────────────────────────────────────────────

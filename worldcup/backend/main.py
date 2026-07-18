@@ -469,6 +469,92 @@ async def lifespan(app: FastAPI):
     except Exception as _se:
         log.warning("SF auto-setup skipped: %s", _se)
 
+    # Auto-seed 3rd place (M103) and Final (M104), assign SF winners/losers once SFs complete
+    try:
+        from sqlalchemy import func as _func2
+        from app.models.worldcup import Match as _Match2, Team as _Team2
+        from sqlalchemy.orm import selectinload as _sli2
+        import uuid as _uuid2
+        from datetime import datetime as _dt2
+
+        _ENDGAME_DATA = [
+            (103, '3rd',   '2026-07-18T19:00:00+00:00', 'SoFi Stadium',    'Inglewood, USA'      ),
+            (104, 'final', '2026-07-19T19:00:00+00:00', 'MetLife Stadium', 'East Rutherford, USA'),
+        ]
+        async with AsyncSessionLocal() as _es:
+            _tbd3 = (await _es.execute(select(_Team2).where(_Team2.code == 'TBD'))).scalar_one_or_none()
+            if not _tbd3:
+                _tbd3 = _Team2(id=str(_uuid2.uuid4()), name='TBD', code='TBD', group_letter='?', flag='🏳️')
+                _es.add(_tbd3)
+                await _es.flush()
+            eg_created = 0
+            for _mn, _stage, _ks, _venue, _city in _ENDGAME_DATA:
+                if not (await _es.execute(select(_Match2).where(_Match2.match_number == _mn))).scalar_one_or_none():
+                    _es.add(_Match2(id=str(_uuid2.uuid4()), match_number=_mn, group_letter='?',
+                                    matchday=8, home_team_id=_tbd3.id, away_team_id=_tbd3.id,
+                                    kickoff_utc=_dt2.fromisoformat(_ks), venue=_venue, city=_city,
+                                    status='scheduled', stage=_stage))
+                    eg_created += 1
+            await _es.commit()
+            if eg_created:
+                log.info("Auto-seeded %d endgame matches (3rd/Final)", eg_created)
+
+        # Auto-assign SF winners → Final, SF losers → 3rd place
+        # SF winner function defined in the block above reuses same logic
+        async with AsyncSessionLocal() as _es2:
+            _sf_all = {m.match_number: m for m in (await _es2.execute(
+                select(_Match2).options(_sli2(_Match2.home_team), _sli2(_Match2.away_team))
+                .where(_Match2.stage == 'sf')
+            )).scalars().all()}
+            _eg_all = {m.match_number: m for m in (await _es2.execute(
+                select(_Match2).where(_Match2.stage.in_(['3rd', 'final']))
+            )).scalars().all()}
+            _tbd4 = (await _es2.execute(select(_Team2).where(_Team2.code == 'TBD'))).scalar_one_or_none()
+            _tbd_id4 = _tbd4.id if _tbd4 else None
+
+            def _endgame_winner(m):
+                if not m or m.status != 'completed' or m.home_score is None: return None
+                if m.home_score > m.away_score: return m.home_team
+                if m.away_score > m.home_score: return m.away_team
+                if m.home_score_pens is not None and m.away_score_pens is not None:
+                    if m.home_score_pens > m.away_score_pens: return m.home_team
+                    if m.away_score_pens > m.home_score_pens: return m.away_team
+                return None
+
+            def _endgame_loser(m):
+                w = _endgame_winner(m)
+                if not w or not m: return None
+                return m.away_team if w.id == m.home_team_id else m.home_team
+
+            sf101 = _sf_all.get(101)
+            sf102 = _sf_all.get(102)
+            final_m = _eg_all.get(104)
+            third_m = _eg_all.get(103)
+            eg_assigned = 0
+
+            if final_m:
+                w101 = _endgame_winner(sf101)
+                w102 = _endgame_winner(sf102)
+                if w101 and final_m.home_team_id == _tbd_id4:
+                    final_m.home_team_id = w101.id; eg_assigned += 1
+                if w102 and final_m.away_team_id == _tbd_id4:
+                    final_m.away_team_id = w102.id; eg_assigned += 1
+
+            if third_m:
+                l101 = _endgame_loser(sf101)
+                l102 = _endgame_loser(sf102)
+                if l101 and third_m.home_team_id == _tbd_id4:
+                    third_m.home_team_id = l101.id; eg_assigned += 1
+                if l102 and third_m.away_team_id == _tbd_id4:
+                    third_m.away_team_id = l102.id; eg_assigned += 1
+
+            if eg_assigned:
+                await _es2.commit()
+                log.info("Auto-assigned %d team slots for Final/3rd from SF results", eg_assigned)
+
+    except Exception as _ege:
+        log.warning("Final/3rd auto-setup skipped: %s", _ege)
+
     task = None
     if settings.FOOTBALL_DATA_API_KEY and settings.SYNC_INTERVAL_MINUTES > 0:
         task = asyncio.create_task(_auto_sync_loop())
