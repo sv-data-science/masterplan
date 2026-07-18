@@ -8,6 +8,7 @@ import { R32, R32Entry, R32_BY_MATCH_NUMBER, SlotDef, slotLabel } from '@/lib/r3
 import { R16, R16Entry, R16_BY_MATCH_NUMBER, r16SlotLabel } from '@/lib/r16Data';
 import { QF, QFEntry, qfSlotLabel } from '@/lib/qfData';
 import { SF, SFEntry, sfSlotLabel } from '@/lib/sfData';
+import { FINAL_MATCH, THIRD_PLACE, FinalEntry, finalSlotLabel, thirdSlotLabel } from '@/lib/finalData';
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/New_York' });
@@ -274,6 +275,44 @@ function SFBracketMatchCard({ entry, dbMatch, qfMatchByNum, w, h }: {
   );
 }
 
+function FinalBracketMatchCard({ entry, dbMatch, sfMatchByNum, labelFn, w, h }: {
+  entry: FinalEntry;
+  dbMatch?: Match;
+  sfMatchByNum: Map<number, Match>;
+  labelFn: (n: number) => string;
+  w: number;
+  h: number;
+}) {
+  function slotFor(sfNum: number, dbTeam?: { code: string; flag: string; name: string; id: string } | null): SlotInfo {
+    const sfm = sfMatchByNum.get(sfNum);
+    const winner = r32Winner(sfm);
+    if (winner && winner.code !== 'TBD') return { flag: winner.flag, name: winner.name, sub: '', confirmed: true };
+    if (dbTeam && dbTeam.code !== 'TBD' && sfm?.status === 'completed') return { flag: dbTeam.flag, name: dbTeam.name, sub: '', confirmed: true };
+    const pending = sfm?.status === 'completed';
+    return { flag: '', name: labelFn(sfNum), sub: pending ? 'Pending assign' : 'TBD', confirmed: false };
+  }
+  const home = slotFor(entry.sfHomeMatch, dbMatch?.home_team);
+  const away = slotFor(entry.sfAwayMatch, dbMatch?.away_team);
+  const winner = dbMatch ? r32Winner(dbMatch) : null;
+  const homeH: 'won' | 'lost' | undefined = winner ? (winner.id === dbMatch!.home_team.id ? 'won' : 'lost') : undefined;
+  const awayH: 'won' | 'lost' | undefined = winner ? (winner.id === dbMatch!.away_team.id ? 'won' : 'lost') : undefined;
+  const kickoff = dbMatch?.kickoff_utc ?? entry.kickoff_utc;
+  return (
+    <div className="bg-[#161b22] border border-[#21262d] rounded-lg overflow-hidden flex flex-col" style={{ width: w, height: h }}>
+      <div className="flex items-center justify-between px-2 pt-1 pb-0.5">
+        <span className="text-[9px] text-gray-600 font-medium">M{entry.matchNumber}</span>
+        <span className="text-[9px] text-gray-600">{fmtDate(kickoff)}</span>
+      </div>
+      <div className="flex-1 flex flex-col justify-around">
+        <TeamRow info={home} highlight={homeH} />
+        <div className="border-t border-[#21262d] mx-1.5" />
+        <TeamRow info={away} border={false} highlight={awayH} />
+      </div>
+      <div className="px-2 pb-1 text-[9px] text-gray-700 truncate">📍 {entry.city}</div>
+    </div>
+  );
+}
+
 function TBDCard({ label, w, h }: { label: string; w: number; h: number }) {
   return (
     <div className="bg-[#0d1117] border border-[#21262d] rounded-lg flex flex-col items-center justify-center gap-0.5" style={{ width: w, height: h }}>
@@ -320,12 +359,13 @@ function Connectors({ fromCenters, toCenters, w, h }: {
 }
 
 // ── Full bracket tree ───────────────────────────────────────────────────────
-function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber, qfDbMatchByNumber, sfDbMatchByNumber }: {
+function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber, qfDbMatchByNumber, sfDbMatchByNumber, finalDbMatchByNumber }: {
   groupMatchMap: Map<string, Match[]>;
   r32DbMatchByNumber: Map<number, Match>;
   r16DbMatchByNumber: Map<number, Match>;
   qfDbMatchByNumber: Map<number, Match>;
   sfDbMatchByNumber: Map<number, Match>;
+  finalDbMatchByNumber: Map<number, Match>;
 }) {
   const r32Map = new Map(R32.map(e => [e.matchNumber, e]));
 
@@ -435,7 +475,14 @@ function BracketTreeView({ groupMatchMap, r32DbMatchByNumber, r16DbMatchByNumber
 
         {/* Final card */}
         <div className="absolute" style={{ top: finCenter - BK.cardH / 2, left: BK.r32W + BK.connW + BK.r16W + BK.connW + BK.qfW + BK.connW + BK.sfW + BK.connW, width: BK.finW, height: BK.cardH }}>
-          <TBDCard label="Final" w={BK.finW} h={BK.cardH} />
+          <FinalBracketMatchCard
+            entry={FINAL_MATCH}
+            dbMatch={finalDbMatchByNumber.get(FINAL_MATCH.matchNumber)}
+            sfMatchByNum={sfDbMatchByNumber}
+            labelFn={finalSlotLabel}
+            w={BK.finW}
+            h={BK.cardH}
+          />
         </div>
 
       </div>
@@ -529,15 +576,17 @@ export default function BracketsPage() {
   });
 
   const groupMatchMap = new Map<string, Match[]>();
-  const r32DbMatchByNumber = new Map<number, Match>();
-  const r16DbMatchByNumber = new Map<number, Match>();
-  const qfDbMatchByNumber  = new Map<number, Match>();
-  const sfDbMatchByNumber  = new Map<number, Match>();
+  const r32DbMatchByNumber   = new Map<number, Match>();
+  const r16DbMatchByNumber   = new Map<number, Match>();
+  const qfDbMatchByNumber    = new Map<number, Match>();
+  const sfDbMatchByNumber    = new Map<number, Match>();
+  const finalDbMatchByNumber = new Map<number, Match>();
   for (const m of allMatches) {
-    if (m.stage === 'r32') { r32DbMatchByNumber.set(m.match_number, m); continue; }
-    if (m.stage === 'r16') { r16DbMatchByNumber.set(m.match_number, m); continue; }
-    if (m.stage === 'qf')  { qfDbMatchByNumber.set(m.match_number, m);  continue; }
-    if (m.stage === 'sf')  { sfDbMatchByNumber.set(m.match_number, m);  continue; }
+    if (m.stage === 'r32')   { r32DbMatchByNumber.set(m.match_number, m);   continue; }
+    if (m.stage === 'r16')   { r16DbMatchByNumber.set(m.match_number, m);   continue; }
+    if (m.stage === 'qf')    { qfDbMatchByNumber.set(m.match_number, m);    continue; }
+    if (m.stage === 'sf')    { sfDbMatchByNumber.set(m.match_number, m);    continue; }
+    if (m.stage === 'final' || m.stage === '3rd') { finalDbMatchByNumber.set(m.match_number, m); continue; }
     if (!m.group_letter) continue;
     if (!groupMatchMap.has(m.group_letter)) groupMatchMap.set(m.group_letter, []);
     groupMatchMap.get(m.group_letter)!.push(m);
@@ -582,7 +631,7 @@ export default function BracketsPage() {
 
       {/* ── Bracket view ── */}
       {view === 'bracket' && (
-        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} r16DbMatchByNumber={r16DbMatchByNumber} qfDbMatchByNumber={qfDbMatchByNumber} sfDbMatchByNumber={sfDbMatchByNumber} />
+        <BracketTreeView groupMatchMap={groupMatchMap} r32DbMatchByNumber={r32DbMatchByNumber} r16DbMatchByNumber={r16DbMatchByNumber} qfDbMatchByNumber={qfDbMatchByNumber} sfDbMatchByNumber={sfDbMatchByNumber} finalDbMatchByNumber={finalDbMatchByNumber} />
       )}
 
       {/* ── List view ── */}
