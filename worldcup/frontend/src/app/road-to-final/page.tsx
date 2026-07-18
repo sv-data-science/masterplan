@@ -45,7 +45,7 @@ const SF_SLOTS  = [102, 101];
 // sf[0]=M102 at RIGHT draws from qf[0]=ENG + qf[1]=ARG (right side)
 // sf[1]=M101 at LEFT  draws from qf[2]=ESP + qf[3]=FRA (left side)
 const SF_QF_PAIRS = [[0, 1], [2, 3]] as const;
-const FINAL_NUM = 103;
+const FINAL_NUM = 104;
 
 // ── Flag ISO mapping ───────────────────────────────────────────────────────
 const TEAM_ISO: Record<string, string> = {
