@@ -3051,7 +3051,7 @@ export const WC_EDITIONS: WCEdition[] = [
     thirdPlace: 'France',
     thirdPlaceFlag: '🇫🇷',
     thirdPlaceScore: '2–1 vs England',
-    stars: ['Lamine Yamal 🇪🇸', 'Pedri 🇪🇸', 'Kylian Mbappé 🇫🇷', 'Julián Álvarez 🇦🇷', 'Bukayo Saka 🇬🇧'],
+    stars: ['Lamine Yamal 🇪🇸', 'Pedri 🇪🇸', 'Lionel Messi 🇦🇷', 'Kylian Mbappé 🇫🇷', 'Jude Bellingham 🇬🇧', 'Julián Álvarez 🇦🇷', 'Erling Haaland 🇳🇴', 'Cristiano Ronaldo 🇵🇹', 'Bukayo Saka 🇬🇧'],
     venues: [
       { city: 'East Rutherford, NJ', stadium: 'MetLife Stadium' },
       { city: 'Los Angeles, CA', stadium: 'SoFi Stadium' },
