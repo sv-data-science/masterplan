@@ -6,7 +6,7 @@ import { getLang, saveLang, TriviaLang } from '@/lib/trivia_utils';
 const tx = {
   en: {
     title: '📖 World Cup History',
-    subtitle: '22 tournaments · 1930–2022 · The complete story',
+    subtitle: '23 tournaments · 1930–2026 · The complete story',
     select: 'Select Tournament',
     champion: 'Champion',
     runnerUp: 'Runner-up',
@@ -28,7 +28,7 @@ const tx = {
   },
   es: {
     title: '📖 Historia del Mundial',
-    subtitle: '22 torneos · 1930–2022 · La historia completa',
+    subtitle: '23 torneos · 1930–2026 · La historia completa',
     select: 'Seleccionar torneo',
     champion: 'Campeón',
     runnerUp: 'Subcampeón',
@@ -149,7 +149,7 @@ function EditionCard({ ed, selected, onClick }: { ed: WCEdition; selected: boole
 }
 
 export default function WCHistoryPage() {
-  const [selectedYear, setSelectedYear] = useState<number>(2022);
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [lang, setLang] = useState<TriviaLang>('en');
 
   useEffect(() => { setLang(getLang()); }, []);
