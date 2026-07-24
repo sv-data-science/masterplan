@@ -73,3 +73,33 @@ export const triviaApi = {
 export const profileApi = {
   get: (username: string) => api.get(`/auth/profile/${username}`),
 };
+
+export const leagueApi = {
+  matches: (params?: { competition?: string; matchweek?: number }) =>
+    api.get('/league/matches/authed', { params }),
+  matchesPublic: (params?: { competition?: string; matchweek?: number }) =>
+    api.get('/league/matches', { params }),
+  upsertPrediction: (match_id: string, pred_home: number, pred_away: number) =>
+    api.post('/league/predictions', { match_id, pred_home, pred_away }),
+  myPredictions: () => api.get('/league/predictions/my'),
+  leaderboard: (competition?: string) =>
+    api.get('/league/leaderboard', { params: competition ? { competition } : undefined }),
+  competitions: () => api.get('/league/competitions'),
+
+  // admin
+  adminMatches: (params?: { competition?: string; matchweek?: number }) =>
+    api.get('/admin/league/matches', { params }),
+  createMatch: (data: {
+    competition: string; matchweek: number;
+    home_team: string; away_team: string;
+    home_flag?: string; away_flag?: string; kickoff_utc?: string;
+  }) => api.post('/admin/league/matches', data),
+  updateMatch: (id: string, data: {
+    competition: string; matchweek: number;
+    home_team: string; away_team: string;
+    home_flag?: string; away_flag?: string; kickoff_utc?: string;
+  }) => api.patch(`/admin/league/matches/${id}`, data),
+  setScore: (id: string, home_score: number, away_score: number) =>
+    api.post(`/admin/league/matches/${id}/score`, { home_score, away_score }),
+  deleteMatch: (id: string) => api.delete(`/admin/league/matches/${id}`),
+};

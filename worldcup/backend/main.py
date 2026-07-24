@@ -13,10 +13,12 @@ from sqlalchemy.orm import selectinload
 from app.config import settings
 from app.database import engine, Base, AsyncSessionLocal, get_db
 from app.models import user, worldcup  # noqa: register models
+from app.models import league as league_models  # noqa: register league models
 from app.models.user import User
 from app.models.worldcup import Meme, MemeReaction
 from app.auth import get_current_user, get_optional_current_user
 from app.api import auth, matches, predictions, leaderboard, admin, goals, trivia, scores
+from app.api.league import router as league_router, admin_router as league_admin_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -130,6 +132,42 @@ async def lifespan(app: FastAPI):
                 await conn.execute(text(ddl))
         except Exception as e:
             log.warning("DDL skipped (%s): %s", ddl.split()[2], e)
+
+    # Ensure league tables exist
+    for ddl in [
+        """CREATE TABLE IF NOT EXISTS league_matches (
+            id VARCHAR PRIMARY KEY,
+            competition VARCHAR(30) NOT NULL,
+            matchweek INTEGER NOT NULL,
+            home_team VARCHAR(100) NOT NULL,
+            away_team VARCHAR(100) NOT NULL,
+            home_flag VARCHAR(10) NOT NULL DEFAULT '🏳️',
+            away_flag VARCHAR(10) NOT NULL DEFAULT '🏳️',
+            kickoff_utc TIMESTAMPTZ,
+            home_score INTEGER,
+            away_score INTEGER,
+            status VARCHAR(20) NOT NULL DEFAULT 'scheduled',
+            created_at TIMESTAMPTZ DEFAULT now()
+        )""",
+        "CREATE INDEX IF NOT EXISTS ix_league_matches_competition ON league_matches(competition)",
+        "CREATE INDEX IF NOT EXISTS ix_league_matches_matchweek ON league_matches(matchweek)",
+        """CREATE TABLE IF NOT EXISTS league_predictions (
+            id VARCHAR PRIMARY KEY,
+            user_id VARCHAR NOT NULL REFERENCES users(id),
+            match_id VARCHAR NOT NULL REFERENCES league_matches(id),
+            pred_home INTEGER NOT NULL,
+            pred_away INTEGER NOT NULL,
+            points_earned INTEGER,
+            created_at TIMESTAMPTZ DEFAULT now(),
+            updated_at TIMESTAMPTZ,
+            CONSTRAINT uq_league_pred_user_match UNIQUE (user_id, match_id)
+        )""",
+    ]:
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(text(ddl))
+        except Exception as e:
+            log.warning("DDL league skipped (%s): %s", ddl.split()[2] if len(ddl.split()) > 2 else "idx", e)
 
     try:
         from sqlalchemy import select, func
@@ -594,6 +632,8 @@ app.include_router(admin.router, prefix="/api/v1")
 app.include_router(goals.router, prefix="/api/v1")
 app.include_router(trivia.router, prefix="/api/v1")
 app.include_router(scores.router, prefix="/api/v1")
+app.include_router(league_router, prefix="/api/v1")
+app.include_router(league_admin_router, prefix="/api/v1")
 
 # ── Memes (inlined to avoid any module-import issues on Railway) ──────────────
 _ALLOWED_EMOJIS = {"👍", "❤️", "😂", "🔥", "🙈", "😮", "👏", "😭", "🤣", "😡"}

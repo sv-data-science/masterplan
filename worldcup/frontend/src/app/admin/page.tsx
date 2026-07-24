@@ -1,7 +1,7 @@
 'use client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { matchesApi, api, goalsApi } from '@/lib/api';
-import { Match, GoalEvent } from '@/types';
+import { matchesApi, api, goalsApi, leagueApi } from '@/lib/api';
+import { Match, GoalEvent, LeagueMatch } from '@/types';
 import { useAuthStore } from '@/store/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -1466,6 +1466,8 @@ export default function AdminPage() {
 
       <AuditLogPanel />
 
+      <LeagueAdminPanel />
+
       <UsersPanel users={users} />
 
       <p className="text-sm text-gray-400">
@@ -1515,6 +1517,212 @@ export default function AdminPage() {
               {filtered
                 .sort((a, b) => a.match_number - b.match_number)
                 .map(m => <ScoreRow key={m.id} match={m} onUpdated={invalidate} />)}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+const COMP_OPTIONS = [
+  { value: 'liga_mx', label: '🇲🇽 Liga MX' },
+  { value: 'champions_league', label: '⭐ Champions League' },
+  { value: 'la_liga', label: '🇪🇸 La Liga España' },
+  { value: 'premier_league', label: '🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League' },
+];
+
+function LeagueAdminPanel() {
+  const qc = useQueryClient();
+  const [filterComp, setFilterComp] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({
+    competition: 'liga_mx', matchweek: 1,
+    home_team: '', away_team: '', home_flag: '🏟️', away_flag: '🏟️',
+    kickoff_utc: '',
+  });
+  const [scoreForm, setScoreForm] = useState<Record<string, { h: string; a: string }>>({});
+  const [saving, setSaving] = useState(false);
+
+  const { data: matches = [], isLoading, refetch } = useQuery({
+    queryKey: ['admin-league-matches', filterComp],
+    queryFn: () => leagueApi.adminMatches(filterComp ? { competition: filterComp } : undefined).then(r => r.data as LeagueMatch[]),
+  });
+
+  const resetForm = () => setForm({
+    competition: 'liga_mx', matchweek: 1,
+    home_team: '', away_team: '', home_flag: '🏟️', away_flag: '🏟️', kickoff_utc: '',
+  });
+
+  const startEdit = (m: LeagueMatch) => {
+    setEditingId(m.id);
+    setForm({
+      competition: m.competition,
+      matchweek: m.matchweek,
+      home_team: m.home_team,
+      away_team: m.away_team,
+      home_flag: m.home_flag,
+      away_flag: m.away_flag,
+      kickoff_utc: m.kickoff_utc ? new Date(m.kickoff_utc).toISOString().slice(0, 16) : '',
+    });
+  };
+
+  const submitMatch = async () => {
+    if (!form.home_team.trim() || !form.away_team.trim()) { toast.error('Both teams required'); return; }
+    setSaving(true);
+    try {
+      const payload = { ...form, kickoff_utc: form.kickoff_utc ? new Date(form.kickoff_utc).toISOString() : undefined };
+      if (editingId) {
+        await leagueApi.updateMatch(editingId, payload);
+        toast.success('Updated!');
+      } else {
+        await leagueApi.createMatch(payload);
+        toast.success('Match created!');
+      }
+      resetForm();
+      setEditingId(null);
+      await refetch();
+    } catch { toast.error('Save failed'); }
+    finally { setSaving(false); }
+  };
+
+  const saveScore = async (matchId: string) => {
+    const s = scoreForm[matchId];
+    if (!s) return;
+    const h = parseInt(s.h), a = parseInt(s.a);
+    if (isNaN(h) || isNaN(a)) { toast.error('Enter valid scores'); return; }
+    try {
+      await leagueApi.setScore(matchId, h, a);
+      toast.success('Score saved & points updated!');
+      await refetch();
+      qc.invalidateQueries({ queryKey: ['league-leaderboard'] });
+    } catch { toast.error('Save failed'); }
+  };
+
+  const deleteMatch = async (matchId: string) => {
+    if (!confirm('Delete this match and all its predictions?')) return;
+    try {
+      await leagueApi.deleteMatch(matchId);
+      toast.success('Deleted');
+      await refetch();
+    } catch { toast.error('Delete failed'); }
+  };
+
+  return (
+    <div className="card p-5 space-y-5">
+      <h2 className="font-semibold text-white text-lg">⚽ La Liga Match Management</h2>
+
+      {/* Create / Edit form */}
+      <div className="bg-[#0d1117] rounded-lg p-4 space-y-3 border border-[#30363d]">
+        <p className="text-sm font-medium text-gray-300">{editingId ? '✏️ Edit Match' : '➕ Create Match'}</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Competition</label>
+            <select value={form.competition} onChange={e => setForm(f => ({ ...f, competition: e.target.value }))} className="input py-1.5 text-sm w-full">
+              {COMP_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Matchweek</label>
+            <input type="number" min={1} value={form.matchweek} onChange={e => setForm(f => ({ ...f, matchweek: parseInt(e.target.value) || 1 }))} className="input py-1.5 text-sm w-full" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Kickoff (local, select datetime)</label>
+            <input type="datetime-local" value={form.kickoff_utc} onChange={e => setForm(f => ({ ...f, kickoff_utc: e.target.value }))} className="input py-1.5 text-sm w-full" />
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Home Team</label>
+            <div className="flex gap-1">
+              <input type="text" placeholder="Flag emoji" value={form.home_flag} onChange={e => setForm(f => ({ ...f, home_flag: e.target.value }))} className="input py-1.5 text-sm w-12 text-center" />
+              <input type="text" placeholder="Team name" value={form.home_team} onChange={e => setForm(f => ({ ...f, home_team: e.target.value }))} className="input py-1.5 text-sm flex-1" />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Away Team</label>
+            <div className="flex gap-1">
+              <input type="text" placeholder="Flag emoji" value={form.away_flag} onChange={e => setForm(f => ({ ...f, away_flag: e.target.value }))} className="input py-1.5 text-sm w-12 text-center" />
+              <input type="text" placeholder="Team name" value={form.away_team} onChange={e => setForm(f => ({ ...f, away_team: e.target.value }))} className="input py-1.5 text-sm flex-1" />
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={submitMatch} disabled={saving} className="btn-primary text-sm py-1.5 disabled:opacity-50">
+            {saving ? '…' : editingId ? 'Save Changes' : 'Create Match'}
+          </button>
+          {editingId && (
+            <button onClick={() => { setEditingId(null); resetForm(); }} className="btn-secondary text-sm py-1.5">
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter */}
+      <div className="flex gap-2 flex-wrap">
+        <select value={filterComp} onChange={e => setFilterComp(e.target.value)} className="input py-1.5 text-sm w-auto">
+          <option value="">All Competitions</option>
+          {COMP_OPTIONS.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
+        <span className="text-sm text-gray-500 self-center">{matches.length} matches</span>
+      </div>
+
+      {isLoading && <div className="text-center text-gray-500 py-4">Loading…</div>}
+
+      {!isLoading && matches.length === 0 && (
+        <p className="text-gray-600 text-sm text-center py-4">No matches yet. Create one above.</p>
+      )}
+
+      {!isLoading && matches.length > 0 && (
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[700px] text-sm">
+            <thead className="border-b border-[#30363d]">
+              <tr className="text-xs text-gray-500 uppercase">
+                <th className="text-left px-3 py-2">Competition</th>
+                <th className="text-left px-3 py-2">Wk</th>
+                <th className="text-left px-3 py-2">Match</th>
+                <th className="text-left px-3 py-2">Kickoff</th>
+                <th className="text-left px-3 py-2">Score</th>
+                <th className="text-left px-3 py-2">Status</th>
+                <th className="text-left px-3 py-2">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {matches.map(m => {
+                const sc = scoreForm[m.id] ?? { h: m.home_score?.toString() ?? '', a: m.away_score?.toString() ?? '' };
+                return (
+                  <tr key={m.id} className="border-b border-[#21262d] hover:bg-[#21262d]/40">
+                    <td className="px-3 py-2 text-gray-400 text-xs">{COMP_OPTIONS.find(c => c.value === m.competition)?.label ?? m.competition}</td>
+                    <td className="px-3 py-2 text-gray-400">{m.matchweek}</td>
+                    <td className="px-3 py-2 text-white whitespace-nowrap">
+                      {m.home_flag} {m.home_team} <span className="text-gray-600">vs</span> {m.away_flag} {m.away_team}
+                    </td>
+                    <td className="px-3 py-2 text-gray-400 text-xs whitespace-nowrap">
+                      {m.kickoff_utc ? new Date(m.kickoff_utc).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'TBD'}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                        <input type="number" min={0} value={sc.h} onChange={e => setScoreForm(f => ({ ...f, [m.id]: { ...sc, h: e.target.value } }))}
+                          className="w-10 text-center input py-0.5 text-xs" placeholder="H" />
+                        <span className="text-gray-500">–</span>
+                        <input type="number" min={0} value={sc.a} onChange={e => setScoreForm(f => ({ ...f, [m.id]: { ...sc, a: e.target.value } }))}
+                          className="w-10 text-center input py-0.5 text-xs" placeholder="A" />
+                        <button onClick={() => saveScore(m.id)} className="btn-primary text-xs py-0.5 px-2 ml-1">✓</button>
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`text-xs px-1.5 py-0.5 rounded ${m.status === 'completed' ? 'bg-gray-700 text-gray-300' : m.status === 'live' ? 'bg-red-600 text-white' : 'bg-[#21262d] text-gray-400'}`}>
+                        {m.status}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-1">
+                        <button onClick={() => startEdit(m)} className="btn-secondary text-xs py-0.5 px-2">Edit</button>
+                        <button onClick={() => deleteMatch(m.id)} className="text-red-500 hover:text-red-400 text-xs py-0.5 px-2">Del</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

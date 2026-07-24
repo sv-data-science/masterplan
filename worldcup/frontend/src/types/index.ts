@@ -131,3 +131,38 @@ export interface LeaderboardEntry {
   predictions_made: number;
   kit?: KitConfig | null;
 }
+
+export interface LeaguePrediction {
+  id: string;
+  user_id: string;
+  match_id: string;
+  pred_home: number;
+  pred_away: number;
+  points_earned: number | null;
+}
+
+export interface LeagueMatch {
+  id: string;
+  competition: string;
+  matchweek: number;
+  home_team: string;
+  away_team: string;
+  home_flag: string;
+  away_flag: string;
+  kickoff_utc: string | null;
+  home_score: number | null;
+  away_score: number | null;
+  status: string;
+  my_prediction: LeaguePrediction | null;
+}
+
+export interface LeagueLeaderboardEntry {
+  rank: number;
+  user_id: string;
+  username: string;
+  display_name: string;
+  total_points: number;
+  exact_scores: number;
+  correct_outcomes: number;
+  predictions_made: number;
+}
