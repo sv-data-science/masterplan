@@ -21,7 +21,7 @@ Write-Host '  lame.exe -> resources/bin/win'
 # ── mpv (playback) — shinchiro Windows build ────────────────────────────────
 Write-Host 'Downloading mpv (shinchiro build)...'
 $rel = Invoke-RestMethod 'https://api.github.com/repos/shinchiro/mpv-winbuild-cmake/releases/latest' -Headers @{ 'User-Agent' = 'music-app-fetch' }
-$asset = $rel.assets | Where-Object { $_.name -match '^mpv-x86_64-\d+\.7z$' } | Select-Object -First 1
+$asset = $rel.assets | Where-Object { $_.name -match '^mpv-x86_64-\d+.*\.7z$' } | Select-Object -First 1
 if (-not $asset) { throw 'Could not find an mpv-x86_64-*.7z asset in the latest shinchiro release.' }
 $mpv7z = Join-Path $tmp $asset.name
 Invoke-WebRequest $asset.browser_download_url -OutFile $mpv7z
