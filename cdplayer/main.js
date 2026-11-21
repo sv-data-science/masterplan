@@ -171,7 +171,7 @@ function formatMBRelease(release, toc) {
     duration: formatDuration(t.length),
     lengthMs: t.length,
   }));
-  return { artist, title, year, genre: '', tracks };
+  return { artist, title, year, genre: '', releaseId: release.id, tracks };
 }
 
 function formatDuration(ms) {
@@ -261,6 +261,24 @@ ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onPro
   );
   fs.mkdirSync(albumDir, { recursive: true });
 
+  // Fetch front cover art from the Cover Art Archive (if the disc was
+  // identified) so lame can embed it in each MP3 — car stereos read the
+  // embedded ID3 picture, like Windows Media Player rips.
+  let coverPath = null;
+  if (metadata.releaseId) {
+    try {
+      const res = await fetch(`https://coverartarchive.org/release/${metadata.releaseId}/front-500`, {
+        headers: { 'User-Agent': 'CDPlayer/1.0 (sv.data.analytics@gmail.com)' },
+      });
+      if (res.ok && (res.headers.get('content-type') || '').startsWith('image/')) {
+        coverPath = path.join(os.tmpdir(), 'cdplayer_cover.jpg');
+        fs.writeFileSync(coverPath, Buffer.from(await res.arrayBuffer()));
+      } else {
+        console.error('Cover art fetch: HTTP', res.status);
+      }
+    } catch (e) { console.error('Cover art fetch failed:', e.message); }
+  }
+
   const results = [];
   for (const track of tracks) {
     const safeName = sanitizeFilename(`${String(track.number).padStart(2,'0')} ${track.title}`);
@@ -285,6 +303,7 @@ ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onPro
         '--tl', metadata.title,
         '--tn', String(track.number),
         '--ty', metadata.year || '',
+        ...(coverPath ? ['--add-id3v2', '--ti', coverPath] : []),
         wavPath, mp3Path,
       ];
       ripProcess = spawn(TOOLS.lame, lameArgs);
@@ -299,6 +318,7 @@ ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onPro
     mainWindow?.webContents.send('rip-progress', { done: track.number, total: tracks.length, path: mp3Path });
   }
 
+  if (coverPath) { try { fs.unlinkSync(coverPath); } catch {} }
   return { results };
 });
 
