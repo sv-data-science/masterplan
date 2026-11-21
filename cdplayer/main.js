@@ -3,23 +3,36 @@ const path = require('path');
 const { execFile, spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
+const { isWin, TOOLS, NULL_DEVICE, detectCdDrive } = require('./tools');
 
 let mainWindow;
 let mpvProcess = null;
 let ripProcess = null;
 
-const CONFIG_PATH = path.join(os.homedir(), '.config', 'cdplayer', 'config.json');
+// Portable builds (electron-builder "portable" target) set
+// PORTABLE_EXECUTABLE_DIR — storing config next to the .exe is what makes
+// the USB copy truly portable. Otherwise fall back to the OS userData dir.
+function configDir() {
+  if (process.env.PORTABLE_EXECUTABLE_DIR) return process.env.PORTABLE_EXECUTABLE_DIR;
+  return app.getPath('userData');
+}
+
+function configPath() {
+  return path.join(configDir(), 'config.json');
+}
 
 function loadConfig() {
   try {
-    if (fs.existsSync(CONFIG_PATH)) return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    const p = configPath();
+    if (fs.existsSync(p)) return JSON.parse(fs.readFileSync(p, 'utf8'));
   } catch {}
   return { libraryPath: path.join(os.homedir(), 'Music'), skin: 'winamp', mp3Quality: '192' };
 }
 
 function saveConfig(cfg) {
-  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2));
+  const p = configPath();
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, JSON.stringify(cfg, null, 2));
 }
 
 function createWindow() {
@@ -54,17 +67,21 @@ ipcMain.handle('choose-library-path', async () => {
 
 // ── CD Detection ─────────────────────────────────────────────────────────────
 ipcMain.handle('detect-cd', async () => {
+  const device = await detectCdDrive();
+  if (isWin) return device ? { found: true, device } : { found: false };
+  // Linux: probe with cd-info (libcdio).
   return new Promise((resolve) => {
-    execFile('cd-info', ['--no-header', '-q'], (err, stdout) => {
-      if (err) { resolve({ found: false }); return; }
-      resolve({ found: true, raw: stdout });
+    execFile(TOOLS.cdInfo, ['--no-header', '-q'], (err, stdout) => {
+      resolve(err ? { found: false } : { found: true, device, raw: stdout });
     });
   });
 });
 
 ipcMain.handle('get-cd-toc', async () => {
+  const device = await detectCdDrive();
+  if (!device) return [];
   return new Promise((resolve) => {
-    execFile('cdparanoia', ['-Q', '--output-wav', '/dev/null'], { timeout: 10000 }, (err, stdout, stderr) => {
+    execFile(TOOLS.cdparanoia, ['-Q', '-d', device, '--output-wav', NULL_DEVICE], { timeout: 10000 }, (err, stdout, stderr) => {
       const lines = (stderr || '').split('\n');
       const tracks = [];
       for (const line of lines) {
@@ -130,14 +147,12 @@ function formatDuration(ms) {
 }
 
 // ── CD Playback via mpv ──────────────────────────────────────────────────────
-ipcMain.handle('play-cd-track', (_, trackNum) => {
+ipcMain.handle('play-cd-track', async (_, trackNum) => {
   stopMpv();
-  mpvProcess = spawn('mpv', [
-    `cdda:///${trackNum}`,
-    '--no-video',
-    '--really-quiet',
-    `--cdrom-device=/dev/cdrom`,
-  ]);
+  const device = await detectCdDrive();
+  const args = [`cdda:///${trackNum}`, '--no-video', '--really-quiet'];
+  if (device) args.push(`--cdrom-device=${device}`);
+  mpvProcess = spawn(TOOLS.mpv, args);
   mpvProcess.on('exit', () => { mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
   return true;
 });
@@ -146,30 +161,40 @@ ipcMain.handle('stop-playback', () => { stopMpv(); return true; });
 
 ipcMain.handle('play-file', (_, filePath) => {
   stopMpv();
-  mpvProcess = spawn('mpv', ['--no-video', '--really-quiet', filePath]);
+  mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', filePath]);
   mpvProcess.on('exit', () => { mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
   return true;
 });
 
 function stopMpv() {
-  if (mpvProcess) { try { mpvProcess.kill('SIGTERM'); } catch {} mpvProcess = null; }
+  if (mpvProcess) { try { mpvProcess.kill(); } catch {} mpvProcess = null; }
 }
 
 // ── CD Ripping ───────────────────────────────────────────────────────────────
+// Output layout follows Sergio's library convention:
+//   <outputDir>/<Artist>/<Album>/NN <Title>.mp3
 ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onProgress }) => {
   if (ripProcess) return { error: 'Rip already in progress' };
 
-  fs.mkdirSync(outputDir, { recursive: true });
+  const device = await detectCdDrive();
+  if (!device) return { error: 'No CD drive with a disc found' };
+
+  const albumDir = path.join(
+    outputDir,
+    sanitizeFilename(metadata.artist || 'Unknown Artist'),
+    sanitizeFilename(metadata.title || 'Unknown Album'),
+  );
+  fs.mkdirSync(albumDir, { recursive: true });
 
   const results = [];
   for (const track of tracks) {
-    const safeName = sanitizeFilename(`${String(track.number).padStart(2,'0')} - ${track.title}`);
+    const safeName = sanitizeFilename(`${String(track.number).padStart(2,'0')} ${track.title}`);
     const wavPath = path.join(os.tmpdir(), `cdplayer_track${track.number}.wav`);
-    const mp3Path = path.join(outputDir, `${safeName}.mp3`);
+    const mp3Path = path.join(albumDir, `${safeName}.mp3`);
 
     // Rip to WAV
     await new Promise((resolve, reject) => {
-      ripProcess = spawn('cdparanoia', [`${track.number}`, wavPath]);
+      ripProcess = spawn(TOOLS.cdparanoia, ['-d', device, `${track.number}`, wavPath]);
       ripProcess.on('exit', code => { ripProcess = null; code === 0 ? resolve() : reject(new Error(`cdparanoia exited ${code}`)); });
     });
 
@@ -184,7 +209,7 @@ ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onPro
         '--ty', metadata.year || '',
         wavPath, mp3Path,
       ];
-      ripProcess = spawn('lame', lameArgs);
+      ripProcess = spawn(TOOLS.lame, lameArgs);
       ripProcess.on('exit', code => {
         ripProcess = null;
         try { fs.unlinkSync(wavPath); } catch {}
@@ -200,7 +225,7 @@ ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onPro
 });
 
 ipcMain.handle('cancel-rip', () => {
-  if (ripProcess) { try { ripProcess.kill('SIGTERM'); } catch {} ripProcess = null; }
+  if (ripProcess) { try { ripProcess.kill(); } catch {} ripProcess = null; }
   return true;
 });
 
