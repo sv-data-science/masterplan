@@ -8,6 +8,7 @@ const { isWin, TOOLS, NULL_DEVICE, detectCdDrive } = require('./tools');
 let mainWindow;
 let mpvProcess = null;
 let ripProcess = null;
+let cdStreamProcess = null; // cdparanoia feeding mpv's stdin (Windows CD playback)
 
 // Portable builds (electron-builder "portable" target) set
 // PORTABLE_EXECUTABLE_DIR — storing config next to the .exe is what makes
@@ -178,6 +179,21 @@ function formatDuration(ms) {
 ipcMain.handle('play-cd-track', async (_, trackNum) => {
   stopMpv();
   const device = await detectCdDrive();
+  if (isWin) {
+    // The shinchiro mpv builds have no CDDA support (no 'cdda' feature), so
+    // cdda:// cannot work on Windows. Stream WAV from cdparanoia into mpv's
+    // stdin instead.
+    const streamArgs = cdparanoiaAutosense
+      ? ['-w', String(trackNum), '-']
+      : ['-d', device, '-w', String(trackNum), '-'];
+    cdStreamProcess = spawn(TOOLS.cdparanoia, streamArgs);
+    cdStreamProcess.on('error', (e) => { console.error('cdparanoia stream failed:', e.message); cdStreamProcess = null; });
+    cdStreamProcess.on('exit', () => { cdStreamProcess = null; });
+    mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', '-']);
+    cdStreamProcess.stdout.pipe(mpvProcess.stdin);
+    watchMpv();
+    return true;
+  }
   const args = [`cdda:///${trackNum}`, '--no-video', '--really-quiet'];
   if (device) args.push(`--cdrom-device=${device}`);
   mpvProcess = spawn(TOOLS.mpv, args);
@@ -201,6 +217,7 @@ function watchMpv() {
 }
 
 function stopMpv() {
+  if (cdStreamProcess) { try { cdStreamProcess.kill(); } catch {} cdStreamProcess = null; }
   if (mpvProcess) { try { mpvProcess.kill(); } catch {} mpvProcess = null; }
 }
 
