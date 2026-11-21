@@ -9,8 +9,8 @@ them here manually. In the packaged app they ship via electron-builder
 |---|---|---|---|
 | `lame.exe` | MP3 encoding | RareWares LAME bundle — https://www.rarewares.org/mp3-lame-bundle.php | LGPL |
 | `mpv.exe` (+ DLLs) | CD/file playback | shinchiro Windows builds — https://github.com/shinchiro/mpv-winbuild-cmake/releases (also `winget install shinchiro.mpv`) | GPL |
-| `cdparanoia.exe` | CD audio extraction + TOC query (`-Q`) | libcdio port (`cd-paranoia.exe`, rename it) from MSYS2 package `mingw-w64-x86_64-libcdio`, or from a fre:ac Windows install | GPL |
-| `cd-info.exe` | CD detection (Linux probe; optional on Windows) | Same libcdio package as above | GPL |
+| `cdparanoia.exe` | CD audio extraction + TOC query (`-Q`) | libcdio port (`cd-paranoia.exe`, rename it) from MSYS2 package `mingw-w64-x86_64-libcdio-paranoia`, or from a fre:ac Windows install. Also copy its DLLs (`libcdio_cdda-2.dll`, `libcdio_paranoia-2.dll`, `libcdio-*.dll`, `libiso9660-*.dll`, `libcddb-*.dll`, `libiconv-*.dll`) from the same MSYS2 `bin` folder — the exe won't start without them | GPL |
+| `cd-info.exe` | CD detection (Linux probe; optional on Windows) | MSYS2 package `mingw-w64-x86_64-libcdio` | GPL |
 
 Notes:
 
