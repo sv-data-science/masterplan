@@ -1,41 +1,49 @@
-# CD Player
+# music-app
 
-A desktop CD player, ripper, and MP3 library browser — built with Electron.
+Portable, local-only MP3 player + CD ripper — a spiritual successor to Mp3FE.
+No cloud, no account, no streaming. Copy the single `.exe` to a USB stick and
+run it on any Windows machine; settings live next to the executable.
+
+Adopted from the earlier `cdplayer` Electron app (sv-data-science/masterplan,
+branch `claude/cd-player-mp3-rip-xnauvf`) and ported to Windows.
 
 ## Features
 
-- **CD Playback** — Play any track on an inserted CD via mpv
-- **Metadata Lookup** — Automatically queries MusicBrainz for album/artist/track info
-- **CD Ripping** — Rip tracks to MP3 at 128 / 192 / 256 / 320 kbps using cdparanoia + lame
-- **MP3 Library** — Scan your local music folder; browse by artist, search by any field
-- **3 Skins** — WinAmp Classic, Windows Media Player, Spotify Dark (switchable live)
+- CD playback (via mpv) with MusicBrainz metadata lookup
+- CD ripping to MP3 with selectable bitrate (128/192/256/320 kbps), ID3 tags,
+  output to `<Music>/<Artist>/<Album>/NN <Title>.mp3`
+- MP3 library browser (recursive scan, tag reading)
+- Skinnable UI (Winamp Classic, Windows Media Player, Spotify Dark)
+- Portable: config stored next to the `.exe` in portable builds
 
-## System Requirements (Linux)
+## Run / build (Windows)
 
-```bash
-bash scripts/install-deps.sh
-```
+Prerequisites: Node.js LTS.
 
-This installs: `cdparanoia`, `lame`, `mpv`, `libcdio-utils`
-
-## Install & Run
-
-```bash
-cd cdplayer
+```powershell
 npm install
-npm start
+npm run fetch-win-deps   # downloads lame.exe + mpv.exe into resources/bin/win
+npm start                # dev run
+npm run dist:win         # portable single-file build -> dist/music-app.exe
 ```
 
-## Usage
+`cdparanoia.exe` / `cd-info.exe` need one manual step — see
+`resources/bin/win/README.md`.
 
-1. **CD tab** — Insert a CD, click "Detect CD". Metadata loads automatically.
-   Double-click or click ▶ on a track to play.
-2. **Rip tab** — Select tracks and quality, choose output folder, click "Start Ripping".
-3. **Library tab** — Shows your MP3 library. Search by typing, filter by artist in sidebar.
-   Right-click a track to reveal it in file manager.
-4. **Settings** — Set library folder, default rip quality, and skin.
+## Linux
 
-## CD Device
+```bash
+npm run install-deps     # cdparanoia, lame, mpv, libcdio-utils (apt/dnf/pacman)
+npm start
+npm run dist:linux       # AppImage
+```
 
-By default uses `/dev/cdrom`. If your drive is at a different path (e.g. `/dev/sr0`),
-edit the `--cdrom-device` argument in `main.js` line ~70.
+## Roadmap (from SPEC.md)
+
+- Lyrics panel (fetched, cached locally)
+- 10-band equalizer + visualizer
+- In-app tag editor
+- Winamp `.wsz` bitmap skins + original manga-inspired default skin
+- Album cover display
+
+Full spec: `../mp3-player/SPEC.md`
