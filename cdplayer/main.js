@@ -77,27 +77,44 @@ ipcMain.handle('detect-cd', async () => {
   });
 });
 
+let cdparanoiaAutosense = false; // set when -d <device> yields no TOC (libcdio/Windows quirks)
+
+function parseToc(output) {
+  const tracks = [];
+  for (const line of output.split('\n')) {
+    const m = line.match(/^\s+(\d+)\.\s+(\d+)\s+\[\d+:\d+\.\d+\]\s+(\d+)\s+\[(\d+:\d+\.\d+)\]/);
+    if (m) {
+      tracks.push({
+        number: parseInt(m[1]),
+        sectors: parseInt(m[2]),
+        startSector: parseInt(m[3]),
+        duration: m[4],
+      });
+    }
+  }
+  return tracks;
+}
+
+function runTocQuery(args) {
+  return new Promise((resolve) => {
+    execFile(TOOLS.cdparanoia, args, { timeout: 10000 }, (err, stdout, stderr) => {
+      resolve(parseToc((stderr || '') + (stdout || '')));
+    });
+  });
+}
+
 ipcMain.handle('get-cd-toc', async () => {
   const device = await detectCdDrive();
   if (!device) return [];
-  return new Promise((resolve) => {
-    execFile(TOOLS.cdparanoia, ['-Q', '-d', device, '--output-wav', NULL_DEVICE], { timeout: 10000 }, (err, stdout, stderr) => {
-      const lines = (stderr || '').split('\n');
-      const tracks = [];
-      for (const line of lines) {
-        const m = line.match(/^\s+(\d+)\.\s+(\d+)\s+\[\d+:\d+\.\d+\]\s+(\d+)\s+\[(\d+:\d+\.\d+)\]/);
-        if (m) {
-          tracks.push({
-            number: parseInt(m[1]),
-            sectors: parseInt(m[2]),
-            startSector: parseInt(m[3]),
-            duration: m[4],
-          });
-        }
-      }
-      resolve(tracks);
-    });
-  });
+  // libcdio's cd-paranoia requires a span argument even with -Q (without one
+  // it prints usage and exits); classic cdparanoia accepts and ignores it.
+  // Try the explicit device first, then fall back to autosense.
+  let tracks = await runTocQuery(['-Q', '-d', device, '1']);
+  if (tracks.length === 0) {
+    tracks = await runTocQuery(['-Q', '1']);
+    if (tracks.length > 0) cdparanoiaAutosense = true;
+  }
+  return tracks;
 });
 
 // ── MusicBrainz Lookup ───────────────────────────────────────────────────────
@@ -194,7 +211,10 @@ ipcMain.handle('rip-cd', async (_, { tracks, metadata, quality, outputDir, onPro
 
     // Rip to WAV
     await new Promise((resolve, reject) => {
-      ripProcess = spawn(TOOLS.cdparanoia, ['-d', device, `${track.number}`, wavPath]);
+      const ripArgs = cdparanoiaAutosense
+        ? [`${track.number}`, wavPath]
+        : ['-d', device, `${track.number}`, wavPath];
+      ripProcess = spawn(TOOLS.cdparanoia, ripArgs);
       ripProcess.on('exit', code => { ripProcess = null; code === 0 ? resolve() : reject(new Error(`cdparanoia exited ${code}`)); });
     });
 
