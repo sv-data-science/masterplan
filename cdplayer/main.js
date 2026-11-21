@@ -190,6 +190,8 @@ ipcMain.handle('play-cd-track', async (_, trackNum) => {
     cdStreamProcess.on('error', (e) => { console.error('cdparanoia stream failed:', e.message); cdStreamProcess = null; });
     cdStreamProcess.on('exit', () => { cdStreamProcess = null; });
     mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', '-']);
+    mpvProcess.stdin.on('error', () => {}); // EPIPE when mpv exits before cdparanoia
+    cdStreamProcess.stdout.on('error', () => {});
     cdStreamProcess.stdout.pipe(mpvProcess.stdin);
     watchMpv();
     return true;
@@ -217,6 +219,7 @@ function watchMpv() {
 }
 
 function stopMpv() {
+  if (cdStreamProcess && mpvProcess) { try { cdStreamProcess.stdout.unpipe(mpvProcess.stdin); } catch {} }
   if (cdStreamProcess) { try { cdStreamProcess.kill(); } catch {} cdStreamProcess = null; }
   if (mpvProcess) { try { mpvProcess.kill(); } catch {} mpvProcess = null; }
 }
