@@ -1,0 +1,12 @@
+node_modules/
+dist/
+*.log
+
+# Bundled third-party binaries are fetched by scripts/fetch-win-deps.ps1,
+# never committed (see resources/bin/win/README.md).
+resources/bin/win/*.exe
+resources/bin/win/*.dll
+resources/bin/linux/*
+
+# Local runtime data
+config.json
