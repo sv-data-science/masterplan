@@ -93,6 +93,9 @@ async function detectCd() {
     populateRipTracks();
   } else {
     cdMeta = { artist: 'Unknown Artist', title: 'Unknown Album', year: '', tracks: cdTracks };
+    document.getElementById('cd-artist').textContent = 'Audio CD';
+    document.getElementById('cd-album').textContent = `${cdTracks.length} tracks`;
+    document.getElementById('cd-year').textContent = '';
     setStatus(`${cdTracks.length} tracks loaded (no metadata found)`);
     populateRipTracks();
   }
