@@ -8,7 +8,7 @@ const { isWin, TOOLS, NULL_DEVICE, detectCdDrive } = require('./tools');
 let mainWindow;
 let mpvProcess = null;
 let ripProcess = null;
-let cdStreamProcess = null; // cdparanoia feeding mpv's stdin (Windows CD playback)
+let cdStreamProcess = null; // cdparanoia ripping a track for playback (Windows)
 
 // Portable builds (electron-builder "portable" target) set
 // PORTABLE_EXECUTABLE_DIR — storing config next to the .exe is what makes
@@ -79,6 +79,7 @@ ipcMain.handle('detect-cd', async () => {
 });
 
 let cdparanoiaAutosense = false; // set when -d <device> yields no TOC (libcdio/Windows quirks)
+let tocFingerprint = 'unknown'; // set by get-cd-toc; keys the Windows playback cache
 
 function formatTocTime(t) { // "03:21.35" (mm:ss.frames) -> "3:21"
   const m = t.match(/^(\d+):(\d+)\./);
@@ -120,6 +121,10 @@ ipcMain.handle('get-cd-toc', async () => {
   if (tracks.length === 0) {
     tracks = await runTocQuery(['-Q', '1']);
     if (tracks.length > 0) cdparanoiaAutosense = true;
+  }
+  if (tracks.length > 0) {
+    const last = tracks[tracks.length - 1];
+    tocFingerprint = `${tracks.length}_${last.startSector + last.sectors}`;
   }
   return tracks;
 });
@@ -181,18 +186,14 @@ ipcMain.handle('play-cd-track', async (_, trackNum) => {
   const device = await detectCdDrive();
   if (isWin) {
     // The shinchiro mpv builds have no CDDA support (no 'cdda' feature), so
-    // cdda:// cannot work on Windows. Stream WAV from cdparanoia into mpv's
-    // stdin instead.
-    const streamArgs = cdparanoiaAutosense
-      ? ['-w', String(trackNum), '-']
-      : ['-d', device, '-w', String(trackNum), '-'];
-    cdStreamProcess = spawn(TOOLS.cdparanoia, streamArgs);
-    cdStreamProcess.on('error', (e) => { console.error('cdparanoia stream failed:', e.message); cdStreamProcess = null; });
-    cdStreamProcess.on('exit', () => { cdStreamProcess = null; });
-    mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', '-']);
-    mpvProcess.stdin.on('error', () => {}); // EPIPE when mpv exits before cdparanoia
-    cdStreamProcess.stdout.on('error', () => {});
-    cdStreamProcess.stdout.pipe(mpvProcess.stdin);
+    // cdda:// cannot work on Windows. Streaming cdparanoia's stdout into mpv
+    // also fails: cd-paranoia never calls _setmode, so its stdout stays in
+    // text mode on Windows and the CRT expands 0x0A bytes, corrupting the
+    // audio (white noise). File output is opened with O_BINARY, so rip the
+    // track to a temp WAV and play the file instead.
+    const wavPath = await ripTrackForPlayback(device, trackNum);
+    if (!wavPath) { mainWindow?.webContents.send('playback-ended'); return false; }
+    mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', wavPath]);
     watchMpv();
     return true;
   }
@@ -219,9 +220,29 @@ function watchMpv() {
 }
 
 function stopMpv() {
-  if (cdStreamProcess && mpvProcess) { try { cdStreamProcess.stdout.unpipe(mpvProcess.stdin); } catch {} }
   if (cdStreamProcess) { try { cdStreamProcess.kill(); } catch {} cdStreamProcess = null; }
   if (mpvProcess) { try { mpvProcess.kill(); } catch {} mpvProcess = null; }
+}
+
+// Windows CD playback: rip one track to a cached temp WAV for mpv to play.
+// -Z (no paranoia verification) keeps the wait to a few seconds; the RIP tab
+// still uses full paranoia. Cached per disc (TOC fingerprint) + track.
+async function ripTrackForPlayback(device, trackNum) {
+  const cacheDir = path.join(os.tmpdir(), 'cdplayer-play-cache', tocFingerprint);
+  fs.mkdirSync(cacheDir, { recursive: true });
+  const wavPath = path.join(cacheDir, `track${trackNum}.wav`);
+  if (fs.existsSync(wavPath)) return wavPath;
+  const args = cdparanoiaAutosense
+    ? ['-Z', String(trackNum), wavPath]
+    : ['-d', device, '-Z', String(trackNum), wavPath];
+  const ok = await new Promise((resolve) => {
+    const proc = spawn(TOOLS.cdparanoia, args);
+    cdStreamProcess = proc;
+    proc.on('error', (e) => { console.error('cdparanoia playback rip failed:', e.message); if (cdStreamProcess === proc) cdStreamProcess = null; resolve(false); });
+    proc.on('exit', (code) => { if (cdStreamProcess === proc) cdStreamProcess = null; resolve(code === 0); });
+  });
+  if (!ok) { try { fs.unlinkSync(wavPath); } catch {} return null; }
+  return wavPath;
 }
 
 // ── CD Ripping ───────────────────────────────────────────────────────────────
