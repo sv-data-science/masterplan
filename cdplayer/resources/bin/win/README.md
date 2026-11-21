@@ -16,8 +16,12 @@ Notes:
 
 - Windows CD drive detection does **not** need cd-info — the app asks
   PowerShell (`Win32_CDROMDrive`) for the drive letter with media loaded.
-- The `cdparanoia -Q` TOC output format is assumed to match the Linux build
-  (true for the libcdio port). Verify on real hardware; if the table format
-  differs, adjust the parser in `main.js` (`get-cd-toc` handler).
+- The `cdparanoia -Q` TOC output format matches the Linux build (verified on
+  real hardware 2026-11-21). Note: libcdio's cd-paranoia requires a span
+  argument even with `-Q` — without one it prints usage and exits.
+- The shinchiro mpv builds have **no CDDA support** (no `cdda` feature), so
+  `cdda://` playback cannot work on Windows. The app instead streams WAV from
+  cdparanoia into mpv's stdin for CD playback (see `play-cd-track` in
+  `main.js`). File playback uses mpv normally.
 - If a bundled binary is missing, the app falls back to the same tool name
   on the system `PATH` (see `tools.js`).
