@@ -79,16 +79,22 @@ ipcMain.handle('detect-cd', async () => {
 
 let cdparanoiaAutosense = false; // set when -d <device> yields no TOC (libcdio/Windows quirks)
 
+function formatTocTime(t) { // "03:21.35" (mm:ss.frames) -> "3:21"
+  const m = t.match(/^(\d+):(\d+)\./);
+  return m ? `${parseInt(m[1])}:${m[2]}` : t;
+}
+
 function parseToc(output) {
   const tracks = [];
   for (const line of output.split('\n')) {
-    const m = line.match(/^\s+(\d+)\.\s+(\d+)\s+\[\d+:\d+\.\d+\]\s+(\d+)\s+\[(\d+:\d+\.\d+)\]/);
+    // Columns: track#  length-sectors [length-time]  begin-sector [begin-time]
+    const m = line.match(/^\s+(\d+)\.\s+(\d+)\s+\[(\d+:\d+\.\d+)\]\s+(\d+)\s+\[\d+:\d+\.\d+\]/);
     if (m) {
       tracks.push({
         number: parseInt(m[1]),
         sectors: parseInt(m[2]),
-        startSector: parseInt(m[3]),
-        duration: m[4],
+        startSector: parseInt(m[4]),
+        duration: formatTocTime(m[3]),
       });
     }
   }
@@ -119,25 +125,30 @@ ipcMain.handle('get-cd-toc', async () => {
 
 // ── MusicBrainz Lookup ───────────────────────────────────────────────────────
 ipcMain.handle('lookup-cd', async (_, { discId, toc }) => {
-  // Try MusicBrainz disc ID lookup first, then TOC-based search
-  const fetch = (await import('node-fetch')).default;
   const UA = 'CDPlayer/1.0 (sv.data.analytics@gmail.com)';
-
   // Build TOC string for MusicBrainz: firstTrack lastTrack leadoutOffset track1offset...
   if (toc && toc.length > 0) {
-    try {
-      const leadout = toc[toc.length - 1].startSector + toc[toc.length - 1].sectors + 150;
-      const offsets = toc.map(t => t.startSector + 150).join('+');
-      const tocStr = `1+${toc.length}+${leadout}+${offsets}`;
-      const url = `https://musicbrainz.org/ws/2/discid/-?toc=${tocStr}&fmt=json&inc=artists+recordings`;
-      const res = await fetch(url, { headers: { 'User-Agent': UA } });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.releases && data.releases.length > 0) {
-          return formatMBRelease(data.releases[0], toc);
+    const leadout = toc[toc.length - 1].startSector + toc[toc.length - 1].sectors + 150;
+    const offsets = toc.map(t => t.startSector + 150).join('+');
+    const tocStr = `1+${toc.length}+${leadout}+${offsets}`;
+    const url = `https://musicbrainz.org/ws/2/discid/-?toc=${tocStr}&fmt=json&inc=artists+recordings`;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const res = await fetch(url, { headers: { 'User-Agent': UA } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.releases && data.releases.length > 0) {
+            return formatMBRelease(data.releases[0], toc);
+          }
+          console.error('MusicBrainz: no releases for TOC', tocStr);
+          return null;
         }
+        console.error(`MusicBrainz lookup HTTP ${res.status} (attempt ${attempt})`);
+      } catch (e) {
+        console.error(`MusicBrainz lookup failed (attempt ${attempt}):`, e.message);
       }
-    } catch (e) { console.error('MusicBrainz TOC lookup failed:', e.message); }
+      if (attempt < 3) await new Promise(r => setTimeout(r, 1200));
+    }
   }
   return null;
 });
@@ -170,7 +181,7 @@ ipcMain.handle('play-cd-track', async (_, trackNum) => {
   const args = [`cdda:///${trackNum}`, '--no-video', '--really-quiet'];
   if (device) args.push(`--cdrom-device=${device}`);
   mpvProcess = spawn(TOOLS.mpv, args);
-  mpvProcess.on('exit', () => { mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
+  watchMpv();
   return true;
 });
 
@@ -179,9 +190,15 @@ ipcMain.handle('stop-playback', () => { stopMpv(); return true; });
 ipcMain.handle('play-file', (_, filePath) => {
   stopMpv();
   mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', filePath]);
-  mpvProcess.on('exit', () => { mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
+  watchMpv();
   return true;
 });
+
+function watchMpv() {
+  mpvProcess.on('error', (e) => { console.error('mpv failed to start:', e.message); mpvProcess = null; });
+  mpvProcess.stderr?.on('data', (d) => console.error('mpv:', d.toString().trim()));
+  mpvProcess.on('exit', () => { mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
+}
 
 function stopMpv() {
   if (mpvProcess) { try { mpvProcess.kill(); } catch {} mpvProcess = null; }
