@@ -12,6 +12,7 @@ contextBridge.exposeInMainWorld('api', {
   lookupCd: (args) => ipcRenderer.invoke('lookup-cd', args),
   searchMusicBrainz: (args) => ipcRenderer.invoke('search-musicbrainz', args),
   getMusicBrainzRelease: (args) => ipcRenderer.invoke('get-musicbrainz-release', args),
+  getCoverArt: (args) => ipcRenderer.invoke('get-cover-art', args),
 
   // Playback
   playCdTrack: (n) => ipcRenderer.invoke('play-cd-track', n),
