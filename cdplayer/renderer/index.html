@@ -46,6 +46,7 @@
       <div id="cd-panel">
         <div id="cd-art-section">
           <div id="cd-disc-art">
+            <img id="cd-cover-img" alt=""/>
             <div id="cd-disc-spinner"></div>
           </div>
           <div id="cd-meta">
@@ -211,11 +212,14 @@
   <!-- Playback controls (global, always visible) -->
   <div id="player-bar">
     <div id="now-playing">
-      <span id="np-track">&#9835; Nothing playing</span>
-      <div id="seek-wrap">
-        <span id="np-time">0:00</span>
-        <input type="range" id="seek" min="0" max="1000" value="0"/>
-        <span id="np-dur">0:00</span>
+      <img id="np-cover" alt=""/>
+      <div id="np-text">
+        <span id="np-track">&#9835; Nothing playing</span>
+        <div id="seek-wrap">
+          <span id="np-time">0:00</span>
+          <input type="range" id="seek" min="0" max="1000" value="0"/>
+          <span id="np-dur">0:00</span>
+        </div>
       </div>
     </div>
     <div id="player-controls">
