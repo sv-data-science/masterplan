@@ -153,13 +153,16 @@ function setupRipTab() {
 }
 
 function populateRipTracks() {
+  document.getElementById('rip-artist').value = cdMeta?.artist || '';
+  document.getElementById('rip-album').value = cdMeta?.title || '';
+  document.getElementById('rip-year').value = cdMeta?.year || '';
   const container = document.getElementById('rip-track-checkboxes');
   container.innerHTML = '';
   cdTracks.forEach(t => {
-    const label = document.createElement('label');
-    label.className = 'rip-check-label';
-    label.innerHTML = `<input type="checkbox" class="rip-track-cb" value="${t.number}" checked/> ${t.number}. ${esc(t.title)}`;
-    container.appendChild(label);
+    const row = document.createElement('div');
+    row.className = 'rip-check-row';
+    row.innerHTML = `<input type="checkbox" class="rip-track-cb" value="${t.number}" checked/> <span>${t.number}.</span> <input type="text" class="rip-title-input" data-num="${t.number}" value="${esc(t.title)}"/>`;
+    container.appendChild(row);
   });
 }
 
@@ -172,8 +175,25 @@ async function startRip() {
   if (cdTracks.length === 0) { alert('No CD loaded. Detect a CD first.'); return; }
 
   const quality = document.getElementById('rip-quality').value;
-  const tracks = cdTracks.filter(t => selectedNums.includes(t.number));
-  const meta = cdMeta || { artist: 'Unknown', title: 'Unknown', year: '' };
+  const titleByNum = {};
+  document.querySelectorAll('.rip-title-input').forEach(inp => {
+    titleByNum[parseInt(inp.dataset.num)] = inp.value.trim();
+  });
+  const tracks = cdTracks
+    .filter(t => selectedNums.includes(t.number))
+    .map(t => ({ ...t, title: titleByNum[t.number] || t.title }));
+  const editedArtist = document.getElementById('rip-artist').value.trim();
+  const editedAlbum = document.getElementById('rip-album').value.trim();
+  const meta = {
+    ...(cdMeta || {}),
+    artist: editedArtist || 'Unknown Artist',
+    title: editedAlbum || 'Unknown Album',
+    year: document.getElementById('rip-year').value.trim(),
+  };
+  // If the user corrected a wrong match, don't embed that release's cover.
+  if (cdMeta && (editedArtist !== (cdMeta.artist || '') || editedAlbum !== (cdMeta.title || ''))) {
+    meta.releaseId = null;
+  }
 
   document.getElementById('rip-progress-section').style.display = '';
   document.getElementById('rip-log').innerHTML = '';
