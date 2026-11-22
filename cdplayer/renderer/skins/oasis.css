@@ -1,0 +1,56 @@
+/* Oasis — Stark Britpop Black/White/Blue Skin */
+:root {
+  --font-family: 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 0px;
+
+  --bg-primary: #0a0a0a;
+  --sidebar-bg: #000000;
+  --topbar-bg: #111111;
+  --statusbar-bg: #111111;
+  --player-bg: #000000;
+  --list-header-bg: #111111;
+
+  --titlebar-bg: #000000;
+  --titlebar-text: #ffffff;
+  --titlebar-btn-bg: #1c1c1c;
+  --titlebar-btn-hover: #2e2e2e;
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #bdbdbd;
+  --text-muted: #757575;
+
+  --accent: #2e6bff;
+  --accent-dark: #1f4fd0;
+
+  --border: #2a2a2a;
+  --row-border: #1c1c1c;
+  --row-hover: #1c1c1c;
+  --row-active: #222222;
+  --row-playing: #12234d;
+
+  --input-bg: #161616;
+  --btn-bg: #1c1c1c;
+  --btn-hover: #2e2e2e;
+  --ctrl-bg: #1c1c1c;
+
+  --scrollbar: #333333;
+  --disc-bg: radial-gradient(circle, #1a1a1a 0%, #0a0a0a 60%, #000 100%);
+  --disc-border: #2e6bff;
+  --disc-hole: #000;
+  --disc-ring: #ffffff;
+}
+
+#app-title { text-transform: uppercase; letter-spacing: 4px; font-weight: 900; font-size: 13px; }
+.nav-btn { text-transform: uppercase; letter-spacing: 2px; font-weight: 700; font-size: 11px; }
+.nav-btn.active { background: var(--accent); color: #fff; }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 40% 40%, #1a1a1a 0%, #0a0a0a 60%, #000 100%);
+  box-shadow: 0 0 0 2px #ffffff22, 0 8px 28px rgba(46,107,255,0.25);
+}
+
+#player-bar { border-top: 3px solid var(--accent); }
+#np-track { text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+.ctrl-btn { font-weight: 900; }
+.ctrl-btn:hover { background: var(--accent); color: #fff; }
+.action-btn.primary { background: var(--accent); color: #fff; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
