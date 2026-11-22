@@ -72,23 +72,6 @@
         </div>
       </div>
 
-      <!-- Playback controls -->
-      <div id="player-bar">
-        <div id="now-playing">
-          <span id="np-track">&#9835; Nothing playing</span>
-          <span id="np-time">0:00</span>
-        </div>
-        <div id="player-controls">
-          <button class="ctrl-btn" id="btn-prev" title="Previous">&#9198;</button>
-          <button class="ctrl-btn" id="btn-play" title="Play/Pause">&#9654;</button>
-          <button class="ctrl-btn" id="btn-stop" title="Stop">&#9646;&#9646;</button>
-          <button class="ctrl-btn" id="btn-next" title="Next">&#9197;</button>
-        </div>
-        <div id="volume-wrap">
-          <span>&#128266;</span>
-          <input type="range" id="volume" min="0" max="100" value="80"/>
-        </div>
-      </div>
     </div>
 
     <!-- ── Rip Tab ── -->
@@ -203,6 +186,28 @@
     </div>
 
   </div><!-- /content -->
+
+  <!-- Playback controls (global, always visible) -->
+  <div id="player-bar">
+    <div id="now-playing">
+      <span id="np-track">&#9835; Nothing playing</span>
+      <div id="seek-wrap">
+        <span id="np-time">0:00</span>
+        <input type="range" id="seek" min="0" max="1000" value="0"/>
+        <span id="np-dur">0:00</span>
+      </div>
+    </div>
+    <div id="player-controls">
+      <button class="ctrl-btn" id="btn-prev" title="Previous">&#9198;</button>
+      <button class="ctrl-btn" id="btn-play" title="Play/Pause">&#9654;</button>
+      <button class="ctrl-btn" id="btn-stop" title="Stop">&#9646;&#9646;</button>
+      <button class="ctrl-btn" id="btn-next" title="Next">&#9197;</button>
+    </div>
+    <div id="volume-wrap">
+      <span>&#128266;</span>
+      <input type="range" id="volume" min="0" max="100" value="80"/>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
