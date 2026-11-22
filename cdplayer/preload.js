@@ -15,7 +15,11 @@ contextBridge.exposeInMainWorld('api', {
   playCdTrack: (n) => ipcRenderer.invoke('play-cd-track', n),
   playFile: (p) => ipcRenderer.invoke('play-file', p),
   stopPlayback: () => ipcRenderer.invoke('stop-playback'),
+  togglePause: () => ipcRenderer.invoke('toggle-pause'),
+  seekPlayback: (sec) => ipcRenderer.invoke('seek-playback', sec),
+  setVolume: (v) => ipcRenderer.invoke('set-volume', v),
   onPlaybackEnded: (cb) => ipcRenderer.on('playback-ended', cb),
+  onPlaybackPosition: (cb) => ipcRenderer.on('playback-position', (_, data) => cb(data)),
 
   // Ripping
   ripCd: (args) => ipcRenderer.invoke('rip-cd', args),
