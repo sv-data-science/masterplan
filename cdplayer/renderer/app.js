@@ -68,6 +68,9 @@ function setupTitlebar() {
 // ── CD Tab ───────────────────────────────────────────────────────────────────
 function setupCdTab() {
   document.getElementById('btn-detect-cd').onclick = detectCd;
+  document.getElementById('btn-mb-search').onclick = searchMusicBrainz;
+  ['mb-artist', 'mb-album'].forEach(id =>
+    document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') searchMusicBrainz(); }));
 }
 
 async function detectCd() {
@@ -100,6 +103,42 @@ async function detectCd() {
     setStatus(`${cdTracks.length} tracks loaded (no metadata found)`);
     populateRipTracks();
   }
+  renderCdTracks();
+}
+
+async function searchMusicBrainz() {
+  const artist = document.getElementById('mb-artist').value.trim();
+  const album = document.getElementById('mb-album').value.trim();
+  const box = document.getElementById('mb-results');
+  if (!artist && !album) { box.innerHTML = '<div class="mb-result-note">Type an artist or album first.</div>'; return; }
+  box.innerHTML = '<div class="mb-result-note">Searching...</div>';
+  const results = await window.api.searchMusicBrainz({ artist, album });
+  if (!results || results.length === 0) { box.innerHTML = '<div class="mb-result-note">No matches.</div>'; return; }
+  box.innerHTML = '';
+  results.forEach(r => {
+    const row = document.createElement('div');
+    row.className = 'mb-result-row';
+    const mediaNote = r.media.length > 1 ? ` · ${r.media.length} discs` : '';
+    row.innerHTML = `<span>${esc(r.artist)} — ${esc(r.title)}</span><span class="mb-result-meta">${esc(r.date)} · ${r.trackCount} tracks${mediaNote}</span>`;
+    row.addEventListener('click', () => applyMbRelease(r.id));
+    box.appendChild(row);
+  });
+}
+
+async function applyMbRelease(releaseId) {
+  if (cdTracks.length === 0) { setStatus('Detect a CD first, then search.'); return; }
+  setStatus('Loading release from MusicBrainz...');
+  const toc = cdTracks.map(t => ({ number: t.number, startSector: t.startSector, sectors: t.sectors }));
+  const meta = await window.api.getMusicBrainzRelease({ releaseId, toc });
+  if (!meta) { setStatus('Could not load that release.'); return; }
+  cdMeta = meta;
+  cdTracks = cdTracks.map((t, i) => ({ ...t, ...(meta.tracks[i] || {}), number: t.number }));
+  document.getElementById('cd-artist').textContent = meta.artist;
+  document.getElementById('cd-album').textContent = meta.title;
+  document.getElementById('cd-year').textContent = meta.year;
+  setStatus(`${meta.artist} — ${meta.title}`);
+  document.getElementById('mb-results').innerHTML = '';
+  populateRipTracks();
   renderCdTracks();
 }
 
