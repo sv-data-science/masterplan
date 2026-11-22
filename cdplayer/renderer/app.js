@@ -10,8 +10,9 @@ let playMode = 'cd'; // 'cd' | 'library'
 let libraryTracks = [];
 let filteredTracks = [];
 let selectedArtist = null;
-let playTimer = null;
-let playSeconds = 0;
+let isPaused = false;
+let seekDur = 0;
+let seeking = false;
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 (async () => {
@@ -267,8 +268,8 @@ function playLibraryTrack(idx) {
   currentTrackIdx = idx;
   const track = filteredTracks[idx];
   window.api.playFile(track.path);
+  isPaused = false;
   setNowPlaying(`${track.artist} — ${track.title}`);
-  startTimer();
   document.querySelectorAll('#library-tracks .track-row').forEach((r, i) => {
     r.classList.toggle('active', i === idx);
     r.classList.toggle('playing', i === idx);
@@ -304,9 +305,34 @@ function setupPlayback() {
   document.getElementById('btn-prev').onclick = prevTrack;
   document.getElementById('btn-next').onclick = nextTrack;
 
+  const seek = document.getElementById('seek');
+  seek.addEventListener('input', () => {
+    seeking = true;
+    document.getElementById('np-time').textContent = fmtTime((seek.value / 1000) * seekDur);
+  });
+  seek.addEventListener('change', () => {
+    window.api.seekPlayback((seek.value / 1000) * seekDur);
+    seeking = false;
+  });
+
+  document.getElementById('volume').addEventListener('input', (e) => {
+    window.api.setVolume(Number(e.target.value));
+  });
+
+  window.api.onPlaybackPosition(({ pos, dur }) => {
+    seekDur = dur || 0;
+    if (!seeking) {
+      seek.value = seekDur > 0 ? Math.round((pos / seekDur) * 1000) : 0;
+      document.getElementById('np-time').textContent = fmtTime(pos);
+    }
+    document.getElementById('np-dur').textContent = fmtTime(dur);
+  });
+
   window.api.onPlaybackEnded(() => {
     stopTimer();
     isPlaying = false;
+    isPaused = false;
+    resetSeekUI();
     document.getElementById('btn-play').textContent = '▶';
     // Auto-advance
     if (playMode === 'cd' && currentTrackIdx < cdTracks.length - 1) playTrackByIdx(currentTrackIdx + 1);
@@ -314,12 +340,29 @@ function setupPlayback() {
   });
 }
 
-function togglePlay() {
-  if (isPlaying) {
-    window.api.stopPlayback();
-    stopTimer();
-    isPlaying = false;
-    document.getElementById('btn-play').textContent = '▶';
+function fmtTime(sec) {
+  if (!sec || !isFinite(sec)) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = String(Math.floor(sec % 60)).padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function resetSeekUI() {
+  seekDur = 0;
+  document.getElementById('seek').value = 0;
+  document.getElementById('np-time').textContent = '0:00';
+  document.getElementById('np-dur').textContent = '0:00';
+}
+
+async function togglePlay() {
+  if (isPlaying || isPaused) {
+    const paused = await window.api.togglePause();
+    if (paused === null) return;
+    isPaused = paused;
+    isPlaying = !paused;
+    document.getElementById('btn-play').textContent = paused ? '▶' : '⏸';
+    if (paused) document.getElementById('cd-disc-art').classList.remove('spinning');
+    else if (playMode === 'cd') document.getElementById('cd-disc-art').classList.add('spinning');
   } else if (currentTrackIdx >= 0) {
     if (playMode === 'cd') playTrackByIdx(currentTrackIdx);
     else playLibraryTrack(currentTrackIdx);
@@ -330,6 +373,8 @@ function stopAll() {
   window.api.stopPlayback();
   stopTimer();
   isPlaying = false;
+  isPaused = false;
+  resetSeekUI();
   currentTrackIdx = -1;
   document.getElementById('btn-play').textContent = '▶';
   setNowPlaying('Nothing playing');
@@ -351,11 +396,11 @@ function playTrackByIdx(idx) {
   currentTrackIdx = idx;
   const track = cdTracks[idx];
   window.api.playCdTrack(track.number);
+  isPaused = false;
   isPlaying = true;
   document.getElementById('btn-play').textContent = '⏸';
   const meta = cdMeta ? `${cdMeta.artist} — ` : '';
   setNowPlaying(`${meta}${track.title}`);
-  startTimer();
   document.getElementById('cd-disc-art').classList.add('spinning');
   renderCdTracks();
 }
@@ -366,19 +411,9 @@ function setNowPlaying(text) {
   document.getElementById('btn-play').textContent = '⏸';
 }
 
-function startTimer() {
-  stopTimer();
-  playSeconds = 0;
-  playTimer = setInterval(() => {
-    playSeconds++;
-    const m = Math.floor(playSeconds / 60);
-    const s = String(playSeconds % 60).padStart(2, '0');
-    document.getElementById('np-time').textContent = `${m}:${s}`;
-  }, 1000);
-}
+
 
 function stopTimer() {
-  if (playTimer) { clearInterval(playTimer); playTimer = null; }
   document.getElementById('cd-disc-art').classList.remove('spinning');
 }
 
