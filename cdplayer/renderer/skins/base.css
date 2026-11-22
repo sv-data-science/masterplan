@@ -142,7 +142,10 @@ body {
   padding: 8px 16px; background: var(--player-bg); border-top: 1px solid var(--border);
   flex-shrink: 0; gap: 12px;
 }
-#now-playing { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+#now-playing { display: flex; flex-direction: row; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+#np-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+#np-cover { width: 44px; height: 44px; border-radius: 6px; object-fit: cover; display: none; flex-shrink: 0; border: 1px solid var(--border); }
+#cd-cover-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none; }
 #np-track { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #np-time { font-size: 11px; color: var(--text-secondary); }
 #seek-wrap { display: flex; align-items: center; gap: 8px; }
