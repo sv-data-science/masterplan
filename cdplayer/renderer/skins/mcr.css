@@ -1,0 +1,57 @@
+/* My Chemical Romance — Black Parade Gothic Skin */
+:root {
+  --font-family: Georgia, 'Times New Roman', serif;
+  --radius: 2px;
+
+  --bg-primary: #0d0d0f;
+  --sidebar-bg: #08080a;
+  --topbar-bg: #121214;
+  --statusbar-bg: #121214;
+  --player-bg: #08080a;
+  --list-header-bg: #121214;
+
+  --titlebar-bg: #000000;
+  --titlebar-text: #e8e3d8;
+  --titlebar-btn-bg: #1c1c1e;
+  --titlebar-btn-hover: #2d0f13;
+
+  --text-primary: #e8e3d8;
+  --text-secondary: #a39e93;
+  --text-muted: #6b675f;
+
+  --accent: #c1121f;
+  --accent-dark: #8f0e18;
+
+  --border: #2b2b2e;
+  --row-border: #1a1a1d;
+  --row-hover: #1a1a1d;
+  --row-active: #221114;
+  --row-playing: #2d0f13;
+
+  --input-bg: #141416;
+  --btn-bg: #1c1c1e;
+  --btn-hover: #2d0f13;
+  --ctrl-bg: #1c1c1e;
+
+  --scrollbar: #3a3a3d;
+  --disc-bg: radial-gradient(circle, #1a1a1d 0%, #0d0d0f 60%, #000 100%);
+  --disc-border: #c1121f;
+  --disc-hole: #000;
+  --disc-ring: #e8e3d8;
+}
+
+body { font-family: 'Segoe UI', Arial, sans-serif; }
+#app-title { font-family: Georgia, 'Times New Roman', serif; text-transform: uppercase; letter-spacing: 3px; }
+#np-track { font-family: Georgia, 'Times New Roman', serif; font-style: italic; }
+.nav-btn { font-family: Georgia, 'Times New Roman', serif; text-transform: uppercase; letter-spacing: 1px; font-size: 11px; }
+.nav-btn.active { background: var(--accent); color: #fff; box-shadow: 0 0 12px rgba(193,18,31,0.5); }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 40% 40%, #1a1a1d 0%, #0d0d0f 60%, #000 100%);
+  box-shadow: 0 0 24px rgba(193,18,31,0.35), inset 0 0 24px rgba(0,0,0,0.8);
+}
+
+#player-bar { border-top: 2px solid var(--accent); }
+.action-btn.primary { background: var(--accent); color: #fff; font-weight: 700; }
+.ctrl-btn:hover { background: var(--accent); color: #fff; box-shadow: 0 0 8px rgba(193,18,31,0.6); }
+.track-row.playing .col-title { color: #ff5964; }
