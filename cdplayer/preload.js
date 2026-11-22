@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('api', {
   detectCd: () => ipcRenderer.invoke('detect-cd'),
   getCdToc: () => ipcRenderer.invoke('get-cd-toc'),
   lookupCd: (args) => ipcRenderer.invoke('lookup-cd', args),
+  searchMusicBrainz: (args) => ipcRenderer.invoke('search-musicbrainz', args),
+  getMusicBrainzRelease: (args) => ipcRenderer.invoke('get-musicbrainz-release', args),
 
   // Playback
   playCdTrack: (n) => ipcRenderer.invoke('play-cd-track', n),
