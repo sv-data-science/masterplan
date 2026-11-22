@@ -1,0 +1,64 @@
+/* The Beatles — 60s Mod / Cream & Mustard Skin */
+:root {
+  --font-family: 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
+  --radius: 4px;
+
+  --bg-primary: #f7f3e8;
+  --sidebar-bg: #efe7d3;
+  --topbar-bg: #f7f3e8;
+  --statusbar-bg: #efe7d3;
+  --player-bg: #efe7d3;
+  --list-header-bg: #efe7d3;
+
+  --titlebar-bg: #141414;
+  --titlebar-text: #f7f3e8;
+  --titlebar-btn-bg: #2a2a2a;
+  --titlebar-btn-hover: #3d3d3d;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #55503f;
+  --text-muted: #8a8271;
+
+  --accent: #e8b400;
+  --accent-dark: #c79a00;
+
+  --border: #d8cdb0;
+  --row-border: #e6dcc2;
+  --row-hover: #f0e8d2;
+  --row-active: #e9dfc4;
+  --row-playing: #f5e6b8;
+
+  --input-bg: #fffdf5;
+  --btn-bg: #efe7d3;
+  --btn-hover: #e4d8b8;
+  --ctrl-bg: #efe7d3;
+
+  --scrollbar: #cbbd93;
+  --disc-bg: radial-gradient(circle, #2b2b2b 0%, #141414 60%, #000 100%);
+  --disc-border: #e8b400;
+  --disc-hole: #f7f3e8;
+  --disc-ring: #e8b400;
+}
+
+/* Zebra-crossing stripes along the top of the player bar */
+#player-bar {
+  border-top: none;
+  background-image: repeating-linear-gradient(90deg, #141414 0 34px, #f7f3e8 34px 68px);
+  background-size: 100% 6px;
+  background-repeat: no-repeat;
+  background-position: top left;
+  padding-top: 6px;
+}
+
+#app-title { font-family: Georgia, 'Times New Roman', serif; text-transform: uppercase; letter-spacing: 3px; }
+#np-track { font-family: Georgia, 'Times New Roman', serif; }
+.nav-btn { text-transform: uppercase; letter-spacing: 1px; font-size: 11px; }
+.nav-btn.active { background: var(--accent); color: #141414; }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 40% 40%, #2b2b2b 0%, #141414 60%, #000 100%);
+  box-shadow: 0 6px 24px rgba(20,20,20,0.35);
+}
+
+.action-btn.primary { background: var(--accent); color: #141414; font-weight: 700; }
+.ctrl-btn:hover { background: var(--accent); color: #141414; }
