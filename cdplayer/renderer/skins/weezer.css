@@ -1,0 +1,55 @@
+/* Weezer — Blue Album Clean Skin */
+:root {
+  --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --radius: 4px;
+
+  --bg-primary: #eef2f9;
+  --sidebar-bg: #dbe4f5;
+  --topbar-bg: #eef2f9;
+  --statusbar-bg: #dbe4f5;
+  --player-bg: #dbe4f5;
+  --list-header-bg: #dbe4f5;
+
+  --titlebar-bg: #2f4b9b;
+  --titlebar-text: #ffffff;
+  --titlebar-btn-bg: #3d5cab;
+  --titlebar-btn-hover: #4c6dc0;
+
+  --text-primary: #16233f;
+  --text-secondary: #3d4f73;
+  --text-muted: #7286ab;
+
+  --accent: #2f4b9b;
+  --accent-dark: #22397a;
+
+  --border: #b9c7e6;
+  --row-border: #d3ddf2;
+  --row-hover: #e2eaf8;
+  --row-active: #ccd9f2;
+  --row-playing: #bcd0f5;
+
+  --input-bg: #ffffff;
+  --btn-bg: #dbe4f5;
+  --btn-hover: #c3d2ef;
+  --ctrl-bg: #ffffff;
+
+  --scrollbar: #a9bde0;
+  --disc-bg: radial-gradient(circle, #3d5cab 0%, #2f4b9b 60%, #22397a 100%);
+  --disc-border: #ffffff;
+  --disc-hole: #eef2f9;
+  --disc-ring: #ffffff;
+}
+
+#app-title { font-weight: 700; letter-spacing: 1px; }
+.nav-btn { font-weight: 600; }
+.nav-btn.active { background: var(--accent); color: #fff; }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 40% 40%, #3d5cab 0%, #2f4b9b 60%, #22397a 100%);
+  box-shadow: 0 8px 28px rgba(47,75,155,0.4);
+}
+
+#player-bar { border-top: 3px solid var(--accent); }
+.action-btn.primary { background: var(--accent); color: #fff; font-weight: 700; }
+.ctrl-btn:hover { background: var(--accent); color: #fff; }
+#np-track { font-weight: 700; }
