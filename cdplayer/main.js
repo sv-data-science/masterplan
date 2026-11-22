@@ -283,6 +283,53 @@ ipcMain.handle('get-musicbrainz-release', async (_, { releaseId, toc }) => {
   return formatMBRelease(rel, toc, null);
 });
 
+// ── Cover art ───────────────────────────────────────────────────────────────
+const coverArtCache = new Map(); // key -> data URL | null
+
+async function fetchCaaCoverDataUrl(releaseId) {
+  try {
+    const res = await fetch(`https://coverartarchive.org/release/${releaseId}/front-250`, {
+      headers: { 'User-Agent': MB_UA },
+    });
+    if (res.ok && (res.headers.get('content-type') || '').startsWith('image/')) {
+      const type = res.headers.get('content-type').split(';')[0];
+      return `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString('base64')}`;
+    }
+  } catch (e) { console.error('Cover art fetch failed:', e.message); }
+  return null;
+}
+
+// Cover for display: embedded picture first, then Cover Art Archive by
+// release, then a MusicBrainz name search as a last resort.
+ipcMain.handle('get-cover-art', async (_, { filePath, artist, album, releaseId } = {}) => {
+  const key = filePath || releaseId || `${artist || ''}|${album || ''}`;
+  if (coverArtCache.has(key)) return coverArtCache.get(key);
+
+  let dataUrl = null;
+  if (filePath) {
+    try {
+      const { parseFile } = await import('music-metadata');
+      const meta = await parseFile(filePath, { duration: false });
+      const pic = meta.common.picture?.[0];
+      if (pic) dataUrl = `data:${pic.format};base64,${Buffer.from(pic.data).toString('base64')}`;
+    } catch {}
+  }
+  if (!dataUrl && releaseId) {
+    dataUrl = await fetchCaaCoverDataUrl(releaseId);
+  }
+  if (!dataUrl && (artist || album)) {
+    const parts = [];
+    if (artist) parts.push(`artist:"${artist.replace(/"/g, '')}"`);
+    if (album) parts.push(`release:"${album.replace(/"/g, '')}"`);
+    const q = encodeURIComponent(parts.join(' AND '));
+    const data = await mbFetchJson(`https://musicbrainz.org/ws/2/release/?query=${q}&fmt=json&limit=5`);
+    const rel = data?.releases?.[0];
+    if (rel) dataUrl = await fetchCaaCoverDataUrl(rel.id);
+  }
+  coverArtCache.set(key, dataUrl);
+  return dataUrl;
+});
+
 function formatMBRelease(release, toc, discId) {
   const artist = release['artist-credit']?.[0]?.name || 'Unknown Artist';
   const year = release.date?.substring(0, 4) || '';
