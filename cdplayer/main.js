@@ -3,12 +3,67 @@ const path = require('path');
 const { execFile, spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
+const net = require('net');
 const { isWin, TOOLS, NULL_DEVICE, detectCdDrive } = require('./tools');
 
 let mainWindow;
 let mpvProcess = null;
 let ripProcess = null;
 let cdStreamProcess = null; // cdparanoia ripping a track for playback (Windows)
+
+// mpv IPC (pause/seek/volume/position). Named pipe on Windows, unix socket elsewhere.
+const MPV_IPC = isWin ? '\\\\.\\pipe\\cdplayer-mpv' : path.join(os.tmpdir(), 'cdplayer-mpv.sock');
+let mpvSocket = null;
+let mpvPaused = false;
+let mpvVolume = 80;
+let mpvPoller = null;
+let mpvPos = 0, mpvDur = 0;
+
+function mpvSend(command, requestId) {
+  if (!mpvSocket || mpvSocket.destroyed) return;
+  const msg = { command };
+  if (requestId) msg.request_id = requestId;
+  try { mpvSocket.write(JSON.stringify(msg) + '\n'); } catch {}
+}
+
+function connectMpvIpc(attempt = 0) {
+  if (!mpvProcess || attempt > 30) return;
+  const sock = net.connect(MPV_IPC);
+  sock.on('connect', () => {
+    mpvSocket = sock;
+    mpvSend(['set_property', 'volume', mpvVolume]);
+    let buf = '';
+    sock.on('data', (d) => {
+      buf += d.toString();
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i); buf = buf.slice(i + 1);
+        if (!line.trim()) continue;
+        try {
+          const msg = JSON.parse(line);
+          if (msg.request_id === 1 && typeof msg.data === 'number') mpvPos = msg.data;
+          if (msg.request_id === 2 && typeof msg.data === 'number') mpvDur = msg.data;
+          if (msg.request_id === 3 && typeof msg.data === 'boolean') {
+            mpvPaused = msg.data;
+            mainWindow?.webContents.send('playback-position', { pos: mpvPos, dur: mpvDur, paused: mpvPaused });
+          }
+        } catch {}
+      }
+    });
+    mpvPoller = setInterval(() => {
+      mpvSend(['get_property', 'time-pos'], 1);
+      mpvSend(['get_property', 'duration'], 2);
+      mpvSend(['get_property', 'pause'], 3);
+    }, 500);
+  });
+  sock.on('error', () => { sock.destroy(); setTimeout(() => connectMpvIpc(attempt + 1), 100); });
+}
+
+function closeMpvIpc() {
+  if (mpvPoller) { clearInterval(mpvPoller); mpvPoller = null; }
+  if (mpvSocket) { try { mpvSocket.destroy(); } catch {} mpvSocket = null; }
+  mpvPaused = false; mpvPos = 0; mpvDur = 0;
+}
 
 // Portable builds (electron-builder "portable" target) set
 // PORTABLE_EXECUTABLE_DIR — storing config next to the .exe is what makes
@@ -193,11 +248,11 @@ ipcMain.handle('play-cd-track', async (_, trackNum) => {
     // track to a temp WAV and play the file instead.
     const wavPath = await ripTrackForPlayback(device, trackNum);
     if (!wavPath) { mainWindow?.webContents.send('playback-ended'); return false; }
-    mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', wavPath]);
+    mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', '--input-ipc-server=' + MPV_IPC, wavPath]);
     watchMpv();
     return true;
   }
-  const args = [`cdda:///${trackNum}`, '--no-video', '--really-quiet'];
+  const args = [`cdda:///${trackNum}`, '--no-video', '--really-quiet', '--input-ipc-server=' + MPV_IPC];
   if (device) args.push(`--cdrom-device=${device}`);
   mpvProcess = spawn(TOOLS.mpv, args);
   watchMpv();
@@ -206,20 +261,40 @@ ipcMain.handle('play-cd-track', async (_, trackNum) => {
 
 ipcMain.handle('stop-playback', () => { stopMpv(); return true; });
 
+ipcMain.handle('toggle-pause', () => {
+  if (!mpvProcess) return null;
+  mpvPaused = !mpvPaused;
+  mpvSend(['set_property', 'pause', mpvPaused]);
+  return mpvPaused;
+});
+
+ipcMain.handle('seek-playback', (_, seconds) => {
+  mpvSend(['seek', seconds, 'absolute']);
+  return true;
+});
+
+ipcMain.handle('set-volume', (_, vol) => {
+  mpvVolume = Math.max(0, Math.min(100, vol));
+  mpvSend(['set_property', 'volume', mpvVolume]);
+  return true;
+});
+
 ipcMain.handle('play-file', (_, filePath) => {
   stopMpv();
-  mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', filePath]);
+  mpvProcess = spawn(TOOLS.mpv, ['--no-video', '--really-quiet', '--input-ipc-server=' + MPV_IPC, filePath]);
   watchMpv();
   return true;
 });
 
 function watchMpv() {
-  mpvProcess.on('error', (e) => { console.error('mpv failed to start:', e.message); mpvProcess = null; });
+  connectMpvIpc();
+  mpvProcess.on('error', (e) => { console.error('mpv failed to start:', e.message); closeMpvIpc(); mpvProcess = null; });
   mpvProcess.stderr?.on('data', (d) => console.error('mpv:', d.toString().trim()));
-  mpvProcess.on('exit', () => { mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
+  mpvProcess.on('exit', () => { closeMpvIpc(); mpvProcess = null; mainWindow?.webContents.send('playback-ended'); });
 }
 
 function stopMpv() {
+  closeMpvIpc();
   if (cdStreamProcess) { try { cdStreamProcess.kill(); } catch {} cdStreamProcess = null; }
   if (mpvProcess) { try { mpvProcess.kill(); } catch {} mpvProcess = null; }
 }
