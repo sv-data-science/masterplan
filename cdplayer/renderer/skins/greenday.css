@@ -1,0 +1,57 @@
+/* Green Day — Punk Acid Green Skin */
+:root {
+  --font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 2px;
+
+  --bg-primary: #101410;
+  --sidebar-bg: #0a0d0a;
+  --topbar-bg: #161a16;
+  --statusbar-bg: #161a16;
+  --player-bg: #0a0d0a;
+  --list-header-bg: #161a16;
+
+  --titlebar-bg: #000000;
+  --titlebar-text: #63c132;
+  --titlebar-btn-bg: #1a2114;
+  --titlebar-btn-hover: #24351a;
+
+  --text-primary: #eef2ea;
+  --text-secondary: #a8b3a2;
+  --text-muted: #6d7767;
+
+  --accent: #63c132;
+  --accent-dark: #4a9423;
+
+  --border: #27301f;
+  --row-border: #1a2114;
+  --row-hover: #1a2114;
+  --row-active: #1f2a16;
+  --row-playing: #24351a;
+
+  --input-bg: #141a10;
+  --btn-bg: #1a2114;
+  --btn-hover: #24351a;
+  --ctrl-bg: #1a2114;
+
+  --scrollbar: #33402a;
+  --disc-bg: radial-gradient(circle, #1f2a16 0%, #101410 60%, #000 100%);
+  --disc-border: #63c132;
+  --disc-hole: #000;
+  --disc-ring: #63c132;
+}
+
+#app-title { font-family: 'Arial Black', Arial, sans-serif; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+.nav-btn { text-transform: uppercase; font-weight: 800; font-size: 11px; letter-spacing: 0.5px; }
+.nav-btn.active { background: var(--accent); color: #0a0d0a; }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 40% 40%, #1f2a16 0%, #101410 60%, #000 100%);
+  box-shadow: 0 0 20px rgba(99,193,50,0.3);
+}
+
+#player-bar { border-top: 3px solid var(--accent); }
+#np-track { font-weight: 800; text-transform: uppercase; font-size: 12px; }
+.action-btn.primary { background: var(--accent); color: #0a0d0a; font-weight: 800; text-transform: uppercase; }
+.ctrl-btn:hover { background: var(--accent); color: #0a0d0a; box-shadow: 0 0 8px rgba(99,193,50,0.5); }
+.track-row.playing .col-num::after { content: '▶'; color: var(--accent); }
+.track-row.playing .col-num span { display: none; }
