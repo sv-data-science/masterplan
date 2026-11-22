@@ -94,6 +94,7 @@ async function detectCd() {
     document.getElementById('cd-album').textContent = meta.title;
     document.getElementById('cd-year').textContent = meta.year;
     setStatus(`${meta.artist} — ${meta.title}`);
+    updateCoverArt({ releaseId: meta.releaseId, artist: meta.artist, album: meta.title }, { np: false, cd: true });
     populateRipTracks();
   } else {
     cdMeta = { artist: 'Unknown Artist', title: 'Unknown Album', year: '', tracks: cdTracks };
@@ -138,6 +139,7 @@ async function applyMbRelease(releaseId) {
   document.getElementById('cd-year').textContent = meta.year;
   setStatus(`${meta.artist} — ${meta.title}`);
   document.getElementById('mb-results').innerHTML = '';
+  updateCoverArt({ releaseId: meta.releaseId, artist: meta.artist, album: meta.title }, { np: false, cd: true });
   populateRipTracks();
   renderCdTracks();
 }
@@ -329,6 +331,7 @@ function playLibraryTrack(idx) {
   window.api.playFile(track.path);
   isPaused = false;
   setNowPlaying(`${track.artist} — ${track.title}`);
+  updateCoverArt({ filePath: track.path, artist: track.artist, album: track.album });
   document.querySelectorAll('#library-tracks .track-row').forEach((r, i) => {
     r.classList.toggle('active', i === idx);
     r.classList.toggle('playing', i === idx);
@@ -437,6 +440,7 @@ function stopAll() {
   currentTrackIdx = -1;
   document.getElementById('btn-play').textContent = '▶';
   setNowPlaying('Nothing playing');
+  hideNpCover();
   document.querySelectorAll('.track-row').forEach(r => r.classList.remove('active', 'playing'));
 }
 
@@ -460,6 +464,7 @@ function playTrackByIdx(idx) {
   document.getElementById('btn-play').textContent = '⏸';
   const meta = cdMeta ? `${cdMeta.artist} — ` : '';
   setNowPlaying(`${meta}${track.title}`);
+  updateCoverArt({ releaseId: cdMeta?.releaseId, artist: cdMeta?.artist, album: cdMeta?.title }, { np: true, cd: true });
   document.getElementById('cd-disc-art').classList.add('spinning');
   renderCdTracks();
 }
@@ -468,6 +473,39 @@ function setNowPlaying(text) {
   document.getElementById('np-track').textContent = '♫ ' + text;
   isPlaying = true;
   document.getElementById('btn-play').textContent = '⏸';
+}
+
+// ── Cover art ─────────────────────────────────────────────────────────────────
+const coverCache = new Map();
+let coverSeq = 0;
+
+async function updateCoverArt(args, { np = true, cd = false } = {}) {
+  const seq = ++coverSeq;
+  const key = args.filePath || args.releaseId || `${args.artist || ''}|${args.album || ''}`;
+  let url = coverCache.get(key);
+  if (url === undefined) {
+    url = await window.api.getCoverArt(args);
+    coverCache.set(key, url);
+  }
+  if (seq !== coverSeq) return; // a newer track took over
+  if (np) {
+    const img = document.getElementById('np-cover');
+    if (url) { img.src = url; img.style.display = ''; }
+    else { img.removeAttribute('src'); img.style.display = 'none'; }
+  }
+  if (cd) {
+    const cdImg = document.getElementById('cd-cover-img');
+    const spinner = document.getElementById('cd-disc-spinner');
+    if (url) { cdImg.src = url; cdImg.style.display = ''; spinner.style.display = 'none'; }
+    else { cdImg.removeAttribute('src'); cdImg.style.display = 'none'; spinner.style.display = ''; }
+  }
+}
+
+function hideNpCover() {
+  coverSeq++;
+  const img = document.getElementById('np-cover');
+  img.removeAttribute('src');
+  img.style.display = 'none';
 }
 
 
