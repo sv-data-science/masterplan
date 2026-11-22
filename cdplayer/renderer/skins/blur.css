@@ -1,0 +1,57 @@
+/* Blur — 90s Pop-Art Primaries Skin */
+:root {
+  --font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --radius: 8px;
+
+  --bg-primary: #fbfbfd;
+  --sidebar-bg: #e8f4ff;
+  --topbar-bg: #ffffff;
+  --statusbar-bg: #fff8d6;
+  --player-bg: #fff8d6;
+  --list-header-bg: #e8f4ff;
+
+  --titlebar-bg: #ffd166;
+  --titlebar-text: #1c1c28;
+  --titlebar-btn-bg: #ffe08a;
+  --titlebar-btn-hover: #ffca3a;
+
+  --text-primary: #1c1c28;
+  --text-secondary: #4a4a5a;
+  --text-muted: #8a8a9a;
+
+  --accent: #118ab2;
+  --accent-dark: #0b6a8a;
+
+  --border: #d5e3f0;
+  --row-border: #e6eef6;
+  --row-hover: #eef6fd;
+  --row-active: #dceefb;
+  --row-playing: #fff3b0;
+
+  --input-bg: #ffffff;
+  --btn-bg: #e8f4ff;
+  --btn-hover: #cfe7fa;
+  --ctrl-bg: #ffffff;
+
+  --scrollbar: #bcd6ee;
+  --disc-bg: radial-gradient(circle, #ffe08a 0%, #ffd166 60%, #f4b942 100%);
+  --disc-border: #ef476f;
+  --disc-hole: #ffffff;
+  --disc-ring: #ef476f;
+}
+
+#app-title { font-weight: 900; letter-spacing: 1px; }
+.nav-btn { font-weight: 700; border-radius: 16px; }
+.nav-btn.active { background: var(--accent); color: #fff; }
+
+#cd-disc-art {
+  background: radial-gradient(circle at 38% 38%, #ffe08a 0%, #ffd166 60%, #f4b942 100%);
+  box-shadow: 0 8px 28px rgba(244,185,66,0.45);
+}
+
+#player-bar { border-top: 3px solid #ef476f; }
+.action-btn.primary { background: #ef476f; color: #fff; font-weight: 800; border-radius: 16px; }
+.ctrl-btn { border-radius: 50%; }
+.ctrl-btn:hover { background: var(--accent); color: #fff; transform: scale(1.06); }
+.track-row.playing .col-num::after { content: '▶'; color: #ef476f; }
+.track-row.playing .col-num span { display: none; }
