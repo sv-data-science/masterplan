@@ -4,6 +4,7 @@ const { execFile, spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const net = require('net');
+const crypto = require('crypto');
 const { isWin, TOOLS, NULL_DEVICE, detectCdDrive } = require('./tools');
 
 let mainWindow;
@@ -185,31 +186,61 @@ ipcMain.handle('get-cd-toc', async () => {
 });
 
 // ── MusicBrainz Lookup ───────────────────────────────────────────────────────
+// MusicBrainz Disc ID: SHA-1 over first/last track (hex), lead-out and the
+// 99 track offsets (all +150 lead-in), base64 with MB's character swaps.
+function musicBrainzDiscId(toc) {
+  const leadout = toc[toc.length - 1].startSector + toc[toc.length - 1].sectors + 150;
+  let s = (1).toString(16).toUpperCase().padStart(2, '0')
+        + toc.length.toString(16).toUpperCase().padStart(2, '0')
+        + leadout.toString(16).toUpperCase().padStart(8, '0');
+  for (let i = 0; i < 99; i++) {
+    const off = i < toc.length ? toc[i].startSector + 150 : 0;
+    s += off.toString(16).toUpperCase().padStart(8, '0');
+  }
+  return crypto.createHash('sha1').update(s).digest('base64')
+    .replace(/\+/g, '.').replace(/\//g, '_').replace(/=/g, '-');
+}
+
 ipcMain.handle('lookup-cd', async (_, { discId, toc }) => {
   const UA = 'CDPlayer/1.0 (sv.data.analytics@gmail.com)';
-  // Build TOC string for MusicBrainz: firstTrack lastTrack leadoutOffset track1offset...
-  if (toc && toc.length > 0) {
-    const leadout = toc[toc.length - 1].startSector + toc[toc.length - 1].sectors + 150;
-    const offsets = toc.map(t => t.startSector + 150).join('+');
-    const tocStr = `1+${toc.length}+${leadout}+${offsets}`;
-    const url = `https://musicbrainz.org/ws/2/discid/-?toc=${tocStr}&fmt=json&inc=artists+recordings`;
+  if (!toc || toc.length === 0) return null;
+
+  const leadout = toc[toc.length - 1].startSector + toc[toc.length - 1].sectors + 150;
+  const offsets = toc.map(t => t.startSector + 150);
+  const tocStr = `1+${toc.length}+${leadout}+${offsets.join('+')}`;
+
+  const mbFetch = async (url) => {
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
         const res = await fetch(url, { headers: { 'User-Agent': UA } });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.releases && data.releases.length > 0) {
-            return formatMBRelease(data.releases[0], toc);
-          }
-          console.error('MusicBrainz: no releases for TOC', tocStr);
-          return null;
-        }
+        if (res.ok) return await res.json();
+        if (res.status === 404) return null;
         console.error(`MusicBrainz lookup HTTP ${res.status} (attempt ${attempt})`);
       } catch (e) {
         console.error(`MusicBrainz lookup failed (attempt ${attempt}):`, e.message);
       }
       if (attempt < 3) await new Promise(r => setTimeout(r, 1200));
     }
+    return undefined; // server/network failure after retries
+  };
+
+  // 1) Exact disc ID lookup — precise, no fuzzy matches.
+  const id = musicBrainzDiscId(toc);
+  const byId = await mbFetch(`https://musicbrainz.org/ws/2/discid/${id}?fmt=json&inc=artists+recordings`);
+  if (byId) {
+    const rel = byId.releases ? byId.releases[0] : byId;
+    if (rel && rel.id) return formatMBRelease(rel, toc);
+  }
+
+  // 2) Fallback: TOC search, but only accept an EXACT offsets match — a
+  //    fuzzy match would tag the ripped MP3s with the wrong album.
+  const byToc = await mbFetch(`https://musicbrainz.org/ws/2/discid/-?toc=${tocStr}&fmt=json&inc=artists+recordings`);
+  if (byToc && byToc.releases) {
+    const exact = byToc.releases.find(r =>
+      (r.media || []).some(m => (m.discs || []).some(d =>
+        d.sectors === leadout && JSON.stringify(d.offsets) === JSON.stringify(offsets))));
+    if (exact) return formatMBRelease(exact, toc);
+    console.error('MusicBrainz: no exact TOC match among', byToc.releases.length, 'candidates');
   }
   return null;
 });
